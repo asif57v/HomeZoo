@@ -6,7 +6,8 @@ import {
   getAddressFromCoordinates,
   searchLocation,
   calculateDistance,
-  deleteImage
+  deleteImage,
+  updatePartnerFcmToken
 } from '../controllers/hotelController.js';
 import upload from '../utils/multer.js';
 
@@ -28,5 +29,7 @@ router.put('/notifications/read-all', protect, authorizedRoles('partner', 'admin
 router.put('/notifications/:id/read', protect, authorizedRoles('partner', 'admin'), markNotificationRead);
 router.delete('/notifications', protect, authorizedRoles('partner', 'admin'), deleteNotifications);
 
-export default router;
+// FCM Token Route - Partner Only
+router.put('/fcm-token', protect, authorizedRoles('partner'), updatePartnerFcmToken);
 
+export default router;

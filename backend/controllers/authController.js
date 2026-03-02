@@ -54,7 +54,7 @@ export const sendOtp = async (req, res) => {
     }
 
     // TEST NUMBERS - Bypass OTP with default 123456 (includes seeded partner 7777777777)
-    const testNumbers = ['9685974247', '6261096283', '9752275626', '7777777777'];
+    const testNumbers = ['9685974247', '6261096283', '9752275626', '7777777777', '9000000001', '9000000002'];
     const isTestNumber = testNumbers.includes(phone);
 
     // Generate OTP - Use 123456 for test numbers, random for others
@@ -691,7 +691,7 @@ export const updateAdminProfile = async (req, res) => {
  */
 export const updateFcmToken = async (req, res) => {
   try {
-    const { fcmToken } = req.body;
+    const { fcmToken, platform = 'web' } = req.body; // Default platform to 'web'
     if (!fcmToken) return res.status(400).json({ message: 'fcmToken is required' });
 
     const user = req.user; // From middleware (User, Partner, or Admin)
@@ -700,19 +700,25 @@ export const updateFcmToken = async (req, res) => {
 
     // Ensure fcmTokens object exists
     if (!user.fcmTokens) {
-      user.fcmTokens = {};
+      user.fcmTokens = { app: null, web: null };
     }
 
-    // Defaulting to web for now, can be extended to 'app'
-    user.fcmTokens.web = fcmToken;
+    // Determine platform and update (default to 'web' if not 'app')
+    const targetPlatform = platform === 'app' ? 'app' : 'web';
+    user.fcmTokens[targetPlatform] = fcmToken;
 
-    // For backward compatibility if schema uses single field, but our models have fcmTokens object now
-    // If Admin doesn't have fcmTokens object in schema yet, we might need to check. 
-    // Assuming Admin schema is similar or we just save to the document.
+    // Use markModified if user is a Mongoose document to ensure nested object update is tracked
+    if (typeof user.markModified === 'function') {
+      user.markModified('fcmTokens');
+    }
 
     await user.save();
 
-    res.json({ success: true, message: 'FCM Token updated successfully' });
+    res.json({
+      success: true,
+      message: `FCM Token updated successfully for ${targetPlatform}`,
+      platform: targetPlatform
+    });
   } catch (error) {
     console.error('Update FCM Token Error:', error);
     res.status(500).json({ message: 'Server error updating FCM token' });

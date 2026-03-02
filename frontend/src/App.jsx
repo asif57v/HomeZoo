@@ -307,15 +307,11 @@ function App() {
           const appToken = await window.NativeApp.getFcmToken();
           if (appToken) {
             console.log('Received App Token from Native Bridge:', appToken);
-            // Perform update for 'app' platform
             const adminToken = localStorage.getItem('adminToken');
             if (adminToken) {
               await adminService.updateFcmToken(appToken, 'app');
-            } else {
-              const tokenAuth = localStorage.getItem('token');
-              if (tokenAuth) {
-                await userService.updateFcmToken(appToken, 'app');
-              }
+            } else if (localStorage.getItem('token')) {
+              await userService.updateFcmToken(appToken, 'app');
             }
             return;
           }
@@ -338,21 +334,22 @@ function App() {
         }
       });
 
+      // 3. Web FCM: Only request if user is already logged in
+      // (Login/Signup pages handle FCM for fresh sessions themselves)
+      const isLoggedIn = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      if (!isLoggedIn) return;
+
       try {
         const token = await requestNotificationPermission();
         if (token) {
-          // Check for Admin Token first
           const adminToken = localStorage.getItem('adminToken');
           if (adminToken) {
             console.log('FCM Token received, updating for Admin');
             await adminService.updateFcmToken(token, 'web');
             return;
           }
-
-          // Check for User/Partner Token
           const tokenAuth = localStorage.getItem('token');
           const userStr = localStorage.getItem('user');
-
           if (tokenAuth && userStr) {
             const user = JSON.parse(userStr);
             console.log('FCM Token received, updating backend for role:', user.role);

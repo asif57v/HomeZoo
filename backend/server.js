@@ -139,6 +139,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/hotels', hotelRoutes);
+app.use('/api/partners', hotelRoutes); // Partner-specific routes (e.g. /api/partners/fcm-token)
 app.use('/api/referrals', referralRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/categories', categoryRoutes);

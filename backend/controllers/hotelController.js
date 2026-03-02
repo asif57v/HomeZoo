@@ -234,3 +234,49 @@ export const deleteImage = async (req, res) => {
     res.status(500).json({ message: error.message || 'Deletion failed' });
   }
 };
+
+/**
+ * @desc    Update FCM Token for Partner (Push Notifications)
+ * @route   PUT /api/partners/fcm-token
+ * @access  Private (Partner only)
+ */
+export const updatePartnerFcmToken = async (req, res) => {
+  try {
+    const { fcmToken, platform = 'web' } = req.body;
+
+    if (!fcmToken) {
+      return res.status(400).json({ success: false, message: 'fcmToken is required' });
+    }
+
+    const partner = req.user; // Set by protect middleware (Partner document)
+
+    if (!partner) {
+      return res.status(404).json({ success: false, message: 'Partner not found' });
+    }
+
+    // Ensure fcmTokens object exists
+    if (!partner.fcmTokens) {
+      partner.fcmTokens = { app: null, web: null };
+    }
+
+    // Save to 'app' or 'web' based on platform param (default: 'web')
+    const targetPlatform = platform === 'app' ? 'app' : 'web';
+    partner.fcmTokens[targetPlatform] = fcmToken;
+
+    // markModified ensures Mongoose tracks nested object changes
+    partner.markModified('fcmTokens');
+
+    await partner.save();
+
+    console.log(`[Partner FCM] Token updated for partner: ${partner._id} | platform: ${targetPlatform}`);
+
+    res.json({
+      success: true,
+      message: `FCM token updated successfully for ${targetPlatform}`,
+      platform: targetPlatform
+    });
+  } catch (error) {
+    console.error('Update Partner FCM Token Error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating FCM token' });
+  }
+};

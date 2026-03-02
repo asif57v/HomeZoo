@@ -7,12 +7,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-com
 
 // Initialize Firebase
 firebase.initializeApp({
-  apiKey: "AIzaSyDvZuIOlJce5MFqM7UdaPnMxnHggOVwUnA",
-  authDomain: "rukkooin-39480.firebaseapp.com",
-  projectId: "rukkooin-39480",
-  storageBucket: "rukkooin-39480.firebasestorage.app",
-  messagingSenderId: "463389493822",
-  appId: "1:463389493822:web:79fa9aabcb1d88f6965f6f"
+  apiKey: "AIzaSyDRdqC6o3xTAEp3HpDE7laeLkiHNCevTX4",
+  authDomain: "homzoo.firebaseapp.com",
+  projectId: "homzoo",
+  storageBucket: "homzoo.firebasestorage.app",
+  messagingSenderId: "166464194870",
+  appId: "1:166464194870:web:ea077aa1064b1ca61c8b97"
 });
 
 // Retrieve an instance of Firebase Messaging
