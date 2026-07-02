@@ -54,7 +54,7 @@ export const sendOtp = async (req, res) => {
     }
 
     // TEST NUMBERS - Bypass OTP with default 123456 (includes seeded partner 7777777777)
-    const testNumbers = ['9685974247', '6261096283', '9752275626', '7777777777', '9000000001', '9000000002', '6268455485'];
+    const testNumbers = ['9685974247', '6261096283', '9752275626', '7777777777', '9000000001', '9000000002', '9000000001', '9000000002', '6268455485'];
     const isTestNumber = testNumbers.includes(phone);
 
     // Generate OTP - Use 123456 for test numbers, random for others
