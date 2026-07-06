@@ -19,25 +19,11 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
     // Disable body scroll when sidebar is open
     useEffect(() => {
         if (isOpen) {
-            const scrollY = window.scrollY;
-            document.body.style.position = 'fixed';
-            document.body.style.top = `-${scrollY}px`;
-            document.body.style.width = '100%';
             document.body.style.overflow = 'hidden';
         } else {
-            const scrollY = document.body.style.top;
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.width = '';
             document.body.style.overflow = '';
-            if (scrollY) {
-                window.scrollTo(0, parseInt(scrollY || '0') * -1);
-            }
         }
         return () => {
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.width = '';
             document.body.style.overflow = '';
         };
     }, [isOpen]);
@@ -115,15 +101,14 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <>
+                <div className="fixed inset-0 z-[2000] flex">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000]"
-                        style={{ pointerEvents: 'auto' }}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                     />
 
                     <motion.div
@@ -131,14 +116,14 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
                         transition={{ type: 'tween', ease: 'circOut', duration: 0.4 }}
-                        className="fixed top-0 left-0 h-[100dvh] w-[85%] max-w-[300px] bg-white z-[2001] overflow-y-auto overscroll-contain shadow-2xl"
-                        style={{ touchAction: 'pan-y' }}
+                        className="relative flex h-[100dvh] w-[85%] max-w-[300px] flex-col bg-white shadow-2xl z-[2001]"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-5 pb-2">
-                            <div className="flex flex-col items-start leading-none">
-                                <span className="text-xl font-black tracking-tighter text-slate-900 flex items-center gap-0.5">
-                                    HOOM<span className="text-amber-600">ZO</span>
+                        <div className="flex-1 overflow-y-auto pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+                            <div className="flex items-center justify-between p-5 pb-2">
+                                <div className="flex flex-col items-start leading-none">
+                                    <span className="text-xl font-black tracking-tighter text-slate-900 flex items-center gap-0.5">
+                                        HOOM<span className="text-amber-600">ZO</span>
                                 </span>
                                 <div className="h-1 w-6 bg-teal-600 rounded-full mt-0.5"></div>
                             </div>
@@ -199,9 +184,10 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
                                     Partner App • v1.0.0
                                 </p>
                             </div>
+                            </div>
                         </div>
                     </motion.div>
-                </>
+                </div>
             )}
         </AnimatePresence>
     );
