@@ -626,8 +626,39 @@ const PropertyDetailsPage = () => {
     }
 
     if (!selectedRoom && !['Rent', 'Buy', 'Plot'].includes(propertyType)) {
-      toast.error("Please select a room/unit");
-      return;
+      if (property?.inventory?.length === 1) {
+        // If there's only one room, automatically use it
+        const roomToBook = property.inventory[0];
+        
+        let currentAvailability = availability;
+        if (!currentAvailability || checkingAvailability) {
+          // If we haven't checked availability, checkout page will handle it or we can bypass here for single-room PGs
+        }
+        
+        if (!localStorage.getItem('token')) {
+          toast.error("Please login to book");
+          navigate('/login', { state: { from: `/hotel/${id}` } });
+          return;
+        }
+
+        navigate('/checkout', {
+          state: {
+            property,
+            selectedRoom: roomToBook,
+            dates,
+            guests: isPgOrHostel ? { rooms: 1, adults: 1, children: 0 } : guests,
+            priceBreakdown: null // Checkout page can recalculate
+          }
+        });
+        return;
+      } else {
+        toast.error("Please select a room/unit");
+        const roomsSection = document.getElementById('rooms-section');
+        if (roomsSection) {
+          roomsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        return;
+      }
     }
 
     // Capture availability result (either from state or fresh check)
