@@ -16,7 +16,7 @@ class SMSIndiaHubService {
   }
 
   async sendOTP(phone, otp, purpose = 'registration') {
-    const message = `Welcome to the Rukkoo.in powered by SMSINDIAHUB. Your OTP for registration is ${otp}`;
+    const message = `Welcome to the Homezoo powered by SMSINDIAHUB. Your OTP for registration is ${otp}`;
     return this.sendSMS(phone, message);
   }
 
