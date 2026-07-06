@@ -261,7 +261,7 @@ export const updateProperty = async (req, res) => {
 export const addRoomType = async (req, res) => {
   try {
     const { propertyId } = req.params;
-    const { name, inventoryType, roomCategory, maxAdults, maxChildren, bedsPerRoom, totalInventory, pricePerNight, extraAdultPrice, extraChildPrice, images, amenities } = req.body;
+    const { name, inventoryType, roomCategory, maxAdults, maxChildren, bedsPerRoom, totalInventory, pricePerNight, extraAdultPrice, extraChildPrice, securityDeposit, availableFrom, images, amenities } = req.body;
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
@@ -317,6 +317,8 @@ export const addRoomType = async (req, res) => {
       pricePerNight,
       extraAdultPrice,
       extraChildPrice,
+      securityDeposit,
+      availableFrom,
       images: normalizedImages,
       amenities
     });

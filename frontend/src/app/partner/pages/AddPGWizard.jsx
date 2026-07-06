@@ -44,7 +44,17 @@ const ROOM_AMENITIES = [
   { key: 'bunk_bed', label: 'Bunk Bed', icon: Bed },
   { key: 'personal_locker', label: 'Personal Locker', icon: FileText },
   { key: 'fan', label: 'Fan', icon: CheckCircle },
-  { key: 'common_washroom', label: 'Common Washroom', icon: MapPin }
+  { key: 'ac', label: 'AC', icon: Wind },
+  { key: 'geyser', label: 'Geyser', icon: Thermometer },
+  { key: 'washing_machine', label: 'Washing Machine', icon: Shirt },
+  { key: 'table', label: 'Table', icon: CheckCircle },
+  { key: 'chair', label: 'Chair', icon: CheckCircle },
+  { key: 'led_tv', label: 'LED TV', icon: Tv },
+  { key: 'water_24_7', label: 'Water 24*7', icon: Droplets },
+  { key: 'attached_washroom', label: 'Attached Washroom', icon: MapPin },
+  { key: 'common_washroom', label: 'Common Washroom', icon: MapPin },
+  { key: 'sofa', label: 'Sofa', icon: CheckCircle },
+  { key: 'almirah', label: 'Almirah', icon: Box }
 ];
 
 const AddPGWizard = () => {
@@ -582,8 +592,10 @@ const AddPGWizard = () => {
       maxAdults: '',
       maxChildren: 0,
       bedsPerRoom: '',
-      totalInventory: '',
+      totalInventory: 99,
       pricePerNight: '',
+      securityDeposit: '',
+      availableFrom: '',
       extraAdultPrice: 0,
       extraChildPrice: 0,
       images: [],
@@ -792,6 +804,8 @@ const AddPGWizard = () => {
             bedsPerRoom: Number(rt.bedsPerRoom),
             totalInventory: Number(rt.totalInventory || 0),
             pricePerNight: Number(rt.pricePerNight),
+            securityDeposit: Number(rt.securityDeposit || 0),
+            availableFrom: rt.availableFrom || '',
             extraAdultPrice: Number(rt.extraAdultPrice || 0),
             extraChildPrice: Number(rt.extraChildPrice || 0),
             images: rt.images.filter(Boolean),
@@ -821,6 +835,8 @@ const AddPGWizard = () => {
           bedsPerRoom: Number(rt.bedsPerRoom),
           totalInventory: Number(rt.totalInventory || 0),
           pricePerNight: Number(rt.pricePerNight),
+          securityDeposit: Number(rt.securityDeposit || 0),
+          availableFrom: rt.availableFrom || '',
           extraAdultPrice: Number(rt.extraAdultPrice || 0),
           extraChildPrice: Number(rt.extraChildPrice || 0),
           images: rt.images.filter(Boolean),
@@ -977,10 +993,7 @@ const AddPGWizard = () => {
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notice Period</label>
                     <input className="input w-full" placeholder="e.g. 1 Month" value={propertyForm.noticePeriod} onChange={e => updatePropertyForm('noticePeriod', e.target.value)} />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Security Deposit (₹)</label>
-                    <input type="number" className="input w-full" placeholder="e.g. 5000" value={propertyForm.securityDeposit} onChange={e => updatePropertyForm('securityDeposit', e.target.value)} />
-                  </div>
+
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Available From</label>
                     <input type="date" className="input w-full" value={propertyForm.availableFrom} onChange={e => updatePropertyForm('availableFrom', e.target.value)} />
@@ -1353,16 +1366,16 @@ const AddPGWizard = () => {
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-gray-500">Units/Inventory</label>
-                        <input className="input" type="number" placeholder="1" value={editingRoomType.totalInventory} onChange={e => setEditingRoomType({ ...editingRoomType, totalInventory: e.target.value })} />
+                        <label className="text-xs font-semibold text-gray-500">Security Amount (₹)</label>
+                        <input className="input" type="number" placeholder="5000" value={editingRoomType.securityDeposit} onChange={e => setEditingRoomType({ ...editingRoomType, securityDeposit: e.target.value, totalInventory: 99 })} />
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-semibold text-gray-500">Beds per Room</label>
                         <input className="input" type="number" placeholder="1" value={editingRoomType.bedsPerRoom} onChange={e => setEditingRoomType({ ...editingRoomType, bedsPerRoom: e.target.value })} />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-semibold text-gray-500">Max Adults</label>
-                        <input className="input" type="number" placeholder="1" value={editingRoomType.maxAdults} onChange={e => setEditingRoomType({ ...editingRoomType, maxAdults: e.target.value })} />
+                        <label className="text-xs font-semibold text-gray-500">Available From</label>
+                        <input className="input" type="date" value={editingRoomType.availableFrom || ''} onChange={e => setEditingRoomType({ ...editingRoomType, availableFrom: e.target.value, maxAdults: 1 })} />
                       </div>
                     </div>
 

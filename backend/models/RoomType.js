@@ -50,6 +50,7 @@ const roomTypeSchema = new mongoose.Schema({
   pricePerNight: { type: Number, required: true },
   extraAdultPrice: { type: Number, default: 0 },
   extraChildPrice: { type: Number, default: 0 },
+  securityDeposit: { type: Number, default: 0 },
 
   // MEDIA
   images: {
@@ -58,6 +59,8 @@ const roomTypeSchema = new mongoose.Schema({
   },
 
   amenities: [String],
+
+  availableFrom: { type: String },
 
   isActive: { type: Boolean, default: true }
 
