@@ -225,7 +225,16 @@ const OverviewTab = ({ hotel }) => (
                 </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center">
                     <h4 className="text-[10px] font-bold uppercase text-gray-500">Food Included</h4>
-                    <p className="text-xs font-bold text-gray-900">{hotel.pgDetails?.foodIncluded ? 'YES' : 'NO'}</p>
+                    <p className="text-xs font-bold text-gray-900">
+                        {typeof hotel.pgDetails?.foodIncluded === 'object'
+                            ? [
+                                hotel.pgDetails.foodIncluded.breakfast && 'B',
+                                hotel.pgDetails.foodIncluded.lunch && 'L',
+                                hotel.pgDetails.foodIncluded.dinner && 'D'
+                              ].filter(Boolean).join(', ') || 'NO'
+                            : hotel.pgDetails?.foodIncluded ? 'YES' : 'NO'
+                        }
+                    </p>
                 </div>
             </div>
         ) : (

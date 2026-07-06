@@ -114,8 +114,17 @@ export const getAddressFromCoordinates = async (req, res) => {
     }
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`;
     const { data } = await axios.get(url);
+
+    if (data.status && data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+      const errMsg = data.error_message || data.status;
+      console.error('[getAddressFromCoordinates] Google API error:', data.status, errMsg);
+      return res.status(400).json({
+        message: errMsg || 'Location fetch failed. Enable Geocoding API in Google Cloud Console.',
+      });
+    }
+
     const first = Array.isArray(data.results) ? data.results[0] : null;
-    if (!first) return res.status(404).json({ message: 'Address not found' });
+    if (!first) return res.status(404).json({ message: 'Address not found for these coordinates' });
     const { country, state, city, area, pincode } = mapAddressComponents(first.address_components || []);
     res.json({
       success: true,

@@ -117,7 +117,11 @@ const propertySchema = new mongoose.Schema({
     noticePeriod: String,
     securityDeposit: Number,
     availableFrom: Date,
-    foodIncluded: Boolean,
+    foodIncluded: {
+      breakfast: { type: Boolean, default: false },
+      lunch: { type: Boolean, default: false },
+      dinner: { type: Boolean, default: false }
+    },
     rules: {
       smoking: Boolean,
       drinking: Boolean,

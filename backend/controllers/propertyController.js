@@ -624,7 +624,12 @@ export const getPublicProperties = async (req, res) => {
     }
 
     if (req.query.foodIncluded === 'true') {
-      matchConditions['pgDetails.foodIncluded'] = true;
+      matchConditions['$or'] = matchConditions['$or'] || [];
+      matchConditions['$or'].push(
+        { 'pgDetails.foodIncluded.breakfast': true },
+        { 'pgDetails.foodIncluded.lunch': true },
+        { 'pgDetails.foodIncluded.dinner': true }
+      );
     }
 
     if (Object.keys(matchConditions).length > 0) {

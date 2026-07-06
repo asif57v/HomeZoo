@@ -121,7 +121,7 @@ const AddPGWizard = () => {
     noticePeriod: '',
     securityDeposit: '',
     availableFrom: '',
-    foodIncluded: false,
+    foodIncluded: { breakfast: false, lunch: false, dinner: false },
     smoking: false,
     drinking: false,
     visitors: false,
@@ -168,7 +168,12 @@ const AddPGWizard = () => {
       const clone = JSON.parse(JSON.stringify(prev));
       const keys = Array.isArray(path) ? path : String(path).split('.');
       let ref = clone;
-      for (let i = 0; i < keys.length - 1; i++) ref = ref[keys[i]];
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (typeof ref[keys[i]] !== 'object' || ref[keys[i]] === null) {
+          ref[keys[i]] = {};
+        }
+        ref = ref[keys[i]];
+      }
       ref[keys[keys.length - 1]] = value;
       return clone;
     });
@@ -339,11 +344,15 @@ const AddPGWizard = () => {
     }
   };
 
-  const searchLocationForAddress = async () => {
+  const searchLocationForAddress = async (q) => {
     try {
       setError('');
-      if (!locationSearchQuery.trim()) return;
-      const res = await hotelService.searchLocation(locationSearchQuery.trim());
+      const query = typeof q === 'string' ? q : locationSearchQuery;
+      if (!query.trim()) {
+        setLocationResults([]);
+        return;
+      }
+      const res = await hotelService.searchLocation(query.trim());
       setLocationResults(Array.isArray(res?.results) ? res.results : []);
     } catch {
       setError('Failed to search location');
@@ -371,11 +380,15 @@ const AddPGWizard = () => {
     }
   };
 
-  const searchNearbyPlaces = async () => {
+  const searchNearbyPlaces = async (q) => {
     try {
       setError('');
-      if (!nearbySearchQuery.trim()) return;
-      const res = await hotelService.searchLocation(nearbySearchQuery.trim());
+      const query = typeof q === 'string' ? q : nearbySearchQuery;
+      if (!query.trim()) {
+        setNearbyResults([]);
+        return;
+      }
+      const res = await hotelService.searchLocation(query.trim());
       setNearbyResults(Array.isArray(res?.results) ? res.results : []);
     } catch {
       setError('Failed to search places');
@@ -602,11 +615,6 @@ const AddPGWizard = () => {
       setError('Room type name and price required');
       return;
     }
-    const imageCount = (editingRoomType.images || []).filter(Boolean).length;
-    if (imageCount < 1) {
-      setError('Please upload at least 1 room image');
-      return;
-    }
     const next = [...roomTypes];
     if (editingRoomTypeIndex === -1 || editingRoomTypeIndex == null) {
       next.push(editingRoomType);
@@ -660,7 +668,7 @@ const AddPGWizard = () => {
       setError('Please upload at least 4 property images');
       return;
     }
-    setStep(5);
+    setStep(6);
   };
 
   const nextFromRoomTypes = () => {
@@ -674,12 +682,8 @@ const AddPGWizard = () => {
         setError('Room type name and price required');
         return;
       }
-      if (!rt.images || rt.images.filter(Boolean).length < 1) {
-        setError('Each room type must have at least 1 image');
-        return;
-      }
     }
-    setStep(6);
+    setStep(5);
   };
 
   const nextFromRules = () => {
@@ -757,7 +761,11 @@ const AddPGWizard = () => {
           noticePeriod: propertyForm.noticePeriod,
           securityDeposit: Number(propertyForm.securityDeposit || 0),
           availableFrom: propertyForm.availableFrom,
-          foodIncluded: propertyForm.foodIncluded,
+          foodIncluded: {
+            breakfast: propertyForm.foodIncluded?.breakfast || false,
+            lunch: propertyForm.foodIncluded?.lunch || false,
+            dinner: propertyForm.foodIncluded?.dinner || false
+          },
           rules: {
             smoking: propertyForm.smoking,
             drinking: propertyForm.drinking,
@@ -852,9 +860,9 @@ const AddPGWizard = () => {
     } else if (step === 3) {
       updatePropertyForm('amenities', []);
     } else if (step === 4) {
-      setPropertyForm(prev => ({ ...prev, coverImage: '', propertyImages: [] }));
-    } else if (step === 5) {
       setRoomTypes([]);
+    } else if (step === 5) {
+      setPropertyForm(prev => ({ ...prev, coverImage: '', propertyImages: [] }));
     } else if (step === 6) {
       setPropertyForm(prev => ({ ...prev, checkInTime: '12:00 PM', checkOutTime: '10:00 AM', cancellationPolicy: 'No refund after check-in', houseRules: [] }));
     } else if (step === 7) {
@@ -866,9 +874,9 @@ const AddPGWizard = () => {
     if (loading) return;
     if (step === 1) nextFromBasic();
     else if (step === 2) nextFromLocation();
-    else if (step === 3) nextFromAmenities(); // Goes to Step 4 (Images)
-    else if (step === 4) nextFromImages();
-    else if (step === 5) nextFromRoomTypes();
+    else if (step === 3) nextFromAmenities();
+    else if (step === 4) nextFromRoomTypes();
+    else if (step === 5) nextFromImages();
     else if (step === 6) nextFromRules();
     else if (step === 7) nextFromDocuments();
     else if (step === 8) submitAll();
@@ -879,8 +887,8 @@ const AddPGWizard = () => {
       case 1: return "Basic Info";
       case 2: return "Location";
       case 3: return "Amenities";
-      case 4: return "Property Images";
-      case 5: return "Bed Inventory";
+      case 4: return "Bed Inventory";
+      case 5: return "Property Images";
       case 6: return "House Rules";
       case 7: return "Documents";
       case 8: return "Review & Submit";
@@ -979,14 +987,22 @@ const AddPGWizard = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-xl w-full hover:border-emerald-200 bg-white">
-                    <input type="checkbox" checked={propertyForm.foodIncluded} onChange={e => updatePropertyForm('foodIncluded', e.target.checked)} className="accent-emerald-600 w-5 h-5" />
-                    <div>
-                      <span className="text-sm font-bold text-gray-700 block">Food Included</span>
-                      <span className="text-xs text-gray-400">Breakfast, Lunch, Dinner provided</span>
-                    </div>
-                  </label>
+                <div className="space-y-2 pt-2">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Food Included</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-xl hover:border-emerald-200 bg-white">
+                      <input type="checkbox" checked={propertyForm.foodIncluded?.breakfast || false} onChange={e => updatePropertyForm(['foodIncluded', 'breakfast'], e.target.checked)} className="accent-emerald-600 w-5 h-5" />
+                      <span className="text-sm font-bold text-gray-700">Breakfast</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-xl hover:border-emerald-200 bg-white">
+                      <input type="checkbox" checked={propertyForm.foodIncluded?.lunch || false} onChange={e => updatePropertyForm(['foodIncluded', 'lunch'], e.target.checked)} className="accent-emerald-600 w-5 h-5" />
+                      <span className="text-sm font-bold text-gray-700">Lunch</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-xl hover:border-emerald-200 bg-white">
+                      <input type="checkbox" checked={propertyForm.foodIncluded?.dinner || false} onChange={e => updatePropertyForm(['foodIncluded', 'dinner'], e.target.checked)} className="accent-emerald-600 w-5 h-5" />
+                      <span className="text-sm font-bold text-gray-700">Dinner</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="space-y-1">
@@ -1042,8 +1058,10 @@ const AddPGWizard = () => {
                     placeholder="Search area, street or landmark..."
                     value={locationSearchQuery}
                     onChange={e => {
-                      setLocationSearchQuery(e.target.value);
-                      if (e.target.value.length > 2) searchLocationForAddress();
+                      const val = e.target.value;
+                      setLocationSearchQuery(val);
+                      if (val.trim().length >= 1) searchLocationForAddress(val);
+                      else setLocationResults([]);
                     }}
                   />
                   {locationResults.length > 0 && locationSearchQuery && (
@@ -1166,7 +1184,7 @@ const AddPGWizard = () => {
 
 
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="space-y-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center px-1">
@@ -1227,7 +1245,7 @@ const AddPGWizard = () => {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 4 && (
             <div className="space-y-6">
               {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
 
@@ -1251,13 +1269,6 @@ const AddPGWizard = () => {
                         <div key={rt.id} className="p-4 border border-gray-200 rounded-2xl bg-white group hover:border-emerald-200 transition-all shadow-sm">
                           <div className="flex justify-between items-start">
                             <div className="flex gap-4">
-                              <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
-                                {rt.images?.[0] ? (
-                                  <img src={rt.images[0]} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-400"><Bed size={20} /></div>
-                                )}
-                              </div>
                               <div>
                                 <div className="font-bold text-gray-900 text-lg">{rt.name}</div>
                                 <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
@@ -1330,7 +1341,7 @@ const AddPGWizard = () => {
 
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-gray-500">Name</label>
-                      <input className="input" placeholder="e.g. 4 Sharing Air Conditioned Dorm" value={editingRoomType.name} onChange={e => setEditingRoomType({ ...editingRoomType, name: e.target.value })} />
+                      <input className="input" placeholder="e.g. 4 Sharing Air Conditioned Dorm" value={editingRoomType.name} onChange={e => { setError(''); setEditingRoomType({ ...editingRoomType, name: e.target.value }); }} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1338,7 +1349,7 @@ const AddPGWizard = () => {
                         <label className="text-xs font-semibold text-gray-500">Monthly Rent (₹)</label>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₹</span>
-                          <input className="input pl-7" type="number" placeholder="0" value={editingRoomType.pricePerNight} onChange={e => setEditingRoomType({ ...editingRoomType, pricePerNight: e.target.value })} />
+                          <input className="input !pl-8" type="number" placeholder="0" value={editingRoomType.pricePerNight} onChange={e => { setError(''); setEditingRoomType({ ...editingRoomType, pricePerNight: e.target.value }); }} />
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -1355,29 +1366,7 @@ const AddPGWizard = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-gray-500">Images (Max 5)</label>
-                        <span className="text-[10px] text-gray-400">{(editingRoomType.images || []).length}/5</span>
-                      </div>
-                      <div className="flex gap-3 overflow-x-auto pb-2">
-                        {(editingRoomType.images || []).map((img, i) => (
-                          <div key={i} className="relative w-20 h-20 flex-shrink-0 rounded-xl border border-gray-200 overflow-hidden group">
-                            <img src={img} className="w-full h-full object-cover" />
-                            <button type="button" onClick={() => handleRemoveImage(img, 'room', i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white text-red-500 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
-                          </div>
-                        ))}
-                        {(editingRoomType.images || []).length < 5 && (
-                          <button type="button" onClick={() => isFlutter ? handleCameraUpload('room', url => setEditingRoomType(prev => ({ ...prev, images: [...(prev.images || []), url].slice(0, 5) }))) : roomImagesFileInputRef.current?.click()} disabled={!!uploading} className="w-20 h-20 flex-shrink-0 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50/20 transition-all">
-                            {uploading === 'room' ? <Loader2 size={20} className="animate-spin text-emerald-600" /> : <Plus size={20} />}
-                          </button>
-                        )}
-                        <input ref={roomImagesFileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={e => {
-                          if (e.target.files?.length) uploadImages(e.target.files, 'room', urls => urls.length && setEditingRoomType(prev => ({ ...prev, images: [...(prev.images || []), ...urls].slice(0, 5) })));
-                          e.target.value = '';
-                        }} />
-                      </div>
-                    </div>
+
 
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-gray-500">Room/Bed Amenities</label>
@@ -1663,7 +1652,7 @@ const AddPGWizard = () => {
             disabled={
               loading ||
               isEditingSubItem ||
-              (step === 5 && roomTypes.length === 0)
+              (step === 4 && roomTypes.length === 0)
             }
             className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2"
           >

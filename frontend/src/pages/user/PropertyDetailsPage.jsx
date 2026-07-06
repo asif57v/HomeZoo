@@ -943,7 +943,16 @@ const PropertyDetailsPage = () => {
                     {pgDetails?.noticePeriod && <div><span className="opacity-70 text-xs block">Notice Period</span>{pgDetails.noticePeriod}</div>}
                     {pgDetails?.securityDeposit && <div><span className="opacity-70 text-xs block">Security Deposit</span>₹{pgDetails.securityDeposit}</div>}
                     {pgDetails?.availableFrom && <div><span className="opacity-70 text-xs block">Available From</span>{new Date(pgDetails.availableFrom).toLocaleDateString()}</div>}
-                    <div><span className="opacity-70 text-xs block">Food</span>{pgDetails?.foodIncluded ? 'Included' : 'Not Included'}</div>
+                    <div>
+                      <span className="opacity-70 text-xs block">Food</span>
+                      {typeof pgDetails?.foodIncluded === 'object'
+                        ? [
+                            pgDetails.foodIncluded.breakfast && 'Breakfast',
+                            pgDetails.foodIncluded.lunch && 'Lunch',
+                            pgDetails.foodIncluded.dinner && 'Dinner'
+                          ].filter(Boolean).join(', ') || 'Not Included'
+                        : pgDetails?.foodIncluded ? 'Included' : 'Not Included'}
+                    </div>
                     {/* Fallback to old config if pgDetails not present */}
                     {!pgDetails && config && (
                       <>
