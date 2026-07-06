@@ -30,8 +30,8 @@ const io = new Server(server, {
       'http://127.0.0.1:5173',
       'https://homezoo.vercel.app',
       'homezoo.vercel.app',
-
-
+      'https://homezoo-rust.vercel.app',
+      'homezoo-rust.vercel.app'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
@@ -86,7 +86,8 @@ app.use(cors({
       'https://www.rukkoo.in',
       'https://rukkoo-project.vercel.app',
       'https://homezoo.vercel.app',
-      'https://homezoo.onrender.com'
+      'https://homezoo.onrender.com',
+      'https://homezoo-rust.vercel.app'
     ];
     // Add 172.16-31 range (often used by hotspots) and 10.x
     const isLocalNetwork =
