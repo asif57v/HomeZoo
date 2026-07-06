@@ -95,7 +95,7 @@ app.use(cors({
       origin.startsWith('http://10.') ||
       origin.startsWith('http://172.');
 
-    if (allowedOrigins.indexOf(origin) !== -1 || isLocalNetwork) {
+    if (allowedOrigins.indexOf(origin) !== -1 || isLocalNetwork || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       console.log('Blocked by CORS:', origin); // Log blocked origin for debugging
