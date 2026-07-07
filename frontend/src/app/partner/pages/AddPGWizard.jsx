@@ -7,7 +7,8 @@ import {
   CheckCircle, FileText, Home, Image, Bed, MapPin, Search, Plus, Trash2,
   ChevronLeft, ChevronRight, Upload, X, ArrowLeft, ArrowRight, Wifi, Clock,
   Loader2, Camera, Wind, Droplets, Zap, Thermometer, Shirt,
-  Sparkles, Shield, Car, Dumbbell, Box, Flame, ArrowUpCircle, Tv, Utensils, User, Users
+  Sparkles, Shield, Car, Dumbbell, Box, Flame, ArrowUpCircle, Tv, Utensils, User, Users,
+  Lock, Fan, Bath, Sofa, Armchair, Monitor
 } from 'lucide-react';
 import logo from '../../../assets/rokologin-removebg-preview.png';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
@@ -34,26 +35,27 @@ const PG_AMENITIES = [
   { name: 'Parking', icon: 'car' },
   { name: 'TV', icon: 'tv' },
   { name: 'Kitchen', icon: 'flame' },
-  { name: 'Single Occupancy', icon: 'user' },
-  { name: 'Double Occupancy', icon: 'users' },
-  { name: 'Triple Occupancy', icon: 'users' }
+  { name: 'Smoking Allowed', icon: 'flame' },
+  { name: 'Drinking Allowed', icon: 'droplets' },
+  { name: 'Visitors Allowed', icon: 'users' },
+  { name: 'Guardian Allowed', icon: 'shield' }
 ];
 
 
 const ROOM_AMENITIES = [
   { key: 'bunk_bed', label: 'Bunk Bed', icon: Bed },
-  { key: 'personal_locker', label: 'Personal Locker', icon: FileText },
-  { key: 'fan', label: 'Fan', icon: CheckCircle },
+  { key: 'personal_locker', label: 'Personal Locker', icon: Lock },
+  { key: 'fan', label: 'Fan', icon: Fan },
   { key: 'ac', label: 'AC', icon: Wind },
   { key: 'geyser', label: 'Geyser', icon: Thermometer },
   { key: 'washing_machine', label: 'Washing Machine', icon: Shirt },
-  { key: 'table', label: 'Table', icon: CheckCircle },
-  { key: 'chair', label: 'Chair', icon: CheckCircle },
+  { key: 'table', label: 'Table', icon: Monitor },
+  { key: 'chair', label: 'Chair', icon: Armchair },
   { key: 'led_tv', label: 'LED TV', icon: Tv },
   { key: 'water_24_7', label: 'Water 24*7', icon: Droplets },
-  { key: 'attached_washroom', label: 'Attached Washroom', icon: MapPin },
-  { key: 'common_washroom', label: 'Common Washroom', icon: MapPin },
-  { key: 'sofa', label: 'Sofa', icon: CheckCircle },
+  { key: 'attached_washroom', label: 'Attached Washroom', icon: Bath },
+  { key: 'common_washroom', label: 'Common Washroom', icon: Bath },
+  { key: 'sofa', label: 'Sofa', icon: Sofa },
   { key: 'almirah', label: 'Almirah', icon: Box }
 ];
 
@@ -242,7 +244,21 @@ const AddPGWizard = () => {
           contactNumber: prop.contactNumber || '',
           documents: docs.length
             ? docs.map(d => ({ type: d.type || d.name, name: d.name, fileUrl: d.fileUrl || '' }))
-            : REQUIRED_DOCS_PG.map(d => ({ type: d.type, name: d.name, fileUrl: '' }))
+            : REQUIRED_DOCS_PG.map(d => ({ type: d.type, name: d.name, fileUrl: '' })),
+          minStay: prop.pgDetails?.minStay || '',
+          noticePeriod: prop.pgDetails?.noticePeriod || '',
+          securityDeposit: prop.pgDetails?.securityDeposit || '',
+          availableFrom: prop.pgDetails?.availableFrom ? new Date(prop.pgDetails.availableFrom).toISOString().split('T')[0] : '',
+          foodIncluded: {
+            breakfast: prop.pgDetails?.foodIncluded?.breakfast || false,
+            lunch: prop.pgDetails?.foodIncluded?.lunch || false,
+            dinner: prop.pgDetails?.foodIncluded?.dinner || false
+          },
+          smoking: prop.pgDetails?.rules?.smoking || false,
+          drinking: prop.pgDetails?.rules?.drinking || false,
+          visitors: prop.pgDetails?.rules?.visitors || false,
+          curfew: prop.pgDetails?.rules?.curfew || '',
+          ageRange: prop.pgDetails?.rules?.ageRange || ''
         });
         if (rts.length) {
           setRoomTypes(
@@ -698,23 +714,6 @@ const AddPGWizard = () => {
     setStep(5);
   };
 
-  const nextFromRules = () => {
-    setError('');
-    const policy = (propertyForm.cancellationPolicy || '').toString().trim();
-    if (!policy) {
-      setError('Please select a cancellation policy.');
-      return;
-    }
-    setStep(7);
-  };
-
-  const nextFromDocuments = () => {
-    setError('');
-    // Optional: Warn if missing, but proceed.
-    // const missing = propertyForm.documents.some(d => !d.fileUrl);
-    // if (missing) console.warn('Some documents missing');
-    setStep(8);
-  };
 
   const resolveCoordinatesFromAddress = async () => {
     const { address } = propertyForm;
@@ -847,7 +846,7 @@ const AddPGWizard = () => {
         setCreatedProperty(res.property);
       }
       localStorage.removeItem(STORAGE_KEY);
-      setStep(9);
+      setStep(7);
     } catch (e) {
       setError(e?.message || 'Failed to submit property');
     } finally {
@@ -879,9 +878,9 @@ const AddPGWizard = () => {
       setRoomTypes([]);
     } else if (step === 5) {
       setPropertyForm(prev => ({ ...prev, coverImage: '', propertyImages: [] }));
-    } else if (step === 6) {
+    } else if (step === 998) {
       setPropertyForm(prev => ({ ...prev, checkInTime: '12:00 PM', checkOutTime: '10:00 AM', cancellationPolicy: 'No refund after check-in', houseRules: [] }));
-    } else if (step === 7) {
+    } else if (step === 999) {
       updatePropertyForm('documents', REQUIRED_DOCS_PG.map(d => ({ type: d.type, name: d.name, fileUrl: '' })));
     }
   };
@@ -893,9 +892,7 @@ const AddPGWizard = () => {
     else if (step === 3) nextFromAmenities();
     else if (step === 4) nextFromRoomTypes();
     else if (step === 5) nextFromImages();
-    else if (step === 6) nextFromRules();
-    else if (step === 7) nextFromDocuments();
-    else if (step === 8) submitAll();
+    else if (step === 6) submitAll();
   };
 
   const getStepTitle = () => {
@@ -905,11 +902,44 @@ const AddPGWizard = () => {
       case 3: return "Amenities";
       case 4: return "Bed Inventory";
       case 5: return "Property Images";
-      case 6: return "House Rules";
-      case 7: return "Documents";
-      case 8: return "Review & Submit";
+      case 6: return "Review & Submit";
       default: return "";
     }
+  };
+
+  const calculateCompletionPercentage = () => {
+    let completed = 0;
+    let total = 0;
+
+    // Step 1: Basic Info
+    total += 4;
+    if (propertyForm.propertyName?.trim()) completed++;
+    if (propertyForm.shortDescription?.trim()) completed++;
+    if (propertyForm.minStay?.trim()) completed++;
+    if (propertyForm.noticePeriod?.trim()) completed++;
+
+    // Step 2: Location
+    total += 4;
+    if (propertyForm.address?.state?.trim()) completed++;
+    if (propertyForm.address?.city?.trim()) completed++;
+    if (propertyForm.address?.fullAddress?.trim()) completed++;
+    if (propertyForm.address?.pincode?.trim()) completed++;
+
+    // Step 3: Amenities
+    total += 1;
+    if (propertyForm.amenities?.length > 0) completed++;
+
+    // Step 4: Bed Inventory
+    total += 1;
+    if (roomTypes.length > 0) completed++;
+
+    // Step 5: Property Images
+    total += 5;
+    if (propertyForm.coverImage) completed++;
+    const uploadedImages = propertyForm.propertyImages.filter(Boolean).length;
+    completed += Math.min(uploadedImages, 4);
+
+    return Math.round((completed / total) * 100);
   };
 
   const handleExit = () => {
@@ -925,7 +955,7 @@ const AddPGWizard = () => {
             <ArrowLeft size={20} />
           </button>
           <div className="text-sm font-bold text-gray-900">
-            {step <= 9 ? `Step ${step} of 9` : 'Registration Complete'}
+            {step <= 7 ? `Step ${step} of 7 (${calculateCompletionPercentage()}% Complete)` : 'Registration Complete'}
           </div>
           <button onClick={handleExit} className="p-2 -mr-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
             <X size={20} />
@@ -934,7 +964,7 @@ const AddPGWizard = () => {
         <div className="h-1 bg-gray-100 w-full">
           <div
             className="h-full bg-emerald-500 transition-all duration-300 ease-out"
-            style={{ width: `${(step / 9) * 100}% ` }}
+            style={{ width: `${calculateCompletionPercentage()}%` }}
           />
         </div>
       </div>
@@ -992,11 +1022,6 @@ const AddPGWizard = () => {
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notice Period</label>
                     <input className="input w-full" placeholder="e.g. 1 Month" value={propertyForm.noticePeriod} onChange={e => updatePropertyForm('noticePeriod', e.target.value)} />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Available From</label>
-                    <input type="date" className="input w-full" value={propertyForm.availableFrom} onChange={e => updatePropertyForm('availableFrom', e.target.value)} />
                   </div>
                 </div>
 
@@ -1416,7 +1441,7 @@ const AddPGWizard = () => {
             </div>
           )}
 
-          {step === 6 && (
+          {step === 998 && (
             <div className="space-y-6">
               {error && (
                 <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
@@ -1483,7 +1508,7 @@ const AddPGWizard = () => {
             </div>
           )}
 
-          {step === 7 && (
+          {step === 999 && (
             <div className="space-y-6">
               {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
               <div className="space-y-4">
@@ -1558,7 +1583,7 @@ const AddPGWizard = () => {
             </div>
           )}
 
-          {step === 8 && (
+          {step === 6 && (
             <div className="space-y-6">
               <div className="bg-emerald-50 rounded-2xl p-6 text-center">
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-emerald-600">
@@ -1601,18 +1626,12 @@ const AddPGWizard = () => {
                       <span className="text-gray-600">Inventory Setup</span>
                       <span className={roomTypes.length > 0 ? "text-emerald-600 font-bold" : "text-red-500 font-bold"}>{roomTypes.length > 0 ? "Complete" : "Missing"}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Documents</span>
-                      <span className="text-gray-500 font-medium">{propertyForm.documents.filter(d => d.fileUrl).length}/{propertyForm.documents.length} (Optional)</span>
-                    </div>
+
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Photos</span>
                       <span className={propertyForm.propertyImages.length >= 4 ? "text-emerald-600 font-bold" : "text-orange-500 font-bold"}>{propertyForm.propertyImages.length}/4</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">House Rules</span>
-                      <span className={propertyForm.houseRules.length > 0 ? "text-emerald-600 font-bold" : "text-gray-400 italic"}>{propertyForm.houseRules.length > 0 ? "Added" : "None"}</span>
-                    </div>
+
                   </div>
                 </div>
               </div>
@@ -1620,7 +1639,7 @@ const AddPGWizard = () => {
               {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm text-center font-medium">{error}</div>}
             </div>
           )}
-          {step === 9 && (
+          {step === 7 && (
             <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
               <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center transition-all animate-bounce">
                 <CheckCircle size={48} />
@@ -1640,7 +1659,8 @@ const AddPGWizard = () => {
         </div>
       </main >
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40">
+      {step < 7 && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
           <button
             onClick={handleBack}
@@ -1650,7 +1670,7 @@ const AddPGWizard = () => {
             Back
           </button>
 
-          {step < 8 && (
+          {step < 6 && (
             <button
               onClick={clearCurrentStep}
               disabled={loading}
@@ -1661,13 +1681,13 @@ const AddPGWizard = () => {
           )}
 
           <button
-            onClick={step === 8 ? submitAll : handleNext}
+            onClick={step === 6 ? submitAll : handleNext}
             disabled={
               loading ||
               isEditingSubItem ||
               (step === 4 && roomTypes.length === 0)
             }
-            className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -1675,11 +1695,12 @@ const AddPGWizard = () => {
                 Processing...
               </>
             ) : (
-              step === 8 ? 'Submit Property' : 'Next Step'
+              step === 6 ? 'Submit' : 'Next Step'
             )}
           </button>
         </div>
       </div>
+      )}
 
 
     </div >

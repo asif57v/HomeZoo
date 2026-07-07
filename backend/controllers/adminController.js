@@ -697,7 +697,7 @@ export const getHotelDetails = async (req, res) => {
     const property = await Property.findById(id).populate('partnerId', 'name email phone');
     if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
 
-    const roomTypes = await RoomType.find({ propertyId: id, isActive: true });
+    const roomTypes = await RoomType.find({ propertyId: id });
     const documents = await PropertyDocument.findOne({ propertyId: id });
 
     res.status(200).json({

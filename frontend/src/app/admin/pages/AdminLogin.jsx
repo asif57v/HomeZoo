@@ -29,7 +29,7 @@ const AdminLogin = () => {
     useEffect(() => {
         const checkExistingAuth = async () => {
             await checkAuth();
-            if (localStorage.getItem('adminToken')) {
+            if (useAdminStore.getState().isAuthenticated) {
                 navigate('/admin/dashboard');
             }
         };
