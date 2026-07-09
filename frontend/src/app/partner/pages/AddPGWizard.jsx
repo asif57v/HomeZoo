@@ -976,6 +976,12 @@ const AddPGWizard = () => {
           </div>
           {step === 1 && (
             <div className="space-y-6">
+              {error && (
+                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                  <CheckCircle size={16} className="rotate-45 shrink-0" />
+                  {error}
+                </div>
+              )}
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Name</label>
@@ -1027,7 +1033,7 @@ const AddPGWizard = () => {
 
                 <div className="space-y-2 pt-2">
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Food Included</label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-xl hover:border-emerald-200 bg-white">
                       <input type="checkbox" checked={propertyForm.foodIncluded?.breakfast || false} onChange={e => updatePropertyForm(['foodIncluded', 'breakfast'], e.target.checked)} className="accent-emerald-600 w-5 h-5" />
                       <span className="text-sm font-bold text-gray-700">Breakfast</span>
@@ -1076,7 +1082,6 @@ const AddPGWizard = () => {
                 </div>
               </div>
 
-              {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2"><CheckCircle size={16} className="rotate-45" /> {error}</div>}
             </div>
           )}
 
@@ -1168,6 +1173,12 @@ const AddPGWizard = () => {
 
           {step === 3 && (
             <div className="space-y-6">
+              {error && (
+                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                  <CheckCircle size={16} className="rotate-45 shrink-0" />
+                  {error}
+                </div>
+              )}
               <div className="flex justify-between items-center px-1">
                 <h3 className="text-sm font-bold text-gray-800">Select Available Amenities</h3>
                 <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">{propertyForm.amenities.length} Selected</span>
@@ -1224,6 +1235,12 @@ const AddPGWizard = () => {
 
           {step === 5 && (
             <div className="space-y-6">
+              {error && (
+                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                  <CheckCircle size={16} className="rotate-45 shrink-0" />
+                  {error}
+                </div>
+              )}
               <div className="space-y-3">
                 <div className="flex justify-between items-center px-1">
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cover Image</label>
