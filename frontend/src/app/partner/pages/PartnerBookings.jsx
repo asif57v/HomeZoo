@@ -74,80 +74,75 @@ const BookingCard = ({ booking }) => {
     const unitLabel = isPG ? 'Bed' : (isBuyPlot || isRent ? 'Unit' : 'Room');
 
     return (
-        <div
-            onClick={() => navigate(`/hotel/bookings/${booking._id}`)}
-            className="bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-sm active:scale-[0.99] transition-transform cursor-pointer"
-        >
+        <div className="bg-white rounded-[24px] p-4 pt-3.5 mb-4 shadow-[0_2px_15px_rgb(0,0,0,0.04)] border border-gray-50">
             {/* Header: ID & Status */}
-            <div className="flex justify-between items-start mb-3">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <div className="flex justify-between items-center mb-2">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
                     {isInquiry ? 'INQUIRY ID' : 'BOOKING ID'}: {bookingId}
                 </span>
-                <span className={`px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide border ${status.color}`}>
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${status.color}`}>
                     {status.label}
                 </span>
             </div>
 
             {/* Guest & Property Info */}
-            <div className="mb-4">
-                <h3 className="text-lg font-black text-[#003836] leading-none mb-1">
-                    {guestName}
-                </h3>
-                <p className="text-xs text-gray-400 font-medium">{hotelName} • <span className="uppercase">{pType}</span></p>
+            <div className="mb-3">
+                <div className="flex justify-between items-center">
+                    <div 
+                        className="flex items-center gap-1.5 cursor-pointer group"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/hotel/bookings/${booking._id}`); }}
+                    >
+                        <h3 className="text-xl font-black text-[#0B403D] group-hover:opacity-80 transition-opacity leading-none">
+                            {guestName}
+                        </h3>
+                        <ChevronRight size={20} className="text-[#0B403D] group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+                    </div>
+                    {booking.userId?.phone && (
+                        <a
+                            href={`tel:${booking.userId.phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-8 h-8 rounded-full bg-[#F5F7F7] text-[#0B403D] flex items-center justify-center hover:bg-[#E8ECEC] active:scale-95 transition-all flex-shrink-0"
+                        >
+                            <Phone size={14} />
+                        </a>
+                    )}
+                </div>
+                <p className="text-[13px] text-gray-500 font-medium tracking-wide mt-1">
+                    {hotelName} • <span className="uppercase">{pType}</span>
+                </p>
             </div>
 
             {/* Details Grid */}
-            <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs mb-5">
-                <div className="flex items-center gap-2 text-gray-600">
-                    <Calendar size={14} className="text-[#004F4D]" />
-                    <span className="font-bold text-gray-700">{checkInDate} {!isBuyPlot && ` - ${checkOutDate}`}</span>
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-3 text-[12px] font-semibold text-[#0B403D]">
+                <div className="flex items-center gap-1.5">
+                    <Calendar size={15} strokeWidth={2} />
+                    <span>{checkInDate} {!isBuyPlot && ` - ${checkOutDate}`}</span>
                 </div>
+                
                 {!isBuyPlot && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <Clock size={14} className="text-[#004F4D]" />
-                        <span className="font-medium">{durationLabel}</span>
-                    </div>
+                    <>
+                        <span className="text-gray-300 hidden sm:inline">•</span>
+                        <div className="flex items-center gap-1.5">
+                            <Clock size={15} strokeWidth={2} />
+                            <span>{durationLabel}</span>
+                        </div>
+                    </>
                 )}
-                {isBuyPlot && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <Clock size={14} className="text-[#004F4D]" />
-                        <span className="font-medium">Preference: {booking.inquiryMetadata?.preferredDate ? 'Visit Scheduled' : 'General Inquiry'}</span>
-                    </div>
-                )}
-                <div className="flex items-center gap-2 text-gray-600">
-                    <User size={14} className="text-[#004F4D]" />
-                    <span className="font-medium">{isBuyPlot ? '1 Person' : `${guestCount} ${secondaryLabel}s`}</span>
+                
+                <span className="text-gray-300 hidden sm:inline">•</span>
+                <div className="flex items-center gap-1.5">
+                    <User size={15} strokeWidth={2} />
+                    <span>{isBuyPlot ? '1 Person' : `${guestCount} ${secondaryLabel}s`}</span>
                 </div>
+                
                 {!isBuyPlot && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <BedDouble size={14} className="text-[#004F4D]" />
-                        <span className="font-medium">{unitsCount} {unitLabel}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Payout/Price Section */}
-            <div className="flex items-center justify-between pt-3 border-t border-dashed border-gray-200 mb-4">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{isBuyPlot ? 'Budget' : 'Payout'}</span>
-                <span className="font-black text-[#004F4D] text-lg">₹{(isInquiry ? booking.inquiryMetadata?.budget : booking.partnerPayout)?.toLocaleString('en-IN') || 0}</span>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={(e) => { e.stopPropagation(); navigate(`/hotel/bookings/${booking._id}`); }}
-                    className="flex-1 bg-[#004F4D] text-white h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform hover:bg-[#003f3d]"
-                >
-                    {isInquiry ? 'View Inquiry' : 'View Details'}
-                </button>
-                {booking.userId?.phone && (
-                    <a
-                        href={`tel:${booking.userId.phone}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-9 h-9 rounded-xl bg-gray-50 text-gray-700 flex items-center justify-center border border-gray-100 hover:bg-gray-100 active:scale-95 transition-transform"
-                    >
-                        <Phone size={14} />
-                    </a>
+                    <>
+                        <span className="text-gray-300 hidden sm:inline">•</span>
+                        <div className="flex items-center gap-1.5">
+                            <BedDouble size={15} strokeWidth={2} />
+                            <span>{unitsCount} {unitLabel}</span>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

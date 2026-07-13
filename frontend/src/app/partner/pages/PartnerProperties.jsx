@@ -15,6 +15,7 @@ const PartnerProperties = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('All');
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -131,6 +132,9 @@ const PartnerProperties = () => {
   };
 
   const sections = Object.entries(propertiesByType);
+  const filteredSections = activeFilter === 'All' 
+    ? sections 
+    : sections.filter(([type]) => type === activeFilter);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -151,6 +155,31 @@ const PartnerProperties = () => {
           </div>
         </div>
 
+        {/* Filter Tabs */}
+        {sections.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4 pb-1">
+            {['All', ...Object.keys(propertiesByType)].map((filterType) => {
+               const displayName = filterType === 'All' 
+                 ? 'All Properties' 
+                 : (propertiesByType[filterType][0]?.dynamicCategory?.displayName || filterType.toUpperCase());
+                 
+               return (
+                 <button
+                   key={filterType}
+                   onClick={() => setActiveFilter(filterType)}
+                   className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border uppercase tracking-wide flex-shrink-0 ${
+                     activeFilter === filterType
+                       ? 'bg-[#004F4D] text-white border-[#004F4D] shadow-sm'
+                       : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                   }`}
+                 >
+                   {displayName}
+                 </button>
+               );
+            })}
+          </div>
+        )}
+
         {error && (
           <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-3 py-2">
             {error}
@@ -167,79 +196,99 @@ const PartnerProperties = () => {
           </div>
         )}
 
-        <div className="space-y-6">
-          {sections.map(([type, list]) => (
-            <div key={type} className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="space-y-6 mt-2">
+          {filteredSections.map(([type, list]) => (
+            <div key={type} className="space-y-3">
+              <div className="flex items-center justify-between px-1">
                 <div>
-                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                  <p className="text-[12px] font-bold text-gray-500 uppercase tracking-widest">
                     {list[0]?.dynamicCategory?.displayName || type.toUpperCase()}
                   </p>
-                  <p className="text-[11px] text-gray-500">{list.length} {list.length === 1 ? 'property' : 'properties'}</p>
+                  <p className="text-[11px] text-gray-400">{list.length} {list.length === 1 ? 'property' : 'properties'}</p>
                 </div>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="space-y-4">
                 {list.map(property => (
-                  <div key={property._id} className="px-4 py-3 flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden flex-shrink-0">
-                      {property.coverImage ? (
-                        <img
-                          src={property.coverImage}
-                          alt={property.propertyName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
-                          No Image
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-gray-900 truncate">
-                            {property.propertyName}
-                          </p>
-                          <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5 truncate">
-                            <MapPin size={11} className="text-gray-400 flex-shrink-0" />
-                            <span>
-                              {property.address?.city || 'Unknown City'}, {property.address?.state || ''}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] px-2 py-0.5 rounded-full border text-gray-600 bg-gray-50 uppercase font-bold">
-                            {property.status}
+                  <div key={property._id} className="bg-white rounded-[20px] p-4 border border-gray-100 shadow-[0_2px_15px_rgb(0,0,0,0.03)] flex flex-col gap-4">
+                    
+                    <div className="flex justify-between items-start gap-4">
+                      {/* Left: Info */}
+                      <div className="flex-1 pt-1 min-w-0">
+                        <h3 className="text-[18px] font-bold text-[#0B403D] leading-tight mb-2.5 truncate">
+                          {property.propertyName}
+                        </h3>
+                        
+                        <div className="flex items-center gap-1.5 text-gray-500 text-[13px] font-medium mb-1">
+                          <MapPin size={14} className="text-gray-400 flex-shrink-0" />
+                          <span className="truncate">
+                            {property.address?.city || 'Unknown City'}, {property.address?.state || ''}
                           </span>
                         </div>
-                      </div>
-                      <div className="mt-2 flex items-center justify-between">
-                        <p className="text-[11px] text-gray-400 line-clamp-2">
-                          {property.shortDescription || 'No short description'}
+                        
+                        {/* Short Description below location */}
+                        <p className="text-[13px] text-gray-400 font-medium pl-5 line-clamp-2">
+                          {property.shortDescription || 'No description provided'}
                         </p>
-                        <div className="flex gap-2 ml-2">
-                          <button
-                            onClick={() => handleViewDetails(property)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50 text-gray-700 text-[10px] font-bold uppercase border border-gray-200"
-                          >
-                            <Eye size={11} /> Details
-                          </button>
-                          <button
-                            onClick={() => handleEditProperty(property)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-teal-50 text-teal-700 text-[10px] font-bold uppercase border border-teal-100"
-                          >
-                            <Pencil size={11} /> Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPropertyToDelete(property)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-500 border border-red-100 hover:bg-red-100 transition-colors"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                      </div>
+
+                      {/* Right: Image & Badge */}
+                      <div className="relative w-[110px] h-[80px] sm:w-[140px] sm:h-[96px] md:w-[160px] md:h-[112px] rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-50 shadow-sm">
+                        {property.coverImage ? (
+                          <img
+                            src={property.coverImage}
+                            alt={property.propertyName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">
+                            No Image
+                          </div>
+                        )}
+                        {/* Status Badge */}
+                        <div className="absolute top-1.5 right-1.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-sm ${
+                            property.status === 'published' ? 'bg-emerald-500' :
+                            property.status === 'rejected' ? 'bg-red-500' :
+                            'bg-orange-500'
+                          }`}>
+                            {property.status === 'published' ? 'Active' : (property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Pending')}
+                          </span>
                         </div>
+                        {/* Slider dots (only if multiple images exist) */}
+                        {property.propertyImages && property.propertyImages.length > 0 && (
+                          <div className="absolute bottom-1.5 left-0 right-0 flex justify-center gap-1">
+                             <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_2px_rgba(0,0,0,0.5)]"></div>
+                             {property.propertyImages.slice(0, 2).map((_, idx) => (
+                               <div key={idx} className="w-1.5 h-1.5 bg-white/50 rounded-full shadow-[0_0_2px_rgba(0,0,0,0.5)]"></div>
+                             ))}
+                          </div>
+                        )}
                       </div>
                     </div>
+
+                    {/* Bottom Buttons */}
+                    <div className="flex items-center gap-2 mt-1">
+                      <button
+                        onClick={() => handleEditProperty(property)}
+                        className="flex-1 py-2.5 rounded-[10px] bg-green-50 hover:bg-green-100 text-green-600 text-[13px] font-bold flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <Pencil size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleViewDetails(property)}
+                        className="flex-1 py-2.5 rounded-[10px] bg-slate-50 hover:bg-slate-100 text-slate-700 text-[13px] font-bold flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <Eye size={14} /> Details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPropertyToDelete(property)}
+                        className="flex-1 py-2.5 rounded-[10px] bg-red-50 hover:bg-red-100 text-red-600 text-[13px] font-bold flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+
                   </div>
                 ))}
               </div>
