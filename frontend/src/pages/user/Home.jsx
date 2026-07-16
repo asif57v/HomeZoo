@@ -33,7 +33,8 @@ const THEME_MAP = {
         accent: '#3B82F6'
     },
     Plot: {
-        darkBg: 'linear-gradient(135deg, #78350F 0%, #92400E 100%)', // Amber
+        darkBg: 'linear-gradient(135deg, #A84900 0%, #D97706 100%)', // Base gradient
+        bgImage: '/plot_hero_bg.png', // Image layer
         pageBg: '#FFFBEB',
         accent: '#F59E0B'
     },
@@ -48,12 +49,14 @@ const Home = () => {
     const [selectedType, setSelectedType] = useState({ id: null, label: 'All' });
     const [pgFilters, setPgFilters] = useState({ gender: undefined, occupancy: undefined, foodIncluded: undefined });
     const [sectionIds, setSectionIds] = useState({ pg: null, rent: null, buy: null, plot: null });
+    const [categoriesData, setCategoriesData] = useState([]);
 
     // Fetch Category IDs for the homepage sections
     useEffect(() => {
         const fetchIds = async () => {
             try {
                 const categories = await categoryService.getActiveCategories();
+                setCategoriesData(categories);
                 const findCategoryIds = (names) => {
                     const searchNames = Array.isArray(names) ? names : [names];
                     const found = categories.filter(c =>
@@ -80,8 +83,17 @@ const Home = () => {
 
     const activeTheme = useMemo(() => {
         if (!selectedType.label || selectedType.label === 'All' || !selectedType.id) return THEME_MAP.default;
-        return THEME_MAP[selectedType.label] || THEME_MAP.default;
-    }, [selectedType]);
+        const baseTheme = THEME_MAP[selectedType.label] || THEME_MAP.default;
+        
+        // Handle case where selectedType.id might be multiple comma-separated IDs
+        const selectedIds = String(selectedType.id).split(',');
+        const selectedCategoryData = categoriesData.find(c => selectedIds.includes(String(c._id)));
+        
+        return {
+            ...baseTheme,
+            bgImage: selectedCategoryData?.bgImage || baseTheme.bgImage
+        };
+    }, [selectedType, categoriesData]);
 
     const handleTypeSelect = (id, label) => {
         setSelectedType({ id, label });
@@ -130,9 +142,24 @@ const Home = () => {
                     animate={{ background: activeTheme.darkBg || THEME_MAP.default.darkBg }}
                     transition={{ duration: 0.6, ease: 'easeInOut' }}
                 />
+                
+                {/* Image Layer for specific themes like Plot */}
+                <motion.div
+                    className="absolute inset-0 w-full h-full bg-no-repeat"
+                    style={{ 
+                        backgroundPosition: 'center bottom', 
+                        backgroundSize: 'cover',
+                        backgroundImage: activeTheme.bgImage ? `url(${activeTheme.bgImage})` : 'none'
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: activeTheme.bgImage ? 1 : 0 }}
+                    transition={{ duration: 0.6, ease: 'easeInOut' }}
+                />
 
                 {/* Bottom fade to theme page background (web + mobile) */}
-                <div className="absolute bottom-0 left-0 right-0 h-24 z-[1]" style={{ background: `linear-gradient(to top, ${pageBg}, transparent)` }} />
+                {selectedType.label !== 'Plot' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-24 z-[1]" style={{ background: `linear-gradient(to top, ${pageBg}, transparent)` }} />
+                )}
 
                 {/* Content on top */}
                 <div className="relative z-[2] flex flex-col min-h-[280px] md:min-h-[340px]">
@@ -142,9 +169,10 @@ const Home = () => {
                     <div className="pt-0 flex-shrink-0 md:pt-1 md:min-h-0" />
 
                     {/* Filter Bar at bottom of hero */}
-                    <div className="backdrop-blur-md bg-black/10 pt-1">
+                    <div className={selectedType.label === 'Plot' ? "pt-1 pb-4" : "backdrop-blur-md bg-black/10 pt-1"}>
                         <PropertyTypeFilter
                             selectedType={selectedType.id}
+                            selectedLabel={selectedType.label}
                             onSelectType={handleTypeSelect}
                             theme={activeTheme}
                         />

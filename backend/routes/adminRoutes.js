@@ -36,12 +36,16 @@ import {
   getFinanceStats,
   getReelAnalysis
 } from '../controllers/adminController.js';
+import { uploadImages } from '../controllers/hotelController.js';
+import upload from '../utils/multer.js';
 import { protect, authorizedRoles } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 router.use(protect);
 router.use(authorizedRoles('admin', 'superadmin'));
+
+router.post('/upload-image', upload.array('images', 10), uploadImages);
 
 // Notifications
 router.get('/notifications', getAdminNotifications);

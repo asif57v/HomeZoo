@@ -123,17 +123,26 @@ const HeroSection = ({ theme, selectedType }) => {
             </div>
 
             {/* Tagline - project related (hidden on mobile) */}
-            <div className="hidden md:block text-center text-white/95 text-sm md:text-lg font-medium drop-shadow-md px-2 max-w-xl mx-auto">
+            <div className="hidden md:flex flex-col items-center text-center text-white/95 text-sm md:text-lg font-medium drop-shadow-md px-2 max-w-xl mx-auto mt-4 mb-4">
                 <AnimatePresence mode="wait">
-                    <motion.p
+                    <motion.div
                         key={displayContent}
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
                         transition={{ duration: 0.2 }}
+                        className="flex flex-col items-center"
                     >
-                        {displayContent}
-                    </motion.p>
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                            {selectedType?.label === 'Plot' ? "Premium Plots in Prime Locations." : displayContent.split('.')[0] + '.'}
+                        </h1>
+                        <p className="text-base md:text-lg font-medium opacity-90">
+                            {selectedType?.label === 'Plot' ? "Build your vision on the perfect foundation." : displayContent.split('.').slice(1).join('.')}
+                        </p>
+                        {selectedType?.label === 'Plot' && (
+                            <div className="w-12 h-0.5 bg-amber-500 mt-4 rounded-full" />
+                        )}
+                    </motion.div>
                 </AnimatePresence>
             </div>
 
@@ -151,12 +160,12 @@ const HeroSection = ({ theme, selectedType }) => {
                     layout
                     onClick={handleSearchClick}
                     className={`
-                        w-full mx-auto max-w-7xl
+                        w-full mx-auto max-w-4xl
                         ${isSticky
-                            ? 'h-10 rounded-full shadow-inner'
-                            : 'h-12 md:h-14 rounded-2xl shadow-xl shadow-emerald-900/5 border border-white/40 bg-white/95 backdrop-blur-md'}
+                            ? 'h-12 rounded-full shadow-inner'
+                            : 'h-14 md:h-16 rounded-full shadow-2xl shadow-black/20 border border-white/20 bg-white/95 backdrop-blur-xl'}
                         flex items-center 
-                        px-3 md:px-4
+                        pr-2 pl-2 md:pl-4
                         gap-2 md:gap-3
                         relative
                         overflow-hidden
@@ -164,13 +173,27 @@ const HeroSection = ({ theme, selectedType }) => {
                         transition-all duration-300
                     `}
                 >
-                    <Search size={18} style={{ color: accentColor }} className="z-10 md:w-6 md:h-6" />
+                    {/* Location Dropdown (Desktop only) */}
+                    <div className="hidden md:flex items-center gap-2 pr-4 border-r border-gray-200 h-2/3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span className="font-semibold text-gray-800 text-sm">Indore</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
 
-                    <div className="flex-1 h-full flex items-center bg-transparent outline-none font-medium z-20 relative text-xs md:text-sm" style={{ color: accentColor }}>
+                    <div className="pl-2 md:pl-0 flex items-center h-full">
+                        <Search size={20} style={{ color: accentColor }} className="z-10" />
+                    </div>
+
+                    <div className="flex-1 h-full flex items-center bg-transparent outline-none font-medium z-20 relative text-sm md:text-base text-gray-700">
                         {/* Input simulated via div/text */}
                     </div>
 
-                    <div className="absolute left-9 right-10 md:left-12 md:right-12 h-full flex items-center pointer-events-none z-0">
+                    <div className="absolute left-10 md:left-40 right-28 h-full flex items-center pointer-events-none z-0">
                         <AnimatePresence mode="wait">
                             <motion.span
                                 key={placeholderIndex}
@@ -178,16 +201,24 @@ const HeroSection = ({ theme, selectedType }) => {
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: -15, opacity: 0 }}
                                 transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="text-gray-400 font-normal text-xs md:text-sm absolute w-full truncate"
+                                className="text-gray-400 font-normal text-sm md:text-base absolute w-full truncate"
                             >
-                                {placeholders[placeholderIndex]}
+                                {selectedType?.label === 'Plot' ? "Search by locality, landmark, project or builder..." : placeholders[placeholderIndex]}
                             </motion.span>
                         </AnimatePresence>
                     </div>
 
-                    {/* Filter Icon */}
-                    <button className="p-1.5 rounded-lg bg-gray-50/50 hover:bg-white transition-colors z-10">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {/* Search Button */}
+                    <button 
+                        className="hidden md:flex px-8 py-2.5 rounded-full text-white font-bold transition-transform active:scale-95 shadow-md z-10"
+                        style={{ backgroundColor: accentColor }}
+                    >
+                        Search
+                    </button>
+
+                    {/* Filter Icon for Mobile */}
+                    <button className="md:hidden p-2 rounded-full bg-gray-50/50 hover:bg-gray-100 transition-colors z-10 mr-1">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="4" y1="6" x2="20" y2="6"></line>
                             <line x1="4" y1="12" x2="20" y2="12"></line>
                             <line x1="4" y1="18" x2="12" y2="18"></line>

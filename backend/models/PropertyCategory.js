@@ -29,6 +29,10 @@ const propertyCategorySchema = new mongoose.Schema({
         default: '#004F4D'
     },
     badge: String,  // "BUSINESS & LEISURE", "VACATION", etc.
+    bgImage: {
+        type: String,
+        default: ''
+    },
 
     // Ordering
     order: {

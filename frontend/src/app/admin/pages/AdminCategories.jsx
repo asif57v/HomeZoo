@@ -52,6 +52,7 @@ const CategoryModal = ({ category, onClose, onSuccess }) => {
         isActive: true
     });
     const [loading, setLoading] = useState(false);
+    const [uploadLoading, setUploadLoading] = useState(false);
 
     useEffect(() => {
         if (category) {
@@ -62,10 +63,38 @@ const CategoryModal = ({ category, onClose, onSuccess }) => {
                 icon: category.icon || 'Building2',
                 color: category.color || '#B45309',
                 badge: category.badge || '',
+                bgImage: category.bgImage || '',
                 isActive: category.isActive !== undefined ? category.isActive : true
             });
         }
     }, [category]);
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setUploadLoading(true);
+            const formDataUpload = new FormData();
+            formDataUpload.append('images', file);
+            
+            const response = await adminService.uploadImage(formDataUpload);
+            if (response && response.images && response.images.length > 0) {
+                setFormData(prev => ({ ...prev, bgImage: response.images[0].url }));
+                toast.success('Image uploaded successfully');
+            } else if (response && response.urls && response.urls.length > 0) {
+                setFormData(prev => ({ ...prev, bgImage: response.urls[0] }));
+                toast.success('Image uploaded successfully');
+            } else {
+                toast.error('Failed to get image URL');
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to upload image');
+        } finally {
+            setUploadLoading(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -171,6 +200,40 @@ const CategoryModal = ({ category, onClose, onSuccess }) => {
                             </div>
                         </div>
 
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Background Image</label>
+                            <div className="flex items-center gap-4">
+                                {formData.bgImage && (
+                                    <div className="relative w-24 h-16 rounded-lg overflow-hidden border">
+                                        <img src={formData.bgImage} alt="Bg preview" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, bgImage: '' }))}
+                                            className="absolute top-1 right-1 bg-white rounded-full p-0.5 text-red-500 hover:text-red-700"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                )}
+                                <div className="flex-1">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadLoading || loading}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                                    />
+                                    {uploadLoading ? (
+                                        <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                            <div className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" /> Uploading image...
+                                        </p>
+                                    ) : (
+                                        <p className="text-xs text-gray-400 mt-1">Recommended: 1920x1080 (For Hero Sections)</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex items-center gap-2 pt-2">
                             <input
                                 type="checkbox"
@@ -195,8 +258,8 @@ const CategoryModal = ({ category, onClose, onSuccess }) => {
                         </button>
                         <button
                             type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
+                            disabled={loading || uploadLoading}
+                            className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {loading ? (
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -285,6 +348,7 @@ const AdminCategories = () => {
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Order</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category Info</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Bg Image</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -318,6 +382,13 @@ const AdminCategories = () => {
                                                     )}
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {cat.bgImage ? (
+                                                <img src={cat.bgImage} alt="bg" className="w-16 h-10 object-cover rounded shadow-sm border border-gray-200" />
+                                            ) : (
+                                                <span className="text-xs text-gray-400">None</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">

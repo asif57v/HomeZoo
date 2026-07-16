@@ -230,6 +230,11 @@ const adminService = {
   getReelAnalysis: async () => {
     const response = await axiosInstance.get('/admin/reel-analysis');
     return response.data;
+  },
+
+  uploadImage: async (formData) => {
+    const response = await axiosInstance.post('/admin/upload-image', formData);
+    return response.data;
   }
 };
 

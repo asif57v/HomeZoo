@@ -11,8 +11,9 @@ const ALL_OPTION = {
   isDynamic: false
 };
 
-const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
+const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }) => {
   const accentColor = theme?.accent || '#005CA8';
+  const isPlot = selectedLabel === 'Plot';
   const STATIC_TYPES = [];
 
   const [allTypes, setAllTypes] = useState([ALL_OPTION, ...STATIC_TYPES]);
@@ -68,7 +69,7 @@ const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
           {
             id: plotIds.length > 0 ? plotIds.join(',') : 'plot',
             label: 'Plot',
-            icon: LucideIcons.TreePine,
+            icon: LucideIcons.MapPin,
             isDynamic: true
           }
         ];
@@ -82,7 +83,7 @@ const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
           { label: 'PG/Co-Living', icon: LucideIcons.BedDouble, id: null },
           { label: 'Rent', icon: LucideIcons.Home, id: null },
           { label: 'Buy', icon: LucideIcons.Landmark, id: null },
-          { label: 'Plot', icon: LucideIcons.TreePine, id: null }
+          { label: 'Plot', icon: LucideIcons.MapPin, id: null }
         ]);
       }
     };
@@ -92,7 +93,7 @@ const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
 
   return (
     <motion.div
-      className="relative w-full border-b border-gray-100 bg-white"
+      className={`relative w-full ${isPlot ? 'bg-transparent border-none' : 'border-b border-gray-100 bg-white'}`}
     >
       {/* Web: centered & larger; Mobile: scrollable as before */}
       <div className="flex gap-4 overflow-x-auto px-6 py-4 md:py-1.5 no-scrollbar relative max-w-7xl mx-auto items-center justify-start sm:justify-center md:justify-center md:flex-wrap md:gap-8 md:overflow-visible">
@@ -117,10 +118,10 @@ const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
             <button
               key={type.id || 'all'}
               onClick={() => onSelectType(type.id, type.label)}
-              className="flex flex-col items-center gap-1.5 md:gap-1 min-w-[70px] md:min-w-[60px] outline-none group shrink-0"
+              className="flex flex-col items-center gap-1.5 md:gap-2 w-[85px] md:w-[100px] outline-none group shrink-0"
             >
               <div className="relative">
-                {isSelected && (
+                {isSelected && !isPlot && (
                   <motion.div
                     layoutId="activeTabCircle"
                     className="absolute inset-0 rounded-xl md:rounded-lg"
@@ -130,13 +131,15 @@ const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
                 )}
                 <div
                   className={`
-                    w-12 h-12 md:w-10 md:h-10 rounded-xl md:rounded-lg flex items-center justify-center transition-all duration-300
-                    ${!isSelected ? 'bg-gray-50 border border-gray-100 group-hover:bg-gray-100' : ''}
+                    w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 mx-auto
+                    ${isPlot 
+                        ? (isSelected ? 'bg-white shadow-xl' : 'bg-[#6B2F0B]/40 hover:bg-[#6B2F0B]/60') 
+                        : (!isSelected ? 'bg-gray-50 border border-gray-100 group-hover:bg-gray-100' : '')}
                   `}
                 >
                   <Icon
-                    className="w-5 h-5 md:w-4.5 md:h-4.5 transition-colors"
-                    style={{ color: isSelected ? accentColor : '#6B7280' }}
+                    className="w-5 h-5 md:w-6 md:h-6 transition-colors"
+                    style={{ color: isPlot ? (isSelected ? accentColor : '#ffffff') : (isSelected ? accentColor : '#6B7280') }}
                     strokeWidth={isSelected ? 2.5 : 2}
                   />
                 </div>
@@ -144,9 +147,9 @@ const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
 
               <span
                 className={`
-                  text-[11px] md:text-[10px] font-bold tracking-wide transition-colors whitespace-nowrap
+                  text-[11px] md:text-xs font-bold tracking-wide transition-colors whitespace-nowrap text-center w-full
                 `}
-                style={{ color: isSelected ? accentColor : '#6B7280' }}
+                style={{ color: isPlot ? (isSelected ? accentColor : '#ffffff') : (isSelected ? accentColor : '#6B7280') }}
               >
                 {type.label}
               </span>
