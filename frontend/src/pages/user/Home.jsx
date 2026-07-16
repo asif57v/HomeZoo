@@ -13,9 +13,9 @@ import { categoryService } from '../../services/categoryService';
 // Category Theme Map - Professional palettes inspired by Housing.com
 const THEME_MAP = {
     Hotel: {
-        darkBg: 'linear-gradient(135deg, #064E3B 0%, #065F46 100%)', // Emerald
+        darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
         pageBg: '#F8FAFC',
-        accent: '#10B981'
+        accent: '#005CA8'
     },
     'PG/Co-Living': {
         darkBg: 'linear-gradient(135deg, #881337 0%, #9F1239 100%)', // Rose
@@ -38,9 +38,9 @@ const THEME_MAP = {
         accent: '#F59E0B'
     },
     default: {
-        darkBg: 'linear-gradient(135deg, #064E3B 0%, #065F46 100%)', // Emerald
+        darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
         pageBg: '#F8FAFC',
-        accent: '#10B981'
+        accent: '#005CA8'
     }
 };
 

@@ -5,14 +5,14 @@
   --color-background: #F8FAFC;
   /* Clean slate-50 background */
 
-  --color-surface: #059669;
-  /* Emerald 600 - Primary brand color */
-  --color-accent: #10B981;
-  /* Emerald 500 - Accent highlights */
-  --color-textLight: #F0FDF4;
-  /* Very light emerald text */
-  --color-textDark: #064E3B;
-  /* Emerald 900 - Dark professional text */
+  --color-surface: #005CA8;
+  /* Primary brand color */
+  --color-accent: #006BC4;
+  /* Accent highlights */
+  --color-textLight: #F0F8FF;
+  /* Very light text */
+  --color-textDark: #002240;
+  /* Dark professional text */
 
   --color-honey: #F59E0B;
   --color-cardWhite: #FFFFFF;
@@ -22,13 +22,26 @@
   --radius-xl: 16px;
   --radius-2xl: 20px;
 
-  /* Professional Emerald Theme */
+  /* Professional Theme */
   --color-partner-bg: #FFFFFF;
-  --color-partner-text-primary: #059669;
-  --color-partner-text-secondary: #064E3B;
-  --color-partner-btn: #059669;
-  --color-partner-card: #F0FDF4;
-  --color-partner-border: #BBF7D0;
+  --color-partner-text-primary: #005CA8;
+  --color-partner-text-secondary: #002240;
+  --color-partner-btn: #005CA8;
+  --color-partner-card: #F0F8FF;
+  --color-partner-border: #B3D9FF;
+
+  /* Override emerald to be our new brand blue (#005CA8) */
+  --color-emerald-50: #f0f7fd;
+  --color-emerald-100: #dceef9;
+  --color-emerald-200: #c0dff4;
+  --color-emerald-300: #93c9ed;
+  --color-emerald-400: #60aee3;
+  --color-emerald-500: #3b93d6;
+  --color-emerald-600: #005CA8;
+  --color-emerald-700: #004b8a;
+  --color-emerald-800: #003768;
+  --color-emerald-900: #00264b;
+  --color-emerald-950: #00172e;
 }
 
 @layer base {

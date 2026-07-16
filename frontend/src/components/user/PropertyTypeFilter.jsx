@@ -12,7 +12,7 @@ const ALL_OPTION = {
 };
 
 const PropertyTypeFilter = ({ selectedType, onSelectType, theme }) => {
-  const accentColor = theme?.accent || '#059669';
+  const accentColor = theme?.accent || '#005CA8';
   const STATIC_TYPES = [];
 
   const [allTypes, setAllTypes] = useState([ALL_OPTION, ...STATIC_TYPES]);
