@@ -13,6 +13,8 @@ const HeroSection = ({ theme, selectedType }) => {
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [isSticky, setIsSticky] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const searchRef = React.useRef(null);
 
     const categoryContent = {
         'All': "Find your space — PG/Co-Living, Rent, Buy & Plots. Your home, your way.",
@@ -65,6 +67,17 @@ const HeroSection = ({ theme, selectedType }) => {
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Click outside listener for search suggestions
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchRef.current && !searchRef.current.contains(event.target)) {
+                setIsSearchFocused(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleSearchClick = () => {
@@ -123,7 +136,7 @@ const HeroSection = ({ theme, selectedType }) => {
             </div>
 
             {/* Tagline - project related (hidden on mobile) */}
-            <div className="hidden md:flex flex-col items-center text-center text-white/95 text-sm md:text-lg font-medium drop-shadow-md px-2 max-w-xl mx-auto mt-4 mb-4">
+            <div className="hidden md:flex flex-col items-center text-center text-white/95 text-sm md:text-lg font-medium drop-shadow-md px-2 max-w-3xl mx-auto mt-4 mb-4">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={displayContent}
@@ -139,36 +152,30 @@ const HeroSection = ({ theme, selectedType }) => {
                         <p className="text-base md:text-lg font-medium opacity-90">
                             {selectedType?.label === 'Plot' ? "Build your vision on the perfect foundation." : displayContent.split('.').slice(1).join('.')}
                         </p>
-                        {selectedType?.label === 'Plot' && (
-                            <div className="w-12 h-0.5 bg-amber-500 mt-4 rounded-full" />
-                        )}
+                        <div className="w-12 h-1 mt-4 rounded-full" style={{ backgroundColor: accentColor }} />
                     </motion.div>
                 </AnimatePresence>
-            </div>
-
-            {/* 2. Search Bar - Sticky Logic with smooth animation */}
+            </div>            {/* 2. Search Bar - Sticky Logic with smooth animation */}
             <motion.div
                 layout
                 className={`
                     w-full z-50
-                    ${isSticky
-                        ? 'fixed top-0 md:top-24 left-0 right-0 p-3 bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-100/50'
-                        : 'relative mt-2 md:mt-4'}
+                    relative mt-2 md:mt-4
                 `}
             >
                 <motion.div
                     layout
-                    onClick={handleSearchClick}
+                    ref={searchRef}
+                    onClick={() => setIsSearchFocused(true)}
                     className={`
                         w-full mx-auto max-w-4xl
-                        ${isSticky
-                            ? 'h-12 rounded-full shadow-inner'
-                            : 'h-14 md:h-16 rounded-full shadow-2xl shadow-black/20 border border-white/20 bg-white/95 backdrop-blur-xl'}
+                        h-14 md:h-16 ${isSearchFocused ? 'rounded-t-2xl' : 'rounded-full'} shadow-2xl shadow-black/20 border border-white/20 bg-white/95 backdrop-blur-xl
+
                         flex items-center 
                         pr-2 pl-2 md:pl-4
                         gap-2 md:gap-3
                         relative
-                        overflow-hidden
+                        overflow-visible
                         cursor-pointer
                         transition-all duration-300
                     `}
@@ -210,6 +217,10 @@ const HeroSection = ({ theme, selectedType }) => {
 
                     {/* Search Button */}
                     <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleSearchClick();
+                        }}
                         className="hidden md:flex px-8 py-2.5 rounded-full text-white font-bold transition-transform active:scale-95 shadow-md z-10"
                         style={{ backgroundColor: accentColor }}
                     >
@@ -217,20 +228,68 @@ const HeroSection = ({ theme, selectedType }) => {
                     </button>
 
                     {/* Filter Icon for Mobile */}
-                    <button className="md:hidden p-2 rounded-full bg-gray-50/50 hover:bg-gray-100 transition-colors z-10 mr-1">
+                    <button 
+                        className="md:hidden p-2 rounded-full bg-gray-50/50 hover:bg-gray-100 transition-colors z-10 mr-1"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleSearchClick();
+                        }}
+                    >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="4" y1="6" x2="20" y2="6"></line>
                             <line x1="4" y1="12" x2="20" y2="12"></line>
                             <line x1="4" y1="18" x2="12" y2="18"></line>
                         </svg>
                     </button>
+
+                    {/* Suggestions Dropdown */}
+                    <AnimatePresence>
+                        {isSearchFocused && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="absolute top-full left-0 right-0 bg-white border-x border-b border-gray-100 rounded-b-2xl shadow-2xl z-50 overflow-hidden"
+                            >
+                                <div className="p-2 md:p-4 bg-white max-h-[60vh] overflow-y-auto no-scrollbar">
+                                    <h4 className="text-xs md:text-sm font-semibold text-gray-500 mb-2 px-2 md:px-4 pt-2">Popular locations:</h4>
+                                    <div className="flex flex-col">
+                                        {[
+                                            "Delhi", "Mumbai", "Bhopal", "Indore",
+                                            "Mayakhedi", "Rau", "Sanwer", "Bhicholi Mardana",
+                                            "Bhawrasla", "Manglia", "Super Corridor", "Talawali Chanda"
+                                        ].map((loc, idx) => (
+                                            <div key={idx} 
+                                                 className="flex items-center gap-4 p-3 md:px-4 hover:bg-indigo-50/50 cursor-pointer transition-colors border-b border-gray-50 last:border-0 rounded-xl"
+                                                 onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     navigate(`/search?locality=${loc}`);
+                                                     setIsSearchFocused(false);
+                                                 }}
+                                            >
+                                                <div className="text-gray-400">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                                        <circle cx="12" cy="10" r="3" />
+                                                    </svg>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-semibold text-gray-800 text-sm md:text-base">{loc}</span>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Locality</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             </motion.div>
 
             {/* Placeholder Spacer only when sticky to prevent content jump */}
-            {isSticky && (
-                <div className="h-16 w-full md:h-20"></div>
-            )}
+
 
             <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 

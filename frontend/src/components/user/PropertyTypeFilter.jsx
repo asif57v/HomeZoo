@@ -13,7 +13,6 @@ const ALL_OPTION = {
 
 const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }) => {
   const accentColor = theme?.accent || '#005CA8';
-  const isPlot = selectedLabel === 'Plot';
   const STATIC_TYPES = [];
 
   const [allTypes, setAllTypes] = useState([ALL_OPTION, ...STATIC_TYPES]);
@@ -93,7 +92,7 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
 
   return (
     <motion.div
-      className={`relative w-full ${isPlot ? 'bg-transparent border-none' : 'border-b border-gray-100 bg-white'}`}
+      className="relative w-full bg-transparent border-none"
     >
       {/* Web: centered & larger; Mobile: scrollable as before */}
       <div className="flex gap-4 overflow-x-auto px-6 py-4 md:py-1.5 no-scrollbar relative max-w-7xl mx-auto items-center justify-start sm:justify-center md:justify-center md:flex-wrap md:gap-8 md:overflow-visible">
@@ -121,25 +120,15 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
               className="flex flex-col items-center gap-1.5 md:gap-2 w-[85px] md:w-[100px] outline-none group shrink-0"
             >
               <div className="relative">
-                {isSelected && !isPlot && (
-                  <motion.div
-                    layoutId="activeTabCircle"
-                    className="absolute inset-0 rounded-xl md:rounded-lg"
-                    style={{ backgroundColor: `${accentColor}20` }}
-                    transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
-                  />
-                )}
                 <div
                   className={`
                     w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 mx-auto
-                    ${isPlot 
-                        ? (isSelected ? 'bg-white shadow-xl' : 'bg-[#6B2F0B]/40 hover:bg-[#6B2F0B]/60') 
-                        : (!isSelected ? 'bg-gray-50 border border-gray-100 group-hover:bg-gray-100' : '')}
+                    ${isSelected ? 'bg-white shadow-xl scale-105' : 'bg-black/20 hover:bg-black/40'}
                   `}
                 >
                   <Icon
                     className="w-5 h-5 md:w-6 md:h-6 transition-colors"
-                    style={{ color: isPlot ? (isSelected ? accentColor : '#ffffff') : (isSelected ? accentColor : '#6B7280') }}
+                    style={{ color: isSelected ? accentColor : '#ffffff' }}
                     strokeWidth={isSelected ? 2.5 : 2}
                   />
                 </div>
@@ -147,9 +136,9 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
 
               <span
                 className={`
-                  text-[11px] md:text-xs font-bold tracking-wide transition-colors whitespace-nowrap text-center w-full
+                  text-[11px] md:text-xs font-bold tracking-wide transition-colors whitespace-nowrap text-center w-full mt-1
+                  ${isSelected ? 'text-white drop-shadow-md' : 'text-white/80'}
                 `}
-                style={{ color: isPlot ? (isSelected ? accentColor : '#ffffff') : (isSelected ? accentColor : '#6B7280') }}
               >
                 {type.label}
               </span>

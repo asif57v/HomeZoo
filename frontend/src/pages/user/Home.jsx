@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import HeroSection from '../../components/user/HeroSection';
 import ExclusiveOffers from '../../components/user/ExclusiveOffers';
 import PropertyTypeFilter from '../../components/user/PropertyTypeFilter';
@@ -15,33 +15,45 @@ const THEME_MAP = {
     Hotel: {
         darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
         pageBg: '#F8FAFC',
-        accent: '#005CA8'
+        accent: '#005CA8',
+        cornerImage: '/pg_hero_art.png',
+        cornerImage2: '/pg_hero_art_2.png'
     },
     'PG/Co-Living': {
         darkBg: 'linear-gradient(135deg, #881337 0%, #9F1239 100%)', // Rose
         pageBg: '#FFF1F2',
-        accent: '#E11D48'
+        accent: '#E11D48',
+        cornerImage: '/pg_hero_art.png',
+        cornerImage2: '/pg_hero_art_2.png'
     },
     Rent: {
         darkBg: 'linear-gradient(135deg, #4C1D95 0%, #5B21B6 100%)', // Violet
         pageBg: '#F5F3FF',
-        accent: '#8B5CF6'
+        accent: '#8B5CF6',
+        cornerImage: '/rent_hero_art.png',
+        cornerImage2: '/rent_hero_art_2.png'
     },
     Buy: {
         darkBg: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)', // Blue
         pageBg: '#EFF6FF',
-        accent: '#3B82F6'
+        accent: '#3B82F6',
+        cornerImage: '/buy_hero_art.png',
+        cornerImage2: '/buy_hero_art_2.png'
     },
     Plot: {
         darkBg: 'linear-gradient(135deg, #A84900 0%, #D97706 100%)', // Base gradient
         bgImage: '/plot_hero_bg.png', // Image layer
+        cornerImage: '/plot_hero_art.png',
+        cornerImage2: '/plot_hero_art_2.png',
         pageBg: '#FFFBEB',
         accent: '#F59E0B'
     },
     default: {
         darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
         pageBg: '#F8FAFC',
-        accent: '#005CA8'
+        accent: '#005CA8',
+        cornerImage: '/buy_hero_art.png',
+        cornerImage2: '/buy_hero_art_2.png'
     }
 };
 
@@ -91,7 +103,9 @@ const Home = () => {
         
         return {
             ...baseTheme,
-            bgImage: selectedCategoryData?.bgImage || baseTheme.bgImage
+            bgImage: selectedCategoryData?.bgImage || baseTheme.bgImage,
+            cornerImage: baseTheme.cornerImage,
+            cornerImage2: baseTheme.cornerImage2
         };
     }, [selectedType, categoriesData]);
 
@@ -136,7 +150,7 @@ const Home = () => {
     return (
         <main className="min-h-screen pb-24 transition-colors duration-700" style={{ backgroundColor: pageBg }}>
             {/* Hero: dark background only (no images), changes per category */}
-            <div className="relative overflow-hidden min-h-[280px] md:min-h-[340px]">
+            <div className="relative overflow-visible min-h-[280px] md:min-h-[340px]">
                 <motion.div
                     className="absolute inset-0 w-full h-full"
                     animate={{ background: activeTheme.darkBg || THEME_MAP.default.darkBg }}
@@ -145,7 +159,7 @@ const Home = () => {
                 
                 {/* Image Layer for specific themes like Plot */}
                 <motion.div
-                    className="absolute inset-0 w-full h-full bg-no-repeat"
+                    className="absolute inset-0 w-full h-full bg-no-repeat z-0"
                     style={{ 
                         backgroundPosition: 'center bottom', 
                         backgroundSize: 'cover',
@@ -156,20 +170,51 @@ const Home = () => {
                     transition={{ duration: 0.6, ease: 'easeInOut' }}
                 />
 
-                {/* Bottom fade to theme page background (web + mobile) */}
-                {selectedType.label !== 'Plot' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-24 z-[1]" style={{ background: `linear-gradient(to top, ${pageBg}, transparent)` }} />
-                )}
+                {/* Floating Corner Images */}
+                <AnimatePresence mode="wait">
+                    {activeTheme.cornerImage && (
+                        <motion.div
+                            key={activeTheme.cornerImage}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 0.35, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.1 }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10"
+                            style={{ mixBlendMode: 'screen' }}
+                        >
+                            {/* Left Corner */}
+                            <img 
+                                src={activeTheme.cornerImage} 
+                                alt="" 
+                                className="w-[300px] md:w-[450px] object-cover opacity-80 -ml-16 md:-ml-24 transform -translate-y-8"
+                                style={{ 
+                                    WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
+                                    maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
+                                }} 
+                            />
+                            {/* Right Corner (Distinct Image, no mirroring) */}
+                            <img 
+                                src={activeTheme.cornerImage2} 
+                                alt="" 
+                                className="w-[300px] md:w-[450px] object-cover opacity-80 -mr-16 md:-mr-24 transform -translate-y-8"
+                                style={{ 
+                                    WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
+                                    maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
+                                }} 
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Content on top */}
-                <div className="relative z-[2] flex flex-col min-h-[280px] md:min-h-[340px]">
+                <div className="relative z-40 flex flex-col min-h-[280px] md:min-h-[340px]">
                     <HeroSection theme={activeTheme} selectedType={selectedType} />
 
                     {/* Small gap between search bar and category (mobile); minimal on desktop */}
                     <div className="pt-0 flex-shrink-0 md:pt-1 md:min-h-0" />
 
                     {/* Filter Bar at bottom of hero */}
-                    <div className={selectedType.label === 'Plot' ? "pt-1 pb-4" : "backdrop-blur-md bg-black/10 pt-1"}>
+                    <div className="pt-1 pb-4">
                         <PropertyTypeFilter
                             selectedType={selectedType.id}
                             selectedLabel={selectedType.label}

@@ -9,7 +9,7 @@ const TopNavbar = () => {
     const userName = user.name || 'User';
 
     return (
-        <nav className="hidden md:flex w-full h-24 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 justify-between items-center fixed top-0 z-50">
+        <nav className="hidden md:flex w-full h-16 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 justify-between items-center fixed top-0 z-50">
 
             {/* Logo */}
             <Link to="/">
