@@ -103,9 +103,9 @@ const ExclusiveOffers = () => {
                         </svg>
 
                         {/* Content Container */}
-                        <div className="absolute inset-0 p-4 flex flex-col justify-start gap-2 z-10 w-[65%] md:w-[60%]">
+                        <div className="absolute inset-0 p-4 flex flex-col justify-start gap-2 z-10 w-[70%]">
                             {/* Title */}
-                            <h3 className="text-xl md:text-[22px] font-bold text-white leading-tight line-clamp-3 pr-2">
+                            <h3 className="text-xl md:text-[22px] font-bold text-white leading-tight pr-1">
                                 {offer.title}
                             </h3>
 
