@@ -152,14 +152,14 @@ const Home = () => {
             {/* Hero: dark background only (no images), changes per category */}
             <div className="relative overflow-visible min-h-[280px] md:min-h-[340px]">
                 <motion.div
-                    className="absolute inset-0 w-full h-full"
+                    className="absolute inset-0 w-full h-full rounded-b-[3rem] md:rounded-b-none overflow-hidden"
                     animate={{ background: activeTheme.darkBg || THEME_MAP.default.darkBg }}
                     transition={{ duration: 0.6, ease: 'easeInOut' }}
                 />
                 
                 {/* Image Layer for specific themes like Plot */}
                 <motion.div
-                    className="absolute inset-0 w-full h-full bg-no-repeat z-0"
+                    className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[3rem] md:rounded-b-none overflow-hidden"
                     style={{ 
                         backgroundPosition: 'center bottom', 
                         backgroundSize: 'cover',
@@ -176,17 +176,16 @@ const Home = () => {
                         <motion.div
                             key={activeTheme.cornerImage}
                             initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 0.35, scale: 1 }}
+                            animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 1.1 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10"
-                            style={{ mixBlendMode: 'screen' }}
+                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10 rounded-b-[3rem] md:rounded-b-none"
                         >
                             {/* Left Corner */}
                             <img 
                                 src={activeTheme.cornerImage} 
                                 alt="" 
-                                className="w-[300px] md:w-[450px] object-cover opacity-80 -ml-16 md:-ml-24 transform -translate-y-8"
+                                className="w-[300px] md:w-[450px] object-cover opacity-100 -ml-16 md:-ml-24 transform -translate-y-8"
                                 style={{ 
                                     WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
                                     maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
@@ -196,7 +195,7 @@ const Home = () => {
                             <img 
                                 src={activeTheme.cornerImage2} 
                                 alt="" 
-                                className="w-[300px] md:w-[450px] object-cover opacity-80 -mr-16 md:-mr-24 transform -translate-y-8"
+                                className="w-[300px] md:w-[450px] object-cover opacity-100 -mr-16 md:-mr-24 transform -translate-y-8"
                                 style={{ 
                                     WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
                                     maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
