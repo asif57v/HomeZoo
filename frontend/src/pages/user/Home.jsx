@@ -152,14 +152,14 @@ const Home = () => {
             {/* Hero: dark background only (no images), changes per category */}
             <div className="relative overflow-visible min-h-[280px] md:min-h-[340px]">
                 <motion.div
-                    className="absolute inset-0 w-full h-full rounded-b-[3rem] md:rounded-b-none overflow-hidden"
+                    className="absolute inset-0 w-full h-full rounded-b-[2rem] md:rounded-b-none overflow-hidden"
                     animate={{ background: activeTheme.darkBg || THEME_MAP.default.darkBg }}
                     transition={{ duration: 0.6, ease: 'easeInOut' }}
                 />
                 
                 {/* Image Layer for specific themes like Plot */}
                 <motion.div
-                    className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[3rem] md:rounded-b-none overflow-hidden"
+                    className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[2rem] md:rounded-b-none overflow-hidden"
                     style={{ 
                         backgroundPosition: 'center bottom', 
                         backgroundSize: 'cover',
@@ -179,7 +179,7 @@ const Home = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 1.1 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10 rounded-b-[3rem] md:rounded-b-none"
+                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10 rounded-b-[2rem] md:rounded-b-none"
                         >
                             {/* Left Corner */}
                             <img 
