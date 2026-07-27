@@ -14,6 +14,8 @@ const HeroSection = ({ theme, selectedType }) => {
     const [isSticky, setIsSticky] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState('Indore');
+    const [isLocating, setIsLocating] = useState(false);
     const searchRef = React.useRef(null);
 
     const categoryContent = {
@@ -81,7 +83,82 @@ const HeroSection = ({ theme, selectedType }) => {
     }, []);
 
     const handleSearchClick = () => {
-        navigate('/search');
+        let url = '/search';
+        const params = [];
+        if (selectedLocation && selectedLocation !== 'Indore') {
+            params.push(`search=${selectedLocation}`);
+        }
+        if (selectedType && selectedType.id && selectedType.label !== 'All') {
+            params.push(`type=${selectedType.id}`);
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        navigate(url);
+    };
+
+    const handleDetectLocation = async (e) => {
+        e.stopPropagation();
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setIsLocating(true);
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const { latitude, longitude } = position.coords;
+                const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
+                
+                if (!apiKey) {
+                    console.warn("Google Maps API key is missing. Using coordinates instead.");
+                    navigate(`/search?lat=${latitude}&lng=${longitude}`);
+                    setIsLocating(false);
+                    return;
+                }
+
+                const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`);
+                const data = await response.json();
+
+                if (data.status === 'OK' && data.results.length > 0) {
+                    let city = '';
+                    const addressComponents = data.results[0].address_components;
+                    
+                    const locality = addressComponents.find(c => c.types.includes('locality'));
+                    const adminArea = addressComponents.find(c => c.types.includes('administrative_area_level_2'));
+                    const sublocality = addressComponents.find(c => c.types.includes('sublocality') || c.types.includes('sublocality_level_1'));
+                    
+                    if (locality) {
+                        city = locality.long_name;
+                    } else if (adminArea) {
+                        city = adminArea.long_name;
+                    } else if (sublocality) {
+                        city = sublocality.long_name;
+                    } else {
+                        city = data.results[0].formatted_address.split(',')[0];
+                    }
+
+                    if (city) {
+                        setSelectedLocation(city);
+                        let url = `/search?search=${city}`;
+                        if (selectedType && selectedType.id && selectedType.label !== 'All') {
+                            url += `&type=${selectedType.id}`;
+                        }
+                        navigate(url);
+                        setIsSearchFocused(false);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching location:", error);
+            } finally {
+                setIsLocating(false);
+            }
+        }, (error) => {
+            console.error("Geolocation error:", error);
+            alert("Unable to retrieve your location");
+            setIsLocating(false);
+        });
     };
 
     return (
@@ -186,7 +263,7 @@ const HeroSection = ({ theme, selectedType }) => {
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                             <circle cx="12" cy="10" r="3"></circle>
                         </svg>
-                        <span className="font-semibold text-gray-800 text-sm">Indore</span>
+                        <span className="font-semibold text-gray-800 text-sm max-w-[100px] truncate">{selectedLocation}</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -253,8 +330,40 @@ const HeroSection = ({ theme, selectedType }) => {
                                 className="absolute top-full left-0 right-0 bg-white border-x border-b border-gray-100 rounded-b-2xl shadow-2xl z-50 overflow-hidden"
                             >
                                 <div className="p-2 md:p-4 bg-white max-h-[60vh] overflow-y-auto no-scrollbar">
-                                    <h4 className="text-xs md:text-sm font-semibold text-gray-500 mb-2 px-2 md:px-4 pt-2">Popular locations:</h4>
+                                    <h4 className="text-xs md:text-sm font-semibold text-gray-500 mb-2 px-2 md:px-4 pt-2">Locations:</h4>
                                     <div className="flex flex-col">
+                                        {/* Detect Current Location */}
+                                        <div 
+                                            className="flex items-center gap-4 p-3 md:px-4 hover:bg-emerald-50/50 cursor-pointer transition-colors border-b border-gray-50 rounded-xl"
+                                            onClick={handleDetectLocation}
+                                        >
+                                            <div className="text-emerald-500">
+                                                {isLocating ? (
+                                                    <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <line x1="12" y1="2" x2="12" y2="6"></line>
+                                                        <line x1="12" y1="18" x2="12" y2="22"></line>
+                                                        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                                                        <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                                                        <line x1="2" y1="12" x2="6" y2="12"></line>
+                                                        <line x1="18" y1="12" x2="22" y2="12"></line>
+                                                        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                                                        <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                                                    </svg>
+                                                ) : (
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-emerald-600 text-sm md:text-base">
+                                                    {isLocating ? 'Detecting location...' : 'Use current location'}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-wider">Using GPS</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Popular Locations */}
                                         {[
                                             "Delhi", "Mumbai", "Bhopal", "Indore",
                                             "Mayakhedi", "Rau", "Sanwer", "Bhicholi Mardana",
@@ -264,7 +373,11 @@ const HeroSection = ({ theme, selectedType }) => {
                                                  className="flex items-center gap-4 p-3 md:px-4 hover:bg-indigo-50/50 cursor-pointer transition-colors border-b border-gray-50 last:border-0 rounded-xl"
                                                  onClick={(e) => {
                                                      e.stopPropagation();
-                                                     navigate(`/search?locality=${loc}`);
+                                                     let url = `/search?search=${loc}`;
+                                                     if (selectedType && selectedType.id && selectedType.label !== 'All') {
+                                                         url += `&type=${selectedType.id}`;
+                                                     }
+                                                     navigate(url);
                                                      setIsSearchFocused(false);
                                                  }}
                                             >

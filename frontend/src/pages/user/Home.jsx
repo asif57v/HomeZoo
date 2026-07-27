@@ -8,6 +8,7 @@ import CollectionSection from '../../components/user/CollectionSection';
 import ReelSection from '../../components/user/ReelSection';
 import LatestProjectsBanner from '../../components/user/LatestProjectsBanner';
 import RecommendedSellers from '../../components/user/RecommendedSellers';
+import HomeBottomSections from '../../components/user/HomeBottomSections';
 import { categoryService } from '../../services/categoryService';
 
 // Category Theme Map - Professional palettes inspired by Housing.com
@@ -290,6 +291,11 @@ const Home = () => {
                         <PropertyFeed selectedType={selectedType.id} viewMode="grid" extraFilters={pgFilters} />
                     </div>
                 )}
+
+                {/* Newly Redesigned Bottom Sections (Behind Premium Plots & Land) */}
+                <div className="px-3 sm:px-4 md:px-0">
+                    <HomeBottomSections />
+                </div>
             </div>
         </main>
     );
