@@ -59,7 +59,7 @@ const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
     if (!current) return null;
 
     return (
-        <div className="relative w-full overflow-hidden mb-6 group">
+        <div className="relative w-full overflow-hidden mb-6 group px-5 md:px-0">
             <div className="flex items-center gap-2 mb-3">
                 <div className="bg-yellow-100 text-yellow-700 p-1 rounded-md animate-pulse">
                     <Sparkles size={16} />

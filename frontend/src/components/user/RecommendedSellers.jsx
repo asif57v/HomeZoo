@@ -42,7 +42,7 @@ const RecommendedSellers = () => {
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 px-5 md:px-0 -mx-5 md:mx-0">
+            <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 px-5 md:px-0">
                 {sellers.map((seller) => (
                     <motion.div
                         key={seller._id}

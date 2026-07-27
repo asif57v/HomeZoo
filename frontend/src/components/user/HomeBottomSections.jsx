@@ -177,7 +177,7 @@ const HomeBottomSections = () => {
                     </button>
                 </div>
 
-                <div className="flex overflow-x-auto lg:grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 pb-4 lg:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-3 px-3 sm:mx-0 sm:px-0">
+                <div className="flex overflow-x-auto lg:grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 pb-4 lg:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {displayPartners.map((partner, idx) => {
                         const tierColor = partner.plan?.tier === 'diamond' ? 'text-blue-600 bg-blue-50/80 border-blue-200/80' :
                                           partner.plan?.tier === 'platinum' ? 'text-indigo-600 bg-indigo-50/80 border-indigo-200/80' :
@@ -288,7 +288,7 @@ const HomeBottomSections = () => {
                     </button>
                 </div>
 
-                <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-5 md:gap-8 pb-4 md:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-3 px-3 sm:mx-0 sm:px-0">
+                <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-5 md:gap-8 pb-4 md:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {newsArticles.map((item) => (
                         <motion.article
                             key={item.id}

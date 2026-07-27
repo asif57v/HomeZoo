@@ -293,7 +293,7 @@ const Home = () => {
                 )}
 
                 {/* Newly Redesigned Bottom Sections (Behind Premium Plots & Land) */}
-                <div className="px-3 sm:px-4 md:px-0">
+                <div className="px-5 md:px-0">
                     <HomeBottomSections />
                 </div>
             </div>

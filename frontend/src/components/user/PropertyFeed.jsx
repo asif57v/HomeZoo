@@ -85,7 +85,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
 
   if (viewMode === 'carousel') {
     return (
-      <div className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory py-2 -mx-5 px-5 md:mx-0 md:px-0 pb-1">
+      <div className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory py-2 px-5 md:px-0 pb-1">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -101,7 +101,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
   }
 
   return (
-    <div className="px-3.5 md:px-5 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+    <div className="px-5 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
       {displayedProperties.map(property => (
         <PropertyCard
           key={property._id}

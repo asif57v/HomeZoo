@@ -60,7 +60,7 @@ const CollectionSection = ({ onFilter, activeFilters = {} }) => {
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto gap-3 pb-3 px-5 md:px-0 -mx-5 md:mx-0 no-scrollbar md:grid md:grid-cols-4 md:overflow-visible overflow-y-visible">
+            <div className="flex overflow-x-auto gap-3 pb-3 px-5 md:px-0 no-scrollbar md:grid md:grid-cols-4 md:overflow-visible overflow-y-visible">
                 {COLLECTIONS.map((item, index) => {
                     const isSelected = isCollectionSelected(item.filters);
 
