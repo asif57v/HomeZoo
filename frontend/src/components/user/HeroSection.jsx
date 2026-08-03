@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Menu, Bell, Wallet } from 'lucide-react';
+import { Search, Menu, Bell, Wallet, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/rokologin-removebg-preview.png';
 import MobileMenu from '../../components/ui/MobileMenu';
@@ -14,9 +14,175 @@ const HeroSection = ({ theme, selectedType }) => {
     const [isSticky, setIsSticky] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
-    const [selectedLocation, setSelectedLocation] = useState('Indore');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [heroApiSuggestions, setHeroApiSuggestions] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState(() => {
+        return localStorage.getItem('user_location') || 'Indore';
+    });
     const [isLocating, setIsLocating] = useState(false);
     const searchRef = React.useRef(null);
+
+    const MASTER_LOCATIONS = [
+        // Indore Areas & Landmarks
+        "Rajwada, Indore",
+        "Rajendra Nagar, Indore",
+        "Rajeev Gandhi Circle, Indore",
+        "Raja Ramanna Centre (CAT), Indore",
+        "Rajwada Chowk, Indore",
+        "Vijay Nagar, Indore",
+        "Palasia, Indore",
+        "New Palasia, Indore",
+        "Old Palasia, Indore",
+        "Bhawarkua, Indore",
+        "Khandwa Road, Indore",
+        "Khandwa Naka, Indore",
+        "LIG Colony, Indore",
+        "Rau, Indore",
+        "Sanwer, Indore",
+        "Sanwer Road, Indore",
+        "Mayakhedi, Indore",
+        "Super Corridor, Indore",
+        "Talawali Chanda, Indore",
+        "Bhawrasla, Indore",
+        "Manglia, Indore",
+        "Bhicholi Mardana, Indore",
+        "Geeta Bhawan, Indore",
+        "AB Road, Indore",
+        "Annapurna, Indore",
+        "Saket, Indore",
+        "Scheme 54, Indore",
+        "Scheme 78, Indore",
+        "Scheme 140, Indore",
+        "Scheme 71, Indore",
+        "Nipania, Indore",
+        "Mahalakshmi Nagar, Indore",
+        "Bengali Square, Indore",
+        "Airport Road, Indore",
+        "Mhow, Indore",
+        "Sudama Nagar, Indore",
+        "Khajrana, Indore",
+        "Bicholi Hapsi, Indore",
+        "Kanadia Road, Indore",
+        "Patnipura, Indore",
+        "Janapav, Indore",
+        "Tower Square, Indore",
+        "Chhotigaltoli, Indore",
+        "Navlakha, Indore",
+        "Pardesipura, Indore",
+        "Clerk Colony, Indore",
+
+        // MP Cities
+        "Bhopal, Madhya Pradesh",
+        "Indore, Madhya Pradesh",
+        "Gwalior, Madhya Pradesh",
+        "Jabalpur, Madhya Pradesh",
+        "Ujjain, Madhya Pradesh",
+        "Dewas, Madhya Pradesh",
+        "Khandwa, Madhya Pradesh",
+        "Khargone, Madhya Pradesh",
+        "Ratlam, Madhya Pradesh",
+        "Rewa, Madhya Pradesh",
+        "Satna, Madhya Pradesh",
+        "Sagar, Madhya Pradesh",
+        "Singrauli, Madhya Pradesh",
+        "Burhanpur, Madhya Pradesh",
+        "Vidisha, Madhya Pradesh",
+        "Chhindwara, Madhya Pradesh",
+        "Rajgarh, Madhya Pradesh",
+        "Hoshangabad, Madhya Pradesh",
+        "Itarsi, Madhya Pradesh",
+        "Sehore, Madhya Pradesh",
+        "Neemuch, Madhya Pradesh",
+        "Mandsaur, Madhya Pradesh",
+
+        // Major Metro Cities & States
+        "Delhi, NCR",
+        "New Delhi",
+        "Gurugram, Haryana",
+        "Noida, Uttar Pradesh",
+        "Mumbai, Maharashtra",
+        "Pune, Maharashtra",
+        "Bengaluru, Karnataka",
+        "Hyderabad, Telangana",
+        "Chennai, Tamil Nadu",
+        "Kolkata, West Bengal",
+        "Ahmedabad, Gujarat",
+        "Jaipur, Rajasthan",
+        "Chandigarh",
+        "Lucknow, Uttar Pradesh",
+        "Surat, Gujarat",
+        "Nagpur, Maharashtra",
+        "Vadodara, Gujarat",
+        "Kota, Rajasthan",
+        "Udaipur, Rajasthan",
+        "Agra, Uttar Pradesh",
+        "Varanasi, Uttar Pradesh",
+        "Kanpur, Uttar Pradesh",
+        "Patna, Bihar",
+        "Ranchi, Jharkhand",
+        "Raipur, Chhattisgarh"
+    ];
+
+    // Dynamic Autocomplete suggestions when user types in Hero search
+    useEffect(() => {
+        const query = searchQuery?.trim();
+        if (!query || query.length < 2) {
+            setHeroApiSuggestions([]);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            try {
+                // Photon OpenStreetMap Autocomplete (Instant, handles partial words like "raja", "khand")
+                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en`);
+                const data = await res.json();
+                if (data && data.features && data.features.length > 0) {
+                    const fetched = data.features.map(f => {
+                        const props = f.properties;
+                        const name = props.name || '';
+                        const city = props.city || props.county || props.district || props.state || '';
+                        if (name && city && !name.toLowerCase().includes(city.toLowerCase())) {
+                            return `${name}, ${city}`;
+                        }
+                        return name || city;
+                    }).filter(Boolean);
+                    
+                    if (fetched.length > 0) {
+                        setHeroApiSuggestions(fetched);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Photon autocomplete failed", err);
+            }
+
+            // Fallback to Google Geocode API
+            const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
+            if (apiKey) {
+                try {
+                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}&components=country:in`);
+                    const data = await res.json();
+                    if (data.status === 'OK' && data.results) {
+                        const fetched = data.results.slice(0, 5).map(item => item.formatted_address);
+                        setHeroApiSuggestions(fetched);
+                    }
+                } catch (err) {
+                    console.warn("Google Geocoding error in HeroSection", err);
+                }
+            }
+        }, 200);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    const getFilteredHeroLocations = () => {
+        const query = (searchQuery || '').toLowerCase().trim();
+        const localFiltered = MASTER_LOCATIONS.filter(loc => 
+            !query || loc.toLowerCase().includes(query)
+        );
+        const combined = Array.from(new Set([...heroApiSuggestions, ...localFiltered]));
+        return combined.slice(0, 8);
+    };
 
     const categoryContent = {
         'All': "Find your space — PG/Co-Living, Rent, Buy & Plots. Your home, your way.",
@@ -35,6 +201,119 @@ const HeroSection = ({ theme, selectedType }) => {
         "Couple friendly stays...",
         "Search near Red Square..."
     ];
+
+    // Helper for multi-provider reverse geocoding
+    const reverseGeocode = async (latitude, longitude) => {
+        // 1. Google Maps Geocoding API if key is available
+        const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
+        if (apiKey) {
+            try {
+                const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`);
+                const data = await response.json();
+                if (data.status === 'OK' && data.results.length > 0) {
+                    const addressComponents = data.results[0].address_components;
+                    const locality = addressComponents.find(c => c.types.includes('locality'));
+                    const sublocality = addressComponents.find(c => c.types.includes('sublocality') || c.types.includes('sublocality_level_1'));
+                    const adminArea = addressComponents.find(c => c.types.includes('administrative_area_level_2'));
+                    
+                    const city = locality?.long_name || sublocality?.long_name || adminArea?.long_name || data.results[0].formatted_address.split(',')[0];
+                    if (city) return city;
+                }
+            } catch (e) {
+                console.warn("Google Geocoding failed, falling back...", e);
+            }
+        }
+
+        // 2. BigDataCloud free client reverse geocoding API (Fast, free & CORS friendly)
+        try {
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+            const data = await response.json();
+            const city = data.city || data.locality || data.principalSubdivision;
+            if (city) return city;
+        } catch (e) {
+            console.warn("BigDataCloud Geocoding failed, falling back...", e);
+        }
+
+        // 3. OpenStreetMap Nominatim fallback
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const data = await response.json();
+            const addr = data.address || {};
+            const city = addr.city || addr.town || addr.village || addr.suburb || addr.state_district || addr.county;
+            if (city) return city;
+        } catch (e) {
+            console.warn("Nominatim Geocoding failed...", e);
+        }
+
+        return null;
+    };
+
+    // Auto-detect live location as soon as page/app opens without clicking
+    useEffect(() => {
+        const fetchSilentLocation = async () => {
+            const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
+            
+            // If API key is present, try silent IP-based geolocation first
+            if (apiKey) {
+                try {
+                    setIsLocating(true);
+                    const geoRes = await fetch(`https://www.googleapis.com/geolocation/v1/geolocate?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ considerIp: true })
+                    });
+                    const geoData = await geoRes.json();
+                    
+                    if (geoData.location) {
+                        const { lat, lng } = geoData.location;
+                        const detectedCity = await reverseGeocode(lat, lng);
+                        if (detectedCity) {
+                            setSelectedLocation(detectedCity);
+                            setSearchQuery(prev => prev ? prev : detectedCity);
+                            localStorage.setItem('user_location', detectedCity);
+                            localStorage.setItem('user_coords', JSON.stringify({ lat, lng }));
+                            setIsLocating(false);
+                            return; // Success, exit
+                        }
+                    }
+                } catch (err) {
+                    console.warn("Silent geolocation failed, falling back to browser GPS:", err);
+                }
+            }
+
+            // Fallback to browser geolocation
+            if (!navigator.geolocation) {
+                setIsLocating(false);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    try {
+                        const { latitude, longitude } = position.coords;
+                        const detectedCity = await reverseGeocode(latitude, longitude);
+                        if (detectedCity) {
+                            setSelectedLocation(detectedCity);
+                            setSearchQuery(prev => prev ? prev : detectedCity);
+                            localStorage.setItem('user_location', detectedCity);
+                            localStorage.setItem('user_coords', JSON.stringify({ lat: latitude, lng: longitude }));
+                        }
+                    } catch (err) {
+                        console.error("Auto detect location error:", err);
+                    } finally {
+                        setIsLocating(false);
+                    }
+                },
+                (error) => {
+                    console.warn("Geolocation auto-detect denied or error:", error);
+                    setIsLocating(false);
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        };
+
+        fetchSilentLocation();
+    }, []);
 
     useEffect(() => {
         const fetchWallet = async () => {
@@ -82,11 +361,12 @@ const HeroSection = ({ theme, selectedType }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleSearchClick = () => {
+    const handleSearchClick = (searchOverride) => {
         let url = '/search';
         const params = [];
-        if (selectedLocation && selectedLocation !== 'Indore') {
-            params.push(`search=${selectedLocation}`);
+        const searchTerm = searchOverride !== undefined ? searchOverride : (searchQuery.trim() || selectedLocation);
+        if (searchTerm) {
+            params.push(`search=${encodeURIComponent(searchTerm)}`);
         }
         if (selectedType && selectedType.id && selectedType.label !== 'All') {
             params.push(`type=${selectedType.id}`);
@@ -96,69 +376,50 @@ const HeroSection = ({ theme, selectedType }) => {
             url += '?' + params.join('&');
         }
         navigate(url);
+        setIsSearchFocused(false);
     };
 
     const handleDetectLocation = async (e) => {
-        e.stopPropagation();
+        if (e && e.stopPropagation) e.stopPropagation();
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser");
             return;
         }
 
         setIsLocating(true);
-        navigator.geolocation.getCurrentPosition(async (position) => {
-            try {
-                const { latitude, longitude } = position.coords;
-                const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
-                
-                if (!apiKey) {
-                    console.warn("Google Maps API key is missing. Using coordinates instead.");
-                    navigate(`/search?lat=${latitude}&lng=${longitude}`);
-                    setIsLocating(false);
-                    return;
-                }
-
-                const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`);
-                const data = await response.json();
-
-                if (data.status === 'OK' && data.results.length > 0) {
-                    let city = '';
-                    const addressComponents = data.results[0].address_components;
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+                    const detectedCity = await reverseGeocode(latitude, longitude);
                     
-                    const locality = addressComponents.find(c => c.types.includes('locality'));
-                    const adminArea = addressComponents.find(c => c.types.includes('administrative_area_level_2'));
-                    const sublocality = addressComponents.find(c => c.types.includes('sublocality') || c.types.includes('sublocality_level_1'));
-                    
-                    if (locality) {
-                        city = locality.long_name;
-                    } else if (adminArea) {
-                        city = adminArea.long_name;
-                    } else if (sublocality) {
-                        city = sublocality.long_name;
-                    } else {
-                        city = data.results[0].formatted_address.split(',')[0];
-                    }
-
-                    if (city) {
-                        setSelectedLocation(city);
-                        let url = `/search?search=${city}`;
+                    if (detectedCity) {
+                        setSelectedLocation(detectedCity);
+                        localStorage.setItem('user_location', detectedCity);
+                        localStorage.setItem('user_coords', JSON.stringify({ lat: latitude, lng: longitude }));
+                        let url = `/search?search=${detectedCity}`;
                         if (selectedType && selectedType.id && selectedType.label !== 'All') {
                             url += `&type=${selectedType.id}`;
                         }
                         navigate(url);
                         setIsSearchFocused(false);
+                    } else {
+                        navigate(`/search?lat=${latitude}&lng=${longitude}`);
+                        setIsSearchFocused(false);
                     }
+                } catch (error) {
+                    console.error("Error fetching location:", error);
+                } finally {
+                    setIsLocating(false);
                 }
-            } catch (error) {
-                console.error("Error fetching location:", error);
-            } finally {
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+                alert("Unable to retrieve your location. Please allow location access in your browser.");
                 setIsLocating(false);
-            }
-        }, (error) => {
-            console.error("Geolocation error:", error);
-            alert("Unable to retrieve your location");
-            setIsLocating(false);
-        });
+            },
+            { timeout: 10000, enableHighAccuracy: true }
+        );
     };
 
     return (
@@ -273,23 +534,51 @@ const HeroSection = ({ theme, selectedType }) => {
                         <Search size={20} style={{ color: accentColor }} className="z-10" />
                     </div>
 
-                    <div className="flex-1 h-full flex items-center bg-transparent outline-none font-medium z-20 relative text-sm md:text-base text-gray-700">
-                        {/* Input simulated via div/text */}
-                    </div>
+                    <div className="flex-1 h-full flex items-center relative z-20">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setIsSearchFocused(true);
+                            }}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearchClick();
+                                }
+                            }}
+                            className="w-full h-full bg-transparent outline-none font-medium text-sm md:text-base text-gray-800 pr-6"
+                        />
 
-                    <div className="absolute left-10 md:left-40 right-28 h-full flex items-center pointer-events-none z-0">
-                        <AnimatePresence mode="wait">
-                            <motion.span
-                                key={placeholderIndex}
-                                initial={{ y: 15, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: -15, opacity: 0 }}
-                                transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="text-gray-400 font-normal text-sm md:text-base absolute w-full truncate"
+                        {!searchQuery && (
+                            <div className="absolute left-0 right-2 h-full flex items-center pointer-events-none z-0">
+                                <AnimatePresence mode="wait">
+                                    <motion.span
+                                        key={placeholderIndex}
+                                        initial={{ y: 15, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        exit={{ y: -15, opacity: 0 }}
+                                        transition={{ duration: 0.4, ease: "easeOut" }}
+                                        className="text-gray-400 font-normal text-sm md:text-base w-full truncate"
+                                    >
+                                        {selectedType?.label === 'Plot' ? "Search by locality, landmark, project or builder..." : placeholders[placeholderIndex]}
+                                    </motion.span>
+                                </AnimatePresence>
+                            </div>
+                        )}
+
+                        {searchQuery && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSearchQuery('');
+                                }}
+                                className="absolute right-1 text-gray-400 hover:text-gray-600 z-30 p-1"
                             >
-                                {selectedType?.label === 'Plot' ? "Search by locality, landmark, project or builder..." : placeholders[placeholderIndex]}
-                            </motion.span>
-                        </AnimatePresence>
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
 
                     {/* Search Button */}
@@ -330,7 +619,7 @@ const HeroSection = ({ theme, selectedType }) => {
                                 className="absolute top-full left-0 right-0 bg-white border-x border-b border-gray-100 rounded-b-2xl shadow-2xl z-50 overflow-hidden"
                             >
                                 <div className="p-2 md:p-4 bg-white max-h-[60vh] overflow-y-auto no-scrollbar">
-                                    <h4 className="text-xs md:text-sm font-semibold text-gray-500 mb-2 px-2 md:px-4 pt-2">Locations:</h4>
+                                    <h4 className="text-xs md:text-sm font-semibold text-gray-500 mb-2 px-2 md:px-4 pt-2">Locations & Suggestions:</h4>
                                     <div className="flex flex-col">
                                         {/* Detect Current Location */}
                                         <div 
@@ -363,36 +652,36 @@ const HeroSection = ({ theme, selectedType }) => {
                                             </div>
                                         </div>
 
-                                        {/* Popular Locations */}
-                                        {[
-                                            "Delhi", "Mumbai", "Bhopal", "Indore",
-                                            "Mayakhedi", "Rau", "Sanwer", "Bhicholi Mardana",
-                                            "Bhawrasla", "Manglia", "Super Corridor", "Talawali Chanda"
-                                        ].map((loc, idx) => (
-                                            <div key={idx} 
-                                                 className="flex items-center gap-4 p-3 md:px-4 hover:bg-indigo-50/50 cursor-pointer transition-colors border-b border-gray-50 last:border-0 rounded-xl"
-                                                 onClick={(e) => {
-                                                     e.stopPropagation();
-                                                     let url = `/search?search=${loc}`;
-                                                     if (selectedType && selectedType.id && selectedType.label !== 'All') {
-                                                         url += `&type=${selectedType.id}`;
-                                                     }
-                                                     navigate(url);
-                                                     setIsSearchFocused(false);
-                                                 }}
-                                            >
-                                                <div className="text-gray-400">
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                                        <circle cx="12" cy="10" r="3" />
-                                                    </svg>
+                                        {/* Dynamic & Popular Location Suggestions */}
+                                        {getFilteredHeroLocations().length > 0 ? (
+                                            getFilteredHeroLocations().map((loc, idx) => (
+                                                <div key={idx} 
+                                                     className="flex items-center gap-4 p-3 md:px-4 hover:bg-indigo-50/50 cursor-pointer transition-colors border-b border-gray-50 last:border-0 rounded-xl"
+                                                     onClick={(e) => {
+                                                         e.stopPropagation();
+                                                         setSelectedLocation(loc);
+                                                         setSearchQuery(loc);
+                                                         localStorage.setItem('user_location', loc);
+                                                         handleSearchClick(loc);
+                                                     }}
+                                                >
+                                                    <div className="text-gray-400">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                                            <circle cx="12" cy="10" r="3" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold text-gray-800 text-sm md:text-base">{loc}</span>
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Locality / City</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-semibold text-gray-800 text-sm md:text-base">{loc}</span>
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Locality</span>
-                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-4 text-center text-xs font-medium text-gray-400">
+                                                No matching location found
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>

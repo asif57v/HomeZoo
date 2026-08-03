@@ -233,7 +233,7 @@ const Home = () => {
                     <div className="flex flex-col gap-2">
                         {sectionIds.pg && (
                             <HomeSection
-                                title="Scholar & Professional Stays"
+                                title="Find Your Perfect Stay"
                                 subtitle="Top rated PGs and Hostels near you"
                                 typeId={sectionIds.pg}
                             />

@@ -16,10 +16,10 @@ const BookingsPage = () => {
 
     // Filter Tabs Configuration
     const tabs = [
-        { id: 'upcoming', label: 'Upcoming' },
-        { id: 'ongoing', label: 'Ongoing' },
-        { id: 'completed', label: 'Completed' },
-        { id: 'cancelled', label: 'Cancelled' }
+        { id: 'upcoming', label: 'Today Lead' },
+        { id: 'ongoing', label: 'Yesterday' },
+        { id: 'completed', label: 'New' },
+        { id: 'cancelled', label: 'Others' }
     ];
 
     // Fetch Bookings when Active Tab Changes

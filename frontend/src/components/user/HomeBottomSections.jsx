@@ -15,7 +15,8 @@ import {
     Building2, 
     User, 
     TrendingUp,
-    CheckCircle2
+    CheckCircle2,
+    Quote
 } from 'lucide-react';
 import { propertyService } from '../../services/apiService';
 
@@ -41,79 +42,123 @@ const HomeBottomSections = () => {
         fetchPartners();
     }, []);
 
-    // Fallback/demo partners if backend API returns less items, to ensure premium spacious preview
+    // Dynamic Package-Based Theming Helper
+    const getPackageTheme = (planTier, planName) => {
+        const tier = (planTier || planName || '').toLowerCase();
+
+        if (tier.includes('diamond')) {
+            return {
+                badgeLabel: planName || 'ELITE DIAMOND PACK',
+                cardBg: 'bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-indigo-50/60',
+                borderColor: 'border-sky-300/60 hover:border-sky-400/90',
+                glowShadow: 'shadow-[0_10px_35px_-8px_rgba(56,189,248,0.18)] hover:shadow-[0_20px_50px_-10px_rgba(56,189,248,0.3)]',
+                badgeStyle: 'bg-sky-500/10 text-sky-800 border-sky-300/70',
+                accentColor: '#6EC6FF',
+                profileRing: 'ring-sky-200/90 group-hover:ring-sky-400/80',
+                quoteBg: 'bg-white/90 border-sky-100/90 shadow-xs',
+                quoteIconColor: 'text-sky-500',
+                buttonGradient: 'from-sky-600 via-blue-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-700 shadow-sky-500/25',
+                hasDiamondPattern: true,
+            };
+        }
+
+        if (tier.includes('gold')) {
+            return {
+                badgeLabel: planName || 'GOLD PACK',
+                cardBg: 'bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-amber-100/30',
+                borderColor: 'border-amber-300/70 hover:border-amber-400/90',
+                glowShadow: 'shadow-[0_10px_35px_-8px_rgba(245,158,11,0.15)] hover:shadow-[0_20px_50px_-10px_rgba(245,158,11,0.28)]',
+                badgeStyle: 'bg-amber-500/10 text-amber-900 border-amber-300/80',
+                accentColor: '#D4AF37',
+                profileRing: 'ring-amber-200/90 group-hover:ring-amber-400/80',
+                quoteBg: 'bg-white/90 border-amber-100/90 shadow-xs',
+                quoteIconColor: 'text-amber-500',
+                buttonGradient: 'from-amber-600 via-amber-700 to-amber-800 hover:from-amber-500 hover:to-amber-900 shadow-amber-500/25',
+                hasDiamondPattern: false,
+            };
+        }
+
+        if (tier.includes('platinum')) {
+            return {
+                badgeLabel: planName || 'PLATINUM PACK',
+                cardBg: 'bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/40',
+                borderColor: 'border-indigo-200/80 hover:border-indigo-300/90',
+                glowShadow: 'shadow-[0_10px_35px_-8px_rgba(99,102,241,0.12)] hover:shadow-[0_20px_50px_-10px_rgba(99,102,241,0.25)]',
+                badgeStyle: 'bg-indigo-500/10 text-indigo-900 border-indigo-200/90',
+                accentColor: '#E5E4E2',
+                profileRing: 'ring-indigo-200/90 group-hover:ring-indigo-400/80',
+                quoteBg: 'bg-white/90 border-indigo-100/90 shadow-xs',
+                quoteIconColor: 'text-indigo-500',
+                buttonGradient: 'from-indigo-600 via-indigo-700 to-slate-900 hover:from-indigo-500 hover:to-black shadow-indigo-500/25',
+                hasDiamondPattern: false,
+            };
+        }
+
+        // Default / Starter Silver Pack
+        return {
+            badgeLabel: planName || 'STARTER SILVER PACK',
+            cardBg: 'bg-gradient-to-br from-slate-50 via-slate-100/60 to-slate-200/30',
+            borderColor: 'border-slate-200/90 hover:border-slate-300/90',
+            glowShadow: 'shadow-[0_10px_35px_-8px_rgba(148,163,184,0.12)] hover:shadow-[0_20px_50px_-10px_rgba(148,163,184,0.25)]',
+            badgeStyle: 'bg-slate-200/80 text-slate-700 border-slate-300/80',
+            accentColor: '#C0C0C0',
+            profileRing: 'ring-slate-200/90 group-hover:ring-slate-300/90',
+            quoteBg: 'bg-white/90 border-slate-200/80 shadow-xs',
+            quoteIconColor: 'text-slate-400',
+            buttonGradient: 'from-slate-700 via-slate-800 to-slate-950 hover:from-slate-800 hover:to-black shadow-slate-500/25',
+            hasDiamondPattern: false,
+        };
+    };
+
+    // Fallback/demo partners if backend API returns less items
     const displayPartners = (partners.length > 0 ? partners : [
         {
             _id: 'p1',
-            name: 'Vanguard Realty Group',
+            name: 'Seed Partner',
             profileImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-            plan: { name: 'Diamond Partner', tier: 'diamond', hasVerifiedTag: true },
-            experienceYears: 12,
-            totalListings: 48,
-            tagline: 'Premier specialists in Luxury Land & Residential Plots',
+            plan: { name: 'ELITE DIAMOND PACK', tier: 'diamond', hasVerifiedTag: true },
+            experienceYears: 10,
+            totalListings: 13,
+            tagline: 'Professional guidance for verified plots & premium properties across prime city zones.',
             rating: '4.9',
-            reviewsCount: 184,
-            address: { city: 'Indore', locality: 'AB Road & Super Corridor' }
+            reviewsCount: 120,
+            address: { city: 'Indore', locality: 'AB Road' }
         },
         {
             _id: 'p2',
-            name: 'Apex Heritage Properties',
-            profileImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
-            plan: { name: 'Platinum Partner', tier: 'platinum', hasVerifiedTag: true },
-            experienceYears: 9,
-            totalListings: 35,
-            tagline: 'Expert advisors for Prime Commercial & Agricultural Lands',
-            rating: '4.8',
-            reviewsCount: 126,
-            address: { city: 'Bengaluru', locality: 'Whitefield & Sarjapur' }
+            name: 'Asif mansoori',
+            profileImage: '',
+            plan: { name: 'STARTER SILVER PACK', tier: 'silver', hasVerifiedTag: true },
+            experienceYears: 10,
+            totalListings: 24,
+            tagline: 'Professional guidance for verified plots & premium properties across prime city zones.',
+            rating: '4.9',
+            reviewsCount: 120,
+            address: { city: 'Indore', locality: 'Malipura' }
         },
         {
             _id: 'p3',
             name: 'Horizon BuildMart & Estates',
             profileImage: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80',
-            plan: { name: 'Diamond Partner', tier: 'diamond', hasVerifiedTag: true },
+            plan: { name: 'GOLD PACK', tier: 'gold', hasVerifiedTag: true },
             experienceYears: 15,
             totalListings: 72,
-            tagline: 'Trusted developers of gated plot communities & premium villas',
+            tagline: 'Trusted developers of gated plot communities & premium luxury villas.',
             rating: '5.0',
             reviewsCount: 240,
-            address: { city: 'Pune', locality: 'Hinjewadi & Wakad' }
+            address: { city: 'Pune', locality: 'Hinjewadi' }
         },
         {
             _id: 'p4',
             name: 'Summit Real Estate Partners',
             profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80',
-            plan: { name: 'Gold Partner', tier: 'gold', hasVerifiedTag: true },
+            plan: { name: 'PLATINUM PACK', tier: 'platinum', hasVerifiedTag: true },
             experienceYears: 8,
             totalListings: 29,
-            tagline: 'Verified land titles and fast legal clearing services',
+            tagline: 'Verified land titles and fast legal clearing services for commercial plots.',
             rating: '4.9',
             reviewsCount: 98,
-            address: { city: 'Hyderabad', locality: 'Gachibowli & Kokapet' }
-        },
-        {
-            _id: 'p5',
-            name: 'Sterling Prime Developers',
-            profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
-            plan: { name: 'Diamond Partner', tier: 'diamond', hasVerifiedTag: true },
-            experienceYears: 14,
-            totalListings: 61,
-            tagline: 'Connecting investors with top high-appreciation properties',
-            rating: '4.9',
-            reviewsCount: 310,
-            address: { city: 'Ahmedabad', locality: 'SG Highway & Bopal' }
-        },
-        {
-            _id: 'p6',
-            name: 'Crestline Infra Advisors',
-            profileImage: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80',
-            plan: { name: 'Platinum Partner', tier: 'platinum', hasVerifiedTag: true },
-            experienceYears: 10,
-            totalListings: 42,
-            tagline: 'Tailored consulting for township plots and bespoke builds',
-            rating: '4.8',
-            reviewsCount: 154,
-            address: { city: 'Mumbai', locality: 'Thane & Navi Mumbai' }
+            address: { city: 'Hyderabad', locality: 'Gachibowli' }
         }
     ]).slice(0, 6);
 
@@ -179,81 +224,103 @@ const HomeBottomSections = () => {
 
                 <div className="flex overflow-x-auto lg:grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 pb-4 lg:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {displayPartners.map((partner, idx) => {
-                        const tierColor = partner.plan?.tier === 'diamond' ? 'text-blue-600 bg-blue-50/80 border-blue-200/80' :
-                                          partner.plan?.tier === 'platinum' ? 'text-indigo-600 bg-indigo-50/80 border-indigo-200/80' :
-                                          'text-amber-700 bg-amber-50/80 border-amber-200/80';
+                        const theme = getPackageTheme(partner.plan?.tier, partner.plan?.name);
 
                         return (
                             <motion.div
                                 key={partner._id || idx}
-                                whileHover={{ y: -5 }}
-                                transition={{ duration: 0.2 }}
-                                className="group w-[88vw] max-w-[360px] sm:max-w-[440px] lg:w-auto lg:max-w-none shrink-0 lg:shrink snap-start bg-white rounded-3xl p-5 sm:p-7 border border-slate-100/90 shadow-[0_4px_24px_-6px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_48px_-12px_rgba(37,63,105,0.14)] hover:border-blue-200/60 transition-all flex flex-col justify-between cursor-pointer relative overflow-hidden"
+                                whileHover={{ y: -6 }}
+                                transition={{ duration: 0.25, ease: "easeOut" }}
+                                onClick={() => window.location.href = `#/partners/${partner._id}`}
+                                className={`group relative w-[88vw] max-w-[360px] sm:max-w-[460px] lg:w-auto lg:max-w-none shrink-0 lg:shrink snap-start 
+                                    rounded-[24px] p-6 sm:p-7 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
+                                    transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md`}
                             >
-                                {/* Top Glow Accent on hover */}
-                                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                {/* Subtle Crystal/Diamond Grid Pattern for Diamond Pack */}
+                                {theme.hasDiamondPattern && (
+                                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:16px_16px]" />
+                                )}
+
+                                {/* Top Right Floating Rating Badge */}
+                                <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-10">
+                                    <div className="inline-flex items-center gap-1.5 bg-amber-50/95 backdrop-blur-md text-amber-950 font-black text-xs sm:text-sm px-3 py-1.5 rounded-full border border-amber-200/80 shadow-xs transition-transform duration-300 group-hover:scale-105">
+                                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0" />
+                                        <span>{partner.rating || '4.9'}</span>
+                                        <span className="text-slate-400 font-medium text-[11px]">({partner.reviewsCount || 120})</span>
+                                    </div>
+                                </div>
 
                                 <div>
-                                    <div className="flex items-start gap-4 sm:gap-5">
-                                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-inner shrink-0 group-hover:ring-4 ring-blue-50 transition-all duration-300">
+                                    {/* Profile Section */}
+                                    <div className="flex items-start gap-4 sm:gap-5 pr-24 sm:pr-28">
+                                        {/* Profile Avatar */}
+                                        <div className={`relative w-18 h-18 sm:w-22 sm:h-22 rounded-2xl overflow-hidden bg-white border-2 border-white shadow-md shrink-0 ring-4 ${theme.profileRing} transition-all duration-300`}>
                                             {partner.profileImage ? (
                                                 <img src={partner.profileImage} alt={partner.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
-                                                    <User size={32} />
+                                                    <User size={36} />
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                                <h3 className="font-extrabold text-slate-900 text-lg sm:text-xl flex items-center gap-1.5 tracking-tight group-hover:text-blue-600 transition-colors truncate">
-                                                    <span>{partner.name}</span>
-                                                    {(partner.plan?.hasVerifiedTag || true) && (
-                                                        <BadgeCheck className="w-5 h-5 text-blue-500 fill-blue-50 shrink-0 inline-block" />
-                                                    )}
-                                                </h3>
-                                                <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-950 font-black text-xs sm:text-sm px-2.5 py-1 rounded-xl border border-amber-200/70 shadow-xs">
-                                                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0" />
-                                                    <span>{partner.rating || '4.9'}</span>
-                                                    <span className="text-slate-400 font-semibold text-[11px]">({partner.reviewsCount || 120})</span>
-                                                </div>
-                                            </div>
+                                        {/* Partner Info */}
+                                        <div className="flex-1 min-w-0 pt-1">
+                                            <h3 className="font-extrabold text-slate-900 text-lg sm:text-xl flex items-center gap-1.5 tracking-tight group-hover:text-blue-600 transition-colors truncate">
+                                                <span className="truncate">{partner.name}</span>
+                                                <BadgeCheck className="w-5 h-5 text-blue-500 fill-blue-50 shrink-0 inline-block" />
+                                            </h3>
 
-                                            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-                                                <span className={`text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg border ${tierColor}`}>
-                                                    {partner.plan?.name || 'Verified Partner'}
+                                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                                <span className={`text-[10px] sm:text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
+                                                    {theme.badgeLabel}
                                                 </span>
-                                                {partner.address?.city && (
-                                                    <span className="flex items-center gap-1 text-xs font-semibold text-slate-500">
-                                                        <MapPin className="w-3 h-3 text-slate-400" />
-                                                        {partner.address.city} {partner.address.locality ? `• ${partner.address.locality}` : ''}
+                                                {(partner.address?.city || partner.address?.locality) && (
+                                                    <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 truncate">
+                                                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                                        <span className="truncate">{partner.address.locality || partner.address.city}</span>
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <p className="mt-4 text-sm font-semibold text-slate-600 leading-relaxed bg-slate-50/80 p-3.5 rounded-2xl border border-slate-100 group-hover:bg-blue-50/30 group-hover:border-blue-100/50 transition-colors">
-                                        "{partner.tagline || 'Professional guidance for verified plots & premium properties across prime city zones.'}"
-                                    </p>
+                                    {/* Description / Quote Card */}
+                                    <div className={`mt-5 sm:mt-6 p-4 rounded-2xl border ${theme.quoteBg} flex items-start gap-3 transition-colors duration-300`}>
+                                        <Quote className={`w-4 h-4 ${theme.quoteIconColor} shrink-0 mt-0.5 rotate-180`} />
+                                        <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed italic">
+                                            "{partner.tagline || 'Professional guidance for verified plots & premium properties across prime city zones.'}"
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <div className="mt-6 pt-4 border-t border-slate-100/90 flex items-center justify-between text-xs font-extrabold text-slate-700">
-                                    <div className="flex items-center gap-6">
-                                        <div>
-                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] block">Experience</span>
-                                            <span className="text-slate-900 font-black text-sm">{partner.experienceYears || '10'}+ Years</span>
-                                        </div>
-                                        <div className="w-px h-7 bg-slate-200" />
-                                        <div>
-                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] block">Active Listings</span>
-                                            <span className="text-slate-900 font-black text-sm">{partner.totalListings || '24'} Properties</span>
-                                        </div>
+                                {/* Bottom Section: 3 Equal Columns */}
+                                <div className="mt-6 pt-5 border-t border-slate-200/70 grid grid-cols-3 items-center text-left gap-2 sm:gap-4">
+                                    {/* Column 1: Experience */}
+                                    <div className="flex flex-col items-start justify-center pr-1">
+                                        <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Experience</span>
+                                        <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.experienceYears || '10'}+ Years</span>
                                     </div>
-                                    <span className="inline-flex items-center gap-1 text-blue-600 font-extrabold text-sm group-hover:translate-x-1 transition-transform">
-                                        Explore Profile <ArrowRight className="w-4 h-4" />
-                                    </span>
+
+                                    {/* Column 2: Active Listings */}
+                                    <div className="flex flex-col items-start justify-center border-x border-slate-200/80 px-2 sm:px-4">
+                                        <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Listings</span>
+                                        <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.totalListings || '24'} Properties</span>
+                                    </div>
+
+                                    {/* Column 3: Explore Profile Button */}
+                                    <div className="flex items-center justify-end pl-1">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                window.location.href = `#/partners/${partner._id}`;
+                                            }}
+                                            className={`inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2.5 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-xs shadow-md transition-all duration-300 active:scale-95 group/btn`}
+                                        >
+                                            <span className="whitespace-nowrap">Explore Profile</span>
+                                            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform shrink-0" />
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         );

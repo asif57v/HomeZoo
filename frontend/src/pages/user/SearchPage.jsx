@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { propertyService } from '../../services/propertyService';
 import { userService, api } from '../../services/apiService';
@@ -72,6 +72,196 @@ const SearchPage = () => {
     };
 
     const [filters, setFilters] = useState(getInitialFilters());
+    const searchRef = useRef(null);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [apiSuggestions, setApiSuggestions] = useState([]);
+
+    const MASTER_SEARCH_LOCATIONS = [
+        // Indore Areas & Landmarks
+        "Rajwada, Indore",
+        "Rajendra Nagar, Indore",
+        "Rajeev Gandhi Circle, Indore",
+        "Raja Ramanna Centre (CAT), Indore",
+        "Rajwada Chowk, Indore",
+        "Vijay Nagar, Indore",
+        "Palasia, Indore",
+        "New Palasia, Indore",
+        "Old Palasia, Indore",
+        "Bhawarkua, Indore",
+        "Khandwa Road, Indore",
+        "Khandwa Naka, Indore",
+        "LIG Colony, Indore",
+        "Rau, Indore",
+        "Sanwer, Indore",
+        "Sanwer Road, Indore",
+        "Mayakhedi, Indore",
+        "Super Corridor, Indore",
+        "Talawali Chanda, Indore",
+        "Bhawrasla, Indore",
+        "Manglia, Indore",
+        "Bhicholi Mardana, Indore",
+        "Geeta Bhawan, Indore",
+        "AB Road, Indore",
+        "Annapurna, Indore",
+        "Saket, Indore",
+        "Scheme 54, Indore",
+        "Scheme 78, Indore",
+        "Scheme 140, Indore",
+        "Scheme 71, Indore",
+        "Nipania, Indore",
+        "Mahalakshmi Nagar, Indore",
+        "Bengali Square, Indore",
+        "Airport Road, Indore",
+        "Mhow, Indore",
+        "Sudama Nagar, Indore",
+        "Khajrana, Indore",
+        "Bicholi Hapsi, Indore",
+        "Kanadia Road, Indore",
+        "Patnipura, Indore",
+        "Janapav, Indore",
+        "Tower Square, Indore",
+        "Chhotigaltoli, Indore",
+        "Navlakha, Indore",
+        "Pardesipura, Indore",
+        "Clerk Colony, Indore",
+
+        // MP Cities
+        "Bhopal, Madhya Pradesh",
+        "Indore, Madhya Pradesh",
+        "Gwalior, Madhya Pradesh",
+        "Jabalpur, Madhya Pradesh",
+        "Ujjain, Madhya Pradesh",
+        "Dewas, Madhya Pradesh",
+        "Khandwa, Madhya Pradesh",
+        "Khargone, Madhya Pradesh",
+        "Ratlam, Madhya Pradesh",
+        "Rewa, Madhya Pradesh",
+        "Satna, Madhya Pradesh",
+        "Sagar, Madhya Pradesh",
+        "Singrauli, Madhya Pradesh",
+        "Burhanpur, Madhya Pradesh",
+        "Vidisha, Madhya Pradesh",
+        "Chhindwara, Madhya Pradesh",
+        "Rajgarh, Madhya Pradesh",
+        "Hoshangabad, Madhya Pradesh",
+        "Itarsi, Madhya Pradesh",
+        "Sehore, Madhya Pradesh",
+        "Neemuch, Madhya Pradesh",
+        "Mandsaur, Madhya Pradesh",
+
+        // Major Metro Cities & States
+        "Delhi, NCR",
+        "New Delhi",
+        "Gurugram, Haryana",
+        "Noida, Uttar Pradesh",
+        "Mumbai, Maharashtra",
+        "Pune, Maharashtra",
+        "Bengaluru, Karnataka",
+        "Hyderabad, Telangana",
+        "Chennai, Tamil Nadu",
+        "Kolkata, West Bengal",
+        "Ahmedabad, Gujarat",
+        "Jaipur, Rajasthan",
+        "Chandigarh",
+        "Lucknow, Uttar Pradesh",
+        "Surat, Gujarat",
+        "Nagpur, Maharashtra",
+        "Vadodara, Gujarat",
+        "Kota, Rajasthan",
+        "Udaipur, Rajasthan",
+        "Agra, Uttar Pradesh",
+        "Varanasi, Uttar Pradesh",
+        "Kanpur, Uttar Pradesh",
+        "Patna, Bihar",
+        "Ranchi, Jharkhand",
+        "Raipur, Chhattisgarh"
+    ];
+
+    // Click outside listener for search suggestions
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchRef.current && !searchRef.current.contains(event.target)) {
+                setIsSearchFocused(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Dynamic Autocomplete suggestions when user types
+    useEffect(() => {
+        const query = filters.search?.trim();
+        if (!query || query.length < 2) {
+            setApiSuggestions([]);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            try {
+                // Photon OpenStreetMap Autocomplete
+                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en`);
+                const data = await res.json();
+                if (data && data.features && data.features.length > 0) {
+                    const fetched = data.features.map(f => {
+                        const props = f.properties;
+                        const name = props.name || '';
+                        const city = props.city || props.county || props.district || props.state || '';
+                        if (name && city && !name.toLowerCase().includes(city.toLowerCase())) {
+                            return `${name}, ${city}`;
+                        }
+                        return name || city;
+                    }).filter(Boolean);
+
+                    if (fetched.length > 0) {
+                        setApiSuggestions(fetched);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Photon autocomplete error", err);
+            }
+
+            // Fallback to Google Geocoding API
+            const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
+            if (apiKey) {
+                try {
+                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}&components=country:in`);
+                    const data = await res.json();
+                    if (data.status === 'OK' && data.results) {
+                        const fetched = data.results.slice(0, 5).map(item => item.formatted_address);
+                        setApiSuggestions(fetched);
+                    }
+                } catch (err) {
+                    console.warn("Geocoding suggestions error", err);
+                }
+            }
+        }, 200);
+
+        return () => clearTimeout(timer);
+    }, [filters.search]);
+
+    const getFilteredSuggestions = () => {
+        const query = (filters.search || '').toLowerCase().trim();
+        
+        // Filter static popular locations
+        const localFiltered = MASTER_SEARCH_LOCATIONS.filter(loc => 
+            !query || loc.toLowerCase().includes(query)
+        );
+
+        // Filter property locations from current loaded properties
+        const propertyLocations = properties.map(p => {
+            const city = p.city || p.address?.city || '';
+            const area = p.address?.area || p.address?.street || '';
+            return [area, city].filter(Boolean).join(', ');
+        }).filter(Boolean);
+
+        const propertyFiltered = propertyLocations.filter(loc => 
+            query && loc.toLowerCase().includes(query)
+        );
+
+        const combined = Array.from(new Set([...apiSuggestions, ...localFiltered, ...propertyFiltered]));
+        return combined.slice(0, 8);
+    };
 
     const [location, setLocation] = useState(null); // { lat, lng }
     const [propertyTypes, setPropertyTypes] = useState([
@@ -318,16 +508,94 @@ const SearchPage = () => {
                     {/* Search & Actions Row */}
                     <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 md:mb-1">
                         {/* Search Input Row */}
-                        <div className="relative flex-grow">
+                        <div className="relative flex-grow" ref={searchRef}>
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                             <input
                                 type="text"
                                 placeholder="Search by city, hotel, or area..."
-                                className="w-full pl-10 pr-4 py-2 md:py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-surface focus:border-surface outline-none text-sm font-medium text-gray-700 bg-gray-100/30"
+                                className="w-full pl-10 pr-10 py-2 md:py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-surface focus:border-surface outline-none text-sm font-medium text-gray-700 bg-gray-100/30"
                                 value={filters.search}
-                                onChange={(e) => updateFilter('search', e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                                onChange={(e) => {
+                                    updateFilter('search', e.target.value);
+                                    setIsSearchFocused(true);
+                                }}
+                                onFocus={() => setIsSearchFocused(true)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        setIsSearchFocused(false);
+                                        applyFilters();
+                                    }
+                                }}
                             />
+                            {filters.search && (
+                                <button
+                                    onClick={() => {
+                                        updateFilter('search', '');
+                                        setIsSearchFocused(true);
+                                    }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
+
+                            {/* Location Suggestions Dropdown */}
+                            {isSearchFocused && (
+                                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-80 overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1">
+                                    {/* Near Me Option */}
+                                    <div
+                                        onClick={() => {
+                                            setIsSearchFocused(false);
+                                            handleNearMe();
+                                        }}
+                                        className="flex items-center gap-3 p-3 px-4 hover:bg-emerald-50 cursor-pointer transition-colors border-b border-gray-100"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                            <Navigation size={15} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-emerald-700 text-xs md:text-sm">Use current location</span>
+                                            <span className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">Using GPS</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Suggestions Header */}
+                                    <div className="px-4 py-1.5 bg-gray-50/80 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                        Location Suggestions
+                                    </div>
+
+                                    {/* Location List */}
+                                    {getFilteredSuggestions().length > 0 ? (
+                                        getFilteredSuggestions().map((loc, idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    updateFilter('search', loc);
+                                                    setIsSearchFocused(false);
+                                                    const params = {
+                                                        ...Object.fromEntries([...searchParams]),
+                                                        search: loc
+                                                    };
+                                                    setSearchParams(params);
+                                                }}
+                                                className="flex items-center gap-3 p-3 px-4 hover:bg-surface/5 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                                                    <MapPin size={15} />
+                                                </div>
+                                                <div className="flex flex-col overflow-hidden">
+                                                    <span className="font-semibold text-gray-800 text-xs md:text-sm truncate">{loc}</span>
+                                                    <span className="text-[10px] font-medium text-gray-400">Locality / City</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-4 text-center text-xs font-medium text-gray-400">
+                                            No matching location found
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Actions Row */}
