@@ -3,6 +3,53 @@ import { motion } from 'framer-motion';
 import { propertyService } from '../../services/apiService';
 import { BadgeCheck, Phone, ChevronRight, User, Star, Loader2 } from 'lucide-react';
 
+const getPackageTheme = (planTier, planName) => {
+    const tier = (planTier || planName || '').toLowerCase();
+
+    if (tier.includes('diamond')) {
+        return {
+            cardBg: 'bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-indigo-50/60',
+            borderColor: 'border-sky-300/80 hover:border-sky-400',
+            topBarBg: 'bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-600',
+            badgeStyle: 'bg-sky-500/10 text-sky-800 border-sky-300/70',
+            badgeText: planName || 'ELITE DIAMOND PACK',
+            buttonStyle: 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white shadow-md shadow-sky-500/20'
+        };
+    }
+
+    if (tier.includes('gold')) {
+        return {
+            cardBg: 'bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-amber-100/50',
+            borderColor: 'border-amber-300/80 hover:border-amber-400',
+            topBarBg: 'bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600',
+            badgeStyle: 'bg-amber-500/10 text-amber-900 border-amber-300/80',
+            badgeText: planName || 'GOLD PACK',
+            buttonStyle: 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-md shadow-amber-500/20'
+        };
+    }
+
+    if (tier.includes('platinum')) {
+        return {
+            cardBg: 'bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/40',
+            borderColor: 'border-indigo-200/90 hover:border-indigo-300',
+            topBarBg: 'bg-gradient-to-r from-indigo-400 via-purple-500 to-indigo-700',
+            badgeStyle: 'bg-indigo-500/10 text-indigo-900 border-indigo-200/90',
+            badgeText: planName || 'PLATINUM PACK',
+            buttonStyle: 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-500/20'
+        };
+    }
+
+    // Default / Starter Silver Pack
+    return {
+        cardBg: 'bg-gradient-to-br from-slate-50 via-slate-100/60 to-slate-200/40',
+        borderColor: 'border-slate-200/90 hover:border-slate-300',
+        topBarBg: 'bg-gradient-to-r from-slate-400 to-slate-500',
+        badgeStyle: 'bg-slate-200/80 text-slate-700 border-slate-300/80',
+        badgeText: planName || 'STARTER SILVER PACK',
+        buttonStyle: 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-100'
+    };
+};
+
 const RecommendedSellers = () => {
     const [sellers, setSellers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -43,81 +90,82 @@ const RecommendedSellers = () => {
             </div>
 
             <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 px-5 md:px-0">
-                {sellers.map((seller) => (
-                    <motion.div
-                        key={seller._id}
-                        whileHover={{ y: -3 }}
-                        className="min-w-[250px] md:min-w-[270px] bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col"
-                    >
-                        {/* Header with Plan Color Indicator */}
-                        <div className={`h-1 w-full ${seller.plan?.tier === 'diamond' ? 'bg-blue-600' :
-                                seller.plan?.tier === 'platinum' ? 'bg-indigo-600' :
-                                    seller.plan?.tier === 'gold' ? 'bg-yellow-500' :
-                                        'bg-gray-300'
-                            }`} />
+                {sellers.map((seller) => {
+                    const theme = getPackageTheme(seller.plan?.tier, seller.plan?.name);
 
-                        <div className="p-3.5 flex flex-col h-full">
-                            <div className="flex items-center gap-2.5 mb-3">
-                                <div className="w-11 h-11 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                                    {seller.profileImage ? (
-                                        <img src={seller.profileImage} alt={seller.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <User className="text-gray-300" size={24} />
-                                    )}
-                                </div>
-                                <div className="flex flex-col">
-                                    <h3 className="font-bold text-gray-900 text-[13px] flex items-center gap-1 line-clamp-1">
-                                        {seller.name}
-                                        {seller.plan?.hasVerifiedTag && (
-                                            <BadgeCheck size={14} className="text-blue-500 fill-blue-50" />
+                    return (
+                        <motion.div
+                            key={seller._id}
+                            whileHover={{ y: -3 }}
+                            className={`min-w-[250px] md:min-w-[270px] ${theme.cardBg} rounded-xl border ${theme.borderColor} shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col`}
+                        >
+                            {/* Header with Plan Color Indicator */}
+                            <div className={`h-1.5 w-full ${theme.topBarBg}`} />
+
+                            <div className="p-3.5 flex flex-col h-full">
+                                <div className="flex items-center gap-2.5 mb-3">
+                                    <div className="w-11 h-11 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                                        {seller.profileImage ? (
+                                            <img src={seller.profileImage} alt={seller.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="text-gray-400" size={24} />
                                         )}
-                                    </h3>
-                                    <div className="flex items-center gap-0.5 text-[10px] text-emerald-600 font-bold uppercase tracking-tight mt-0.5">
-                                        <ChevronRight size={10} className="-ml-0.5" />
-                                        {seller.plan?.name || 'Partner'}
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <h3 className="font-bold text-gray-900 text-[13px] flex items-center gap-1 line-clamp-1">
+                                            {seller.name}
+                                            {seller.plan?.hasVerifiedTag && (
+                                                <BadgeCheck size={14} className="text-blue-500 fill-blue-50 shrink-0" />
+                                            )}
+                                        </h3>
+                                        <div className="mt-0.5">
+                                            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${theme.badgeStyle} tracking-wider inline-block truncate max-w-full`}>
+                                                {theme.badgeText}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Stats */}
-                            <div className="grid grid-cols-2 gap-2 mb-3 p-2.5 bg-gray-50/50 rounded-lg border border-gray-100/50">
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Experience</span>
-                                    <span className="text-[12px] font-black text-gray-800 mt-0.5">
-                                        {seller.experienceYears || '0.5'}+ Yrs
+                                {/* Stats */}
+                                <div className="grid grid-cols-2 gap-2 mb-3 p-2.5 bg-white/70 backdrop-blur-xs rounded-lg border border-gray-100/80">
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Experience</span>
+                                        <span className="text-[12px] font-black text-gray-800 mt-0.5">
+                                            {seller.experienceYears || '0.5'}+ Yrs
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col border-l border-gray-200 pl-3">
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Listings</span>
+                                        <span className="text-[12px] font-black text-gray-800 mt-0.5">
+                                            {seller.totalListings || 0}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Location Tags */}
+                                <div className="flex flex-wrap gap-1 mb-4">
+                                    {seller.address?.city && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-white/80 border border-gray-200 text-gray-600 rounded">
+                                            {seller.address.city}
+                                        </span>
+                                    )}
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-white/80 border border-gray-200 text-gray-600 rounded">
+                                        Top Rated
                                     </span>
                                 </div>
-                                <div className="flex flex-col border-l border-gray-200 pl-3">
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Listings</span>
-                                    <span className="text-[12px] font-black text-gray-800 mt-0.5">
-                                        {seller.totalListings || 0}
-                                    </span>
-                                </div>
-                            </div>
 
-                            {/* Location Tags */}
-                            <div className="flex flex-wrap gap-1 mb-4">
-                                {seller.address?.city && (
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-white border border-gray-200 text-gray-500 rounded">
-                                        {seller.address.city}
-                                    </span>
-                                )}
-                                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-white border border-gray-200 text-gray-500 rounded">
-                                    Top Rated
-                                </span>
+                                {/* Action */}
+                                <button
+                                    onClick={() => window.location.href = `tel:${seller.phone}`}
+                                    className={`w-full mt-auto py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 group ${theme.buttonStyle}`}
+                                >
+                                    <Phone size={14} className="group-hover:animate-bounce" />
+                                    Show Contact
+                                </button>
                             </div>
-
-                            {/* Action */}
-                            <button
-                                onClick={() => window.location.href = `tel:${seller.phone}`}
-                                className="w-full mt-auto bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 group border border-indigo-100"
-                            >
-                                <Phone size={14} className="group-hover:animate-bounce" />
-                                Show Contact
-                            </button>
-                        </div>
-                    </motion.div>
-                ))}
+                        </motion.div>
+                    );
+                })}
                 {/* Spacer */}
                 <div className="min-w-[5px] shrink-0" />
             </div>
