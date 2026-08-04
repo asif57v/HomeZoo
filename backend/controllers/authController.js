@@ -25,15 +25,16 @@ export const sendOtp = async (req, res) => {
     }
 
     let user;
-    let Model = role === 'partner' ? Partner : User;
+    const isPartnerRole = ['partner', 'broker', 'agent', 'seller'].includes(role);
+    let Model = isPartnerRole ? Partner : User;
 
     // FOR LOGIN: Check if user exists BEFORE sending OTP
     if (type === 'login') {
       user = await Model.findOne({ phone });
       if (!user) {
         // User doesn't exist - don't send OTP
-        if (role === 'partner') {
-          return res.status(404).json({ message: 'Partner account not found. Please register first.' });
+        if (isPartnerRole) {
+          return res.status(404).json({ message: 'Partner / Broker account not found. Please register first.' });
         }
         return res.status(404).json({
           message: 'Account not found. Please create an account first.',

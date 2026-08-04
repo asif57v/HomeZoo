@@ -25,7 +25,7 @@ const partnerSchema = new mongoose.Schema({
   role: {
     type: String,
     default: 'partner',
-    enum: ['partner']
+    enum: ['partner', 'broker', 'agent', 'seller', 'user']
   },
   isPartner: { type: Boolean, default: true },
   isBlocked: { type: Boolean, default: false },

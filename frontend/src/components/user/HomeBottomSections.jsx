@@ -233,7 +233,7 @@ const HomeBottomSections = () => {
                                 transition={{ duration: 0.25, ease: "easeOut" }}
                                 onClick={() => window.location.href = `#/partners/${partner._id}`}
                                 className={`group relative w-[88vw] max-w-[360px] sm:max-w-[460px] lg:w-auto lg:max-w-none shrink-0 lg:shrink snap-start 
-                                    rounded-[24px] p-6 sm:p-7 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
+                                    rounded-[24px] p-5 sm:p-6 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
                                     transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md`}
                             >
                                 {/* Subtle Crystal/Diamond Grid Pattern for Diamond Pack */}
@@ -241,52 +241,54 @@ const HomeBottomSections = () => {
                                     <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:16px_16px]" />
                                 )}
 
-                                {/* Top Right Floating Rating Badge */}
-                                <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-10">
-                                    <div className="inline-flex items-center gap-1.5 bg-amber-50/95 backdrop-blur-md text-amber-950 font-black text-xs sm:text-sm px-3 py-1.5 rounded-full border border-amber-200/80 shadow-xs transition-transform duration-300 group-hover:scale-105">
-                                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0" />
-                                        <span>{partner.rating || '4.9'}</span>
-                                        <span className="text-slate-400 font-medium text-[11px]">({partner.reviewsCount || 120})</span>
-                                    </div>
-                                </div>
-
                                 <div>
                                     {/* Profile Section */}
-                                    <div className="flex items-start gap-4 sm:gap-5 pr-24 sm:pr-28">
-                                        {/* Profile Avatar */}
-                                        <div className={`relative w-18 h-18 sm:w-22 sm:h-22 rounded-2xl overflow-hidden bg-white border-2 border-white shadow-md shrink-0 ring-4 ${theme.profileRing} transition-all duration-300`}>
-                                            {partner.profileImage ? (
-                                                <img src={partner.profileImage} alt={partner.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
-                                                    <User size={36} />
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                            {/* Profile Avatar */}
+                                            <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-white border-2 border-white shadow-md shrink-0 ring-3 ${theme.profileRing} transition-all duration-300`}>
+                                                {partner.profileImage ? (
+                                                    <img src={partner.profileImage} alt={partner.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                                                        <User size={28} />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Partner Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-extrabold text-slate-900 text-base sm:text-lg flex items-center gap-1.5 tracking-tight group-hover:text-blue-600 transition-colors">
+                                                    <span className="truncate">{partner.name}</span>
+                                                    <BadgeCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 fill-blue-50 shrink-0 inline-block" />
+                                                </h3>
+
+                                                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                                                    <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-lg border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
+                                                        {theme.badgeLabel}
+                                                    </span>
+                                                    {(partner.address?.city || partner.address?.locality) && (
+                                                        <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 truncate">
+                                                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                                            <span className="truncate">{partner.address.locality || partner.address.city}</span>
+                                                        </span>
+                                                    )}
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
 
-                                        {/* Partner Info */}
-                                        <div className="flex-1 min-w-0 pt-1">
-                                            <h3 className="font-extrabold text-slate-900 text-lg sm:text-xl flex items-center gap-1.5 tracking-tight group-hover:text-blue-600 transition-colors truncate">
-                                                <span className="truncate">{partner.name}</span>
-                                                <BadgeCheck className="w-5 h-5 text-blue-500 fill-blue-50 shrink-0 inline-block" />
-                                            </h3>
-
-                                            <div className="mt-2 flex items-center gap-2 flex-wrap">
-                                                <span className={`text-[10px] sm:text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
-                                                    {theme.badgeLabel}
-                                                </span>
-                                                {(partner.address?.city || partner.address?.locality) && (
-                                                    <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 truncate">
-                                                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                                        <span className="truncate">{partner.address.locality || partner.address.city}</span>
-                                                    </span>
-                                                )}
+                                        {/* Top Right Rating Badge */}
+                                        <div className="shrink-0">
+                                            <div className="inline-flex items-center gap-1 bg-amber-50/95 backdrop-blur-md text-amber-950 font-black text-xs px-2.5 py-1 rounded-full border border-amber-200/80 shadow-xs">
+                                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0" />
+                                                <span>{partner.rating || '4.9'}</span>
+                                                <span className="text-slate-400 font-medium text-[10px]">({partner.reviewsCount || 120})</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Description / Quote Card */}
-                                    <div className={`mt-5 sm:mt-6 p-4 rounded-2xl border ${theme.quoteBg} flex items-start gap-3 transition-colors duration-300`}>
+                                    <div className={`mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-2xl border ${theme.quoteBg} flex items-start gap-2.5 transition-colors duration-300`}>
                                         <Quote className={`w-4 h-4 ${theme.quoteIconColor} shrink-0 mt-0.5 rotate-180`} />
                                         <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed italic">
                                             "{partner.tagline || 'Professional guidance for verified plots & premium properties across prime city zones.'}"
@@ -294,33 +296,37 @@ const HomeBottomSections = () => {
                                     </div>
                                 </div>
 
-                                {/* Bottom Section: 3 Equal Columns */}
-                                <div className="mt-6 pt-5 border-t border-slate-200/70 grid grid-cols-3 items-center text-left gap-2 sm:gap-4">
-                                    {/* Column 1: Experience */}
-                                    <div className="flex flex-col items-start justify-center pr-1">
-                                        <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Experience</span>
-                                        <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.experienceYears || '10'}+ Years</span>
+                                {/* Bottom Section: Experience + Listings + Explore Profile Button */}
+                                <div className="mt-5 pt-4 border-t border-slate-200/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                    {/* Stats */}
+                                    <div className="flex items-center gap-4 sm:gap-5 justify-between sm:justify-start">
+                                        {/* Experience */}
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-[10px]">Experience</span>
+                                            <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.experienceYears || '10'}+ Years</span>
+                                        </div>
+
+                                        {/* Divider */}
+                                        <div className="h-7 w-[1px] bg-slate-200/80" />
+
+                                        {/* Active Listings */}
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-[10px]">Listings</span>
+                                            <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.totalListings || '24'} Properties</span>
+                                        </div>
                                     </div>
 
-                                    {/* Column 2: Active Listings */}
-                                    <div className="flex flex-col items-start justify-center border-x border-slate-200/80 px-2 sm:px-4">
-                                        <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Listings</span>
-                                        <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.totalListings || '24'} Properties</span>
-                                    </div>
-
-                                    {/* Column 3: Explore Profile Button */}
-                                    <div className="flex items-center justify-end pl-1">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                window.location.href = `#/partners/${partner._id}`;
-                                            }}
-                                            className={`inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2.5 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-xs shadow-md transition-all duration-300 active:scale-95 group/btn`}
-                                        >
-                                            <span className="whitespace-nowrap">Explore Profile</span>
-                                            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform shrink-0" />
-                                        </button>
-                                    </div>
+                                    {/* Explore Profile Button */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.location.href = `#/partners/${partner._id}`;
+                                        }}
+                                        className={`inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-xs shadow-md transition-all duration-300 active:scale-95 group/btn shrink-0 w-full sm:w-auto`}
+                                    >
+                                        <span className="whitespace-nowrap">Explore Profile</span>
+                                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform shrink-0" />
+                                    </button>
                                 </div>
                             </motion.div>
                         );
