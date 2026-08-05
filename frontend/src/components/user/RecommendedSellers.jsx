@@ -39,14 +39,14 @@ const getPackageTheme = (planTier, planName) => {
         };
     }
 
-    // Default / Starter Silver Pack
+    // Default / Starter Silver Pack - Dark Glowing Blue Theme (Image 2)
     return {
-        cardBg: 'bg-gradient-to-br from-slate-50 via-slate-100/60 to-slate-200/40',
-        borderColor: 'border-slate-200/90 hover:border-slate-300',
-        topBarBg: 'bg-gradient-to-r from-slate-400 to-slate-500',
-        badgeStyle: 'bg-slate-200/80 text-slate-700 border-slate-300/80',
+        cardBg: 'bg-gradient-to-br from-[#021035] via-[#041A52] to-[#010927] text-white',
+        borderColor: 'border-2 border-blue-500/80 hover:border-blue-400',
+        topBarBg: 'bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600',
+        badgeStyle: 'bg-[#0B256B] text-blue-300 border-blue-600/80',
         badgeText: planName || 'STARTER SILVER PACK',
-        buttonStyle: 'bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-100'
+        buttonStyle: 'bg-gradient-to-r from-[#1B55E2] via-[#2563EB] to-[#1D4ED8] hover:from-[#2563EB] hover:to-[#1E40AF] text-white shadow-[0_4px_25px_rgba(27,85,226,0.7)] border border-blue-400/40'
     };
 };
 

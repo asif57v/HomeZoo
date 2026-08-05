@@ -48,16 +48,22 @@ const HomeBottomSections = () => {
 
         if (tier.includes('diamond')) {
             return {
-                badgeLabel: planName || 'ELITE DIAMOND PACK',
-                cardBg: 'bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-indigo-50/60',
-                borderColor: 'border-sky-300/60 hover:border-sky-400/90',
-                glowShadow: 'shadow-[0_10px_35px_-8px_rgba(56,189,248,0.18)] hover:shadow-[0_20px_50px_-10px_rgba(56,189,248,0.3)]',
-                badgeStyle: 'bg-sky-500/10 text-sky-800 border-sky-300/70',
-                accentColor: '#6EC6FF',
-                profileRing: 'ring-sky-200/90 group-hover:ring-sky-400/80',
-                quoteBg: 'bg-white/90 border-sky-100/90 shadow-xs',
-                quoteIconColor: 'text-sky-500',
-                buttonGradient: 'from-sky-600 via-blue-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-700 shadow-sky-500/25',
+                badgeLabel: planName ? `💎 ${planName}` : '💎 ELITE DIAMOND PACK',
+                cardBg: 'bg-gradient-to-br from-[#0a0526] via-[#120836] to-[#050118]',
+                borderColor: 'border-2 border-purple-500/80 hover:border-fuchsia-400',
+                glowShadow: 'shadow-[0_0_35px_rgba(168,85,247,0.45)] hover:shadow-[0_0_55px_rgba(217,70,239,0.75)]',
+                badgeStyle: 'bg-gradient-to-r from-indigo-900/90 via-purple-900/90 to-fuchsia-900/90 text-fuchsia-200 border-fuchsia-500/50 shadow-[0_0_15px_rgba(217,70,239,0.3)]',
+                accentColor: '#D946EF',
+                profileRing: 'ring-purple-500/50 border-fuchsia-400 shadow-[0_0_20px_rgba(217,70,239,0.6)]',
+                quoteBg: 'bg-[#150a36]/90 border-purple-600/50 shadow-inner',
+                quoteIconColor: 'text-purple-400',
+                buttonGradient: 'from-blue-600 via-purple-600 to-fuchsia-600 hover:from-blue-500 hover:to-fuchsia-500 shadow-[0_4px_25px_rgba(217,70,239,0.7)] border border-fuchsia-400/40',
+                isDark: true,
+                subTextColor: 'text-purple-300',
+                statLabelColor: 'text-purple-300',
+                ratingBg: 'bg-[#160938]/90 border-purple-500/50 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]',
+                ratingCountColor: 'text-purple-300',
+                dividerColor: 'bg-purple-600/50',
                 hasDiamondPattern: true,
             };
         }
@@ -94,18 +100,19 @@ const HomeBottomSections = () => {
             };
         }
 
-        // Default / Starter Silver Pack
+        // Default / Starter Silver Pack - Dark Glowing Blue Theme (Image 2)
         return {
             badgeLabel: planName || 'STARTER SILVER PACK',
-            cardBg: 'bg-gradient-to-br from-slate-50 via-slate-100/60 to-slate-200/30',
-            borderColor: 'border-slate-200/90 hover:border-slate-300/90',
-            glowShadow: 'shadow-[0_10px_35px_-8px_rgba(148,163,184,0.12)] hover:shadow-[0_20px_50px_-10px_rgba(148,163,184,0.25)]',
-            badgeStyle: 'bg-slate-200/80 text-slate-700 border-slate-300/80',
-            accentColor: '#C0C0C0',
-            profileRing: 'ring-slate-200/90 group-hover:ring-slate-300/90',
-            quoteBg: 'bg-white/90 border-slate-200/80 shadow-xs',
-            quoteIconColor: 'text-slate-400',
-            buttonGradient: 'from-slate-700 via-slate-800 to-slate-950 hover:from-slate-800 hover:to-black shadow-slate-500/25',
+            cardBg: 'bg-gradient-to-br from-[#021035] via-[#041A52] to-[#010927]',
+            borderColor: 'border-2 border-blue-500/80 hover:border-blue-400',
+            glowShadow: 'shadow-[0_0_35px_rgba(27,85,226,0.45)] hover:shadow-[0_0_55px_rgba(37,99,235,0.7)]',
+            badgeStyle: 'bg-[#0B256B] text-blue-300 border-blue-600/80',
+            accentColor: '#1B55E2',
+            profileRing: 'ring-blue-500/50 border-blue-500',
+            quoteBg: 'bg-[#061847]/90 border-blue-600/60 shadow-inner',
+            quoteIconColor: 'text-blue-400',
+            buttonGradient: 'from-[#1B55E2] via-[#2563EB] to-[#1D4ED8] hover:from-[#2563EB] hover:to-[#1E40AF] shadow-[0_4px_25px_rgba(27,85,226,0.7)] border border-blue-400/40',
+            isDark: true,
             hasDiamondPattern: false,
         };
     };
@@ -246,11 +253,11 @@ const HomeBottomSections = () => {
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                             {/* Profile Avatar */}
-                                            <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-white border-2 border-white shadow-md shrink-0 ring-3 ${theme.profileRing} transition-all duration-300`}>
+                                            <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden ${theme.isDark ? 'bg-slate-900 border-2 border-fuchsia-400/80 shadow-md' : 'bg-white border-2 border-white shadow-md'} shrink-0 ring-3 ${theme.profileRing} transition-all duration-300`}>
                                                 {partner.profileImage ? (
                                                     <img src={partner.profileImage} alt={partner.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                                                    <div className={`w-full h-full flex items-center justify-center ${theme.isDark ? 'bg-slate-900 text-purple-300' : 'bg-slate-100 text-slate-400'}`}>
                                                         <User size={28} />
                                                     </div>
                                                 )}
@@ -258,18 +265,18 @@ const HomeBottomSections = () => {
 
                                             {/* Partner Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-extrabold text-slate-900 text-base sm:text-lg flex items-center gap-1.5 tracking-tight group-hover:text-blue-600 transition-colors">
+                                                <h3 className={`font-extrabold ${theme.isDark ? 'text-white group-hover:text-purple-300' : 'text-slate-900 group-hover:text-blue-600'} text-base sm:text-lg flex items-center gap-1.5 tracking-tight transition-colors`}>
                                                     <span className="truncate">{partner.name}</span>
-                                                    <BadgeCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 fill-blue-50 shrink-0 inline-block" />
+                                                    <BadgeCheck className={`w-4 h-4 sm:w-5 sm:h-5 ${theme.isDark ? 'text-blue-400 fill-blue-500' : 'text-blue-500 fill-blue-50'} shrink-0 inline-block`} />
                                                 </h3>
 
                                                 <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-lg border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
+                                                    <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
                                                         {theme.badgeLabel}
                                                     </span>
                                                     {(partner.address?.city || partner.address?.locality) && (
-                                                        <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 truncate">
-                                                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                                        <span className={`flex items-center gap-1 text-[11px] font-semibold ${theme.subTextColor || 'text-slate-500'} truncate`}>
+                                                            <MapPin className={`w-3 h-3 ${theme.subTextColor || 'text-slate-400'} shrink-0`} />
                                                             <span className="truncate">{partner.address.locality || partner.address.city}</span>
                                                         </span>
                                                     )}
@@ -279,10 +286,10 @@ const HomeBottomSections = () => {
 
                                         {/* Top Right Rating Badge */}
                                         <div className="shrink-0">
-                                            <div className="inline-flex items-center gap-1 bg-amber-50/95 backdrop-blur-md text-amber-950 font-black text-xs px-2.5 py-1 rounded-full border border-amber-200/80 shadow-xs">
-                                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 shrink-0" />
+                                            <div className={`inline-flex items-center gap-1 ${theme.ratingBg || 'bg-amber-50/95 border-amber-200/80 text-amber-950'} backdrop-blur-md font-black text-xs px-2.5 py-1 rounded-full border`}>
+                                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
                                                 <span>{partner.rating || '4.9'}</span>
-                                                <span className="text-slate-400 font-medium text-[10px]">({partner.reviewsCount || 120})</span>
+                                                <span className={`${theme.ratingCountColor || 'text-slate-400'} font-medium text-[10px]`}>({partner.reviewsCount || 120})</span>
                                             </div>
                                         </div>
                                     </div>
@@ -290,29 +297,29 @@ const HomeBottomSections = () => {
                                     {/* Description / Quote Card */}
                                     <div className={`mt-4 sm:mt-5 p-3.5 sm:p-4 rounded-2xl border ${theme.quoteBg} flex items-start gap-2.5 transition-colors duration-300`}>
                                         <Quote className={`w-4 h-4 ${theme.quoteIconColor} shrink-0 mt-0.5 rotate-180`} />
-                                        <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed italic">
+                                        <p className={`text-xs sm:text-sm font-semibold ${theme.isDark ? 'text-white' : 'text-slate-700'} leading-relaxed italic`}>
                                             "{partner.tagline || 'Professional guidance for verified plots & premium properties across prime city zones.'}"
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Bottom Section: Experience + Listings + Explore Profile Button */}
-                                <div className="mt-5 pt-4 border-t border-slate-200/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                <div className={`mt-5 pt-4 border-t ${theme.dividerColor ? 'border-purple-600/40' : 'border-slate-200/70'} flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3`}>
                                     {/* Stats */}
                                     <div className="flex items-center gap-4 sm:gap-5 justify-between sm:justify-start">
                                         {/* Experience */}
                                         <div className="flex flex-col items-start">
-                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-[10px]">Experience</span>
-                                            <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.experienceYears || '10'}+ Years</span>
+                                            <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[9px] sm:text-[10px]`}>Experience</span>
+                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-xs sm:text-sm mt-0.5`}>{partner.experienceYears || '10'}+ Years</span>
                                         </div>
 
                                         {/* Divider */}
-                                        <div className="h-7 w-[1px] bg-slate-200/80" />
+                                        <div className={`h-7 w-[1px] ${theme.dividerColor || 'bg-slate-200/80'}`} />
 
                                         {/* Active Listings */}
                                         <div className="flex flex-col items-start">
-                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px] sm:text-[10px]">Listings</span>
-                                            <span className="text-slate-900 font-black text-xs sm:text-sm mt-0.5">{partner.totalListings || '24'} Properties</span>
+                                            <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[9px] sm:text-[10px]`}>Listings</span>
+                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-xs sm:text-sm mt-0.5`}>{partner.totalListings || '13'} Properties</span>
                                         </div>
                                     </div>
 
