@@ -248,8 +248,8 @@ const PayHostelFeesSection = () => {
           </p>
         </div>
 
-        {/* 5 Payment Cards - Responsive Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-5 mb-10">
+        {/* 5 Payment Cards - Horizontal Scrollable Layout */}
+        <div className="flex overflow-x-auto gap-4 md:gap-5 pb-4 mb-8 no-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
           {PAYMENT_METHODS.map((method) => {
             const { Icon } = method;
             return (
@@ -257,7 +257,7 @@ const PayHostelFeesSection = () => {
                 key={method.id}
                 whileHover={{ y: -6 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="bg-white rounded-[20px] p-6 border border-gray-100 shadow-md shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col justify-between group"
+                className="min-w-[250px] sm:min-w-[270px] lg:min-w-0 lg:flex-1 shrink-0 snap-start bg-white rounded-[20px] p-6 border border-gray-100 shadow-md shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col justify-between group"
               >
                 <div>
                   <div className="mb-4">
