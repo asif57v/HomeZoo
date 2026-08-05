@@ -8,12 +8,12 @@ const getPackageTheme = (planTier, planName) => {
 
     if (tier.includes('diamond')) {
         return {
-            cardBg: 'bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-indigo-50/60',
-            borderColor: 'border-sky-300/80 hover:border-sky-400',
-            topBarBg: 'bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-600',
-            badgeStyle: 'bg-sky-500/10 text-sky-800 border-sky-300/70',
-            badgeText: planName || 'ELITE DIAMOND PACK',
-            buttonStyle: 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white shadow-md shadow-sky-500/20'
+            cardBg: 'bg-[radial-gradient(ellipse_at_top_left,#1C2F8F_0%,#060B2D_60%,#03051A_100%)] text-white',
+            borderColor: 'border-2 border-[#7B3FFB]/80 hover:border-[#E94CFF]',
+            topBarBg: 'bg-gradient-to-r from-[#1C2F8F] via-[#7B3FFB] to-[#E94CFF]',
+            badgeStyle: 'bg-gradient-to-r from-[#1C2F8F] via-[#7B3FFB] to-[#E94CFF] text-white border-[#E94CFF]/50 shadow-[0_0_15px_rgba(233,76,255,0.4)]',
+            badgeText: planName ? `💎 ${planName}` : '💎 ELITE DIAMOND PACK',
+            buttonStyle: 'bg-gradient-to-r from-[#1C2F8F] via-[#7B3FFB] to-[#E94CFF] hover:from-[#253EC2] hover:via-[#8E54FF] hover:to-[#EF6CFF] text-white shadow-[0_6px_30px_rgba(233,76,255,0.55)] border border-[#E94CFF]/40'
         };
     }
 

@@ -49,22 +49,24 @@ const HomeBottomSections = () => {
         if (tier.includes('diamond')) {
             return {
                 badgeLabel: planName ? `💎 ${planName}` : '💎 ELITE DIAMOND PACK',
-                cardBg: 'bg-gradient-to-br from-[#0a0526] via-[#120836] to-[#050118]',
-                borderColor: 'border-2 border-purple-500/80 hover:border-fuchsia-400',
-                glowShadow: 'shadow-[0_0_35px_rgba(168,85,247,0.45)] hover:shadow-[0_0_55px_rgba(217,70,239,0.75)]',
-                badgeStyle: 'bg-gradient-to-r from-indigo-900/90 via-purple-900/90 to-fuchsia-900/90 text-fuchsia-200 border-fuchsia-500/50 shadow-[0_0_15px_rgba(217,70,239,0.3)]',
-                accentColor: '#D946EF',
-                profileRing: 'ring-purple-500/50 border-fuchsia-400 shadow-[0_0_20px_rgba(217,70,239,0.6)]',
-                quoteBg: 'bg-[#150a36]/90 border-purple-600/50 shadow-inner',
-                quoteIconColor: 'text-purple-400',
-                buttonGradient: 'from-blue-600 via-purple-600 to-fuchsia-600 hover:from-blue-500 hover:to-fuchsia-500 shadow-[0_4px_25px_rgba(217,70,239,0.7)] border border-fuchsia-400/40',
+                cardBg: 'bg-[radial-gradient(ellipse_at_top_left,#1C2F8F_0%,#060B2D_60%,#03051A_100%)]',
+                borderColor: 'border-2 border-[#7B3FFB]/80 hover:border-[#E94CFF]',
+                glowShadow: 'shadow-[0_15px_50px_-10px_rgba(123,63,251,0.45)] hover:shadow-[0_20px_60px_0px_rgba(233,76,255,0.6)]',
+                badgeStyle: 'bg-gradient-to-r from-[#1C2F8F] via-[#7B3FFB] to-[#E94CFF] text-white border-[#E94CFF]/50 shadow-[0_0_15px_rgba(233,76,255,0.4)] backdrop-blur-md font-extrabold',
+                accentColor: '#E94CFF',
+                profileRing: 'ring-4 ring-[#39D5FF]/40 border-2 border-[#E94CFF] shadow-[0_0_20px_rgba(233,76,255,0.6)]',
+                quoteBg: 'bg-[#0B1342]/70 border-[#39D5FF]/30 shadow-[inset_0_1px_15px_rgba(28,47,143,0.5)] backdrop-blur-md',
+                quoteIconColor: 'text-[#7B3FFB]',
+                buttonGradient: 'from-[#1C2F8F] via-[#7B3FFB] to-[#E94CFF] hover:from-[#253EC2] hover:via-[#8E54FF] hover:to-[#EF6CFF] shadow-[0_6px_30px_rgba(233,76,255,0.55)] border border-[#E94CFF]/40',
                 isDark: true,
-                subTextColor: 'text-purple-300',
-                statLabelColor: 'text-purple-300',
-                ratingBg: 'bg-[#160938]/90 border-purple-500/50 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]',
-                ratingCountColor: 'text-purple-300',
-                dividerColor: 'bg-purple-600/50',
+                subTextColor: 'text-[#C4B5FD]',
+                locationIconColor: 'text-[#39D5FF]',
+                statLabelColor: 'text-[#C4B5FD]',
+                ratingBg: 'bg-[#1C2F8F]/50 backdrop-blur-md border border-[#39D5FF]/40 text-white shadow-md',
+                ratingCountColor: 'text-[#39D5FF]',
+                dividerColor: 'bg-gradient-to-r from-transparent via-[#7B3FFB]/60 to-transparent',
                 hasDiamondPattern: true,
+                cardRadius: 'rounded-[28px]'
             };
         }
 
@@ -240,12 +242,12 @@ const HomeBottomSections = () => {
                                 transition={{ duration: 0.25, ease: "easeOut" }}
                                 onClick={() => window.location.href = `#/partners/${partner._id}`}
                                 className={`group relative w-[88vw] max-w-[360px] sm:max-w-[460px] lg:w-auto lg:max-w-none shrink-0 lg:shrink snap-start 
-                                    rounded-[24px] p-5 sm:p-6 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
+                                    ${theme.cardRadius || 'rounded-[24px]'} p-5 sm:p-6 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
                                     transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md`}
                             >
                                 {/* Subtle Crystal/Diamond Grid Pattern for Diamond Pack */}
                                 {theme.hasDiamondPattern && (
-                                    <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:16px_16px]" />
+                                    <div className="absolute inset-0 opacity-[0.08] pointer-events-none bg-[radial-gradient(#39D5FF_1px,transparent_1px)] [background-size:20px_20px]" />
                                 )}
 
                                 <div>
@@ -253,11 +255,11 @@ const HomeBottomSections = () => {
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                             {/* Profile Avatar */}
-                                            <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden ${theme.isDark ? 'bg-slate-900 border-2 border-fuchsia-400/80 shadow-md' : 'bg-white border-2 border-white shadow-md'} shrink-0 ring-3 ${theme.profileRing} transition-all duration-300`}>
+                                            <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden ${theme.isDark ? 'bg-[#060B2D] border-2 border-[#E94CFF] shadow-[0_0_20px_rgba(233,76,255,0.6)]' : 'bg-white border-2 border-white shadow-md'} shrink-0 ring-4 ${theme.profileRing} transition-all duration-300`}>
                                                 {partner.profileImage ? (
                                                     <img src={partner.profileImage} alt={partner.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                 ) : (
-                                                    <div className={`w-full h-full flex items-center justify-center ${theme.isDark ? 'bg-slate-900 text-purple-300' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <div className={`w-full h-full flex items-center justify-center ${theme.isDark ? 'bg-[#060B2D] text-[#39D5FF]' : 'bg-slate-100 text-slate-400'}`}>
                                                         <User size={28} />
                                                     </div>
                                                 )}
@@ -265,18 +267,18 @@ const HomeBottomSections = () => {
 
                                             {/* Partner Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className={`font-extrabold ${theme.isDark ? 'text-white group-hover:text-purple-300' : 'text-slate-900 group-hover:text-blue-600'} text-base sm:text-lg flex items-center gap-1.5 tracking-tight transition-colors`}>
+                                                <h3 className={`font-extrabold ${theme.isDark ? 'text-white group-hover:text-[#39D5FF]' : 'text-slate-900 group-hover:text-blue-600'} text-base sm:text-lg flex items-center gap-1.5 tracking-tight transition-colors`}>
                                                     <span className="truncate">{partner.name}</span>
-                                                    <BadgeCheck className={`w-4 h-4 sm:w-5 sm:h-5 ${theme.isDark ? 'text-blue-400 fill-blue-500' : 'text-blue-500 fill-blue-50'} shrink-0 inline-block`} />
+                                                    <BadgeCheck className={`w-4 h-4 sm:w-5 sm:h-5 ${theme.isDark ? 'text-[#39D5FF] fill-[#1C2F8F]' : 'text-blue-500 fill-blue-50'} shrink-0 inline-block`} />
                                                 </h3>
 
                                                 <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
+                                                    <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-3 py-1 rounded-full border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
                                                         {theme.badgeLabel}
                                                     </span>
                                                     {(partner.address?.city || partner.address?.locality) && (
                                                         <span className={`flex items-center gap-1 text-[11px] font-semibold ${theme.subTextColor || 'text-slate-500'} truncate`}>
-                                                            <MapPin className={`w-3 h-3 ${theme.subTextColor || 'text-slate-400'} shrink-0`} />
+                                                            <MapPin className={`w-3 h-3 ${theme.locationIconColor || theme.subTextColor || 'text-slate-400'} shrink-0`} />
                                                             <span className="truncate">{partner.address.locality || partner.address.city}</span>
                                                         </span>
                                                     )}
