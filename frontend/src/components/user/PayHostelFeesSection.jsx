@@ -233,51 +233,51 @@ const PayHostelFeesSection = () => {
   };
 
   return (
-    <section className="py-10 border-b border-gray-100 relative">
+    <section className="py-5 md:py-6 border-b border-gray-100 relative">
       <div className="px-5 md:px-0">
         
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">💳</span>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <div className="mb-3.5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl md:text-2xl">💳</span>
+            <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
               Pay Hostel Fees
             </h2>
           </div>
-          <p className="text-sm md:text-base text-gray-500 max-w-3xl leading-relaxed font-medium">
-            Pay your hostel fees securely using your preferred payment method. Your payment will be transferred directly to the hostel administrator through our secure payment gateway.
+          <p className="text-xs md:text-sm text-gray-500 max-w-2xl leading-relaxed font-medium">
+            Fast, 100% secure hostel fee payments transferred directly to your hostel administrator.
           </p>
         </div>
 
         {/* 5 Payment Cards - Horizontal Scrollable Layout */}
-        <div className="flex overflow-x-auto gap-4 md:gap-5 pb-4 mb-8 no-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+        <div className="flex overflow-x-auto gap-3.5 md:gap-4 pb-2 mb-3.5 no-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
           {PAYMENT_METHODS.map((method) => {
             const { Icon } = method;
             return (
               <motion.div
                 key={method.id}
-                whileHover={{ y: -6 }}
+                whileHover={{ y: -4 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="min-w-[250px] sm:min-w-[270px] lg:min-w-0 lg:flex-1 shrink-0 snap-start bg-white rounded-[20px] p-6 border border-gray-100 shadow-md shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col justify-between group"
+                className="min-w-[240px] sm:min-w-[260px] lg:min-w-0 lg:flex-1 shrink-0 snap-start bg-white rounded-[18px] p-4 sm:p-5 border border-gray-100 shadow-sm shadow-gray-200/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col justify-between group"
               >
                 <div>
-                  <div className="mb-4">
+                  <div className="mb-3">
                     <Icon />
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover:text-blue-600 transition-colors">
+                  <h3 className="font-bold text-gray-900 text-base mb-0.5 group-hover:text-blue-600 transition-colors">
                     {method.name}
                   </h3>
-                  <p className="text-xs text-gray-500 mb-6 leading-snug">
+                  <p className="text-xs text-gray-500 mb-4 leading-snug">
                     {method.description}
                   </p>
                 </div>
 
                 <button
                   onClick={() => handleOpenPayModal(method)}
-                  className={`w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-md ${method.btnClass}`}
+                  className={`w-full py-2.5 px-3.5 rounded-xl font-bold text-xs tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 shadow-xs ${method.btnClass}`}
                 >
                   <span>Pay Now</span>
-                  <ChevronRight size={16} />
+                  <ChevronRight size={15} />
                 </button>
               </motion.div>
             );
