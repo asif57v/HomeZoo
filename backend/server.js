@@ -126,6 +126,7 @@ import faqRoutes from './routes/faqRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import reelRoutes from './routes/reelRoutes.js';
+import hostelFeeRoutes from './routes/hostelFeeRoutes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -146,6 +147,7 @@ app.use('/api/faqs', faqRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/reels', reelRoutes);
+app.use('/api/hostel-fees', hostelFeeRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

@@ -7,7 +7,7 @@ import PropertyFeed from '../../components/user/PropertyFeed';
 import CollectionSection from '../../components/user/CollectionSection';
 import ReelSection from '../../components/user/ReelSection';
 import LatestProjectsBanner from '../../components/user/LatestProjectsBanner';
-import RecommendedSellers from '../../components/user/RecommendedSellers';
+import PayHostelFeesSection from '../../components/user/PayHostelFeesSection';
 import HomeBottomSections from '../../components/user/HomeBottomSections';
 import { categoryService } from '../../services/categoryService';
 
@@ -239,8 +239,8 @@ const Home = () => {
                             />
                         )}
 
-                        {/* Recommendation for All view */}
-                        <RecommendedSellers />
+                        {/* Pay Hostel Fees Section */}
+                        <PayHostelFeesSection />
 
                         {/* YouTube style Reels Section */}
                         <ReelSection category={selectedType.label} />
@@ -284,8 +284,8 @@ const Home = () => {
                         {/* 2. Reels for specific Category */}
                         <ReelSection category={selectedType.label} />
 
-                        {/* 3. Recommended Sellers for the category */}
-                        <RecommendedSellers />
+                        {/* 3. Pay Hostel Fees Section */}
+                        <PayHostelFeesSection />
 
                         {/* 4. Main Property Feed */}
                         <PropertyFeed selectedType={selectedType.id} viewMode="grid" extraFilters={pgFilters} />
