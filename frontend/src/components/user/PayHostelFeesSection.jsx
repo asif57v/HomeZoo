@@ -4,6 +4,7 @@ import {
   ShieldCheck, 
   CheckCircle2, 
   Lock, 
+  Info,
   CreditCard, 
   QrCode, 
   Sparkles, 
@@ -283,38 +284,24 @@ const PayHostelFeesSection = () => {
           })}
         </div>
 
-        {/* Secure Payment Information Banner */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-            <Lock size={220} />
-          </div>
-
-          <div className="flex items-start gap-4 relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 text-emerald-400">
-              <Lock size={26} />
+        {/* Secure Payment Information Banner (Styled exactly like Image 1) */}
+        <div className="bg-gradient-to-r from-blue-50/90 via-sky-50/80 to-blue-50/90 rounded-2xl p-4 sm:p-5 border border-blue-200/70 shadow-xs flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-blue-100/90 border border-blue-200/80 flex items-center justify-center shrink-0 text-blue-600 shadow-2xs">
+              <Info size={20} className="stroke-[2.5]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🔒</span>
-                <h3 className="text-lg md:text-xl font-extrabold text-white tracking-wide">
-                  Secure Payments
-                </h3>
-              </div>
-              <p className="text-sm text-gray-300 mt-1 max-w-2xl leading-relaxed">
-                Your payment is processed securely and transferred directly to the hostel administrator. Fast, encrypted, and 100% secure.
+            <div className="min-w-0">
+              <h3 className="text-sm sm:text-base font-bold text-blue-950 tracking-tight">
+                Secure & Easy Payments
+              </h3>
+              <p className="text-xs sm:text-sm text-blue-800/80 font-medium mt-0.5 leading-snug">
+                Your payment goes directly to the hostel admin account. Safe, fast and hassle-free.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0 relative z-10 w-full md:w-auto justify-end">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-emerald-300">
-              <ShieldCheck size={16} />
-              <span>256-Bit SSL Encrypted</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-blue-300">
-              <Sparkles size={16} />
-              <span>Instant Receipt</span>
-            </div>
+          <div className="w-10 h-10 rounded-full bg-white border border-blue-200/80 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
+            <ShieldCheck size={22} className="stroke-[2]" />
           </div>
         </div>
       </div>
