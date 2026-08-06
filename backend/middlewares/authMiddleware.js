@@ -96,3 +96,5 @@ export const optionalProtect = async (req, res, next) => {
     next();
   }
 };
+
+export const optionalAuth = optionalProtect;

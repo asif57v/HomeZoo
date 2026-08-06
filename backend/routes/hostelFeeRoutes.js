@@ -5,18 +5,18 @@ import {
   getHostelFeeHistory,
   getReceiptDetails
 } from '../controllers/hostelFeeController.js';
-import { protect, optionalAuth } from '../middlewares/authMiddleware.js';
+import { protect, optionalProtect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 // Create order
-router.post('/create-order', optionalAuth, createHostelFeeOrder);
+router.post('/create-order', optionalProtect, createHostelFeeOrder);
 
 // Verify payment & generate receipt
-router.post('/verify', optionalAuth, verifyHostelFeePayment);
+router.post('/verify', optionalProtect, verifyHostelFeePayment);
 
 // Payment history
-router.get('/history', optionalAuth, getHostelFeeHistory);
+router.get('/history', optionalProtect, getHostelFeeHistory);
 
 // Get receipt
 router.get('/receipt/:receiptNumber', getReceiptDetails);

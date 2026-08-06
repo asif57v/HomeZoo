@@ -284,10 +284,7 @@ const Home = () => {
                         {/* 2. Reels for specific Category */}
                         <ReelSection category={selectedType.label} />
 
-                        {/* 3. Pay Hostel Fees Section */}
-                        <PayHostelFeesSection />
-
-                        {/* 4. Main Property Feed */}
+                        {/* 3. Main Property Feed */}
                         <PropertyFeed selectedType={selectedType.id} viewMode="grid" extraFilters={pgFilters} />
                     </div>
                 )}
