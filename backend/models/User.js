@@ -96,6 +96,21 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  reelPreferences: {
+    categories: {
+      PG: { type: Number, default: 0 },
+      Rent: { type: Number, default: 0 },
+      Buy: { type: Number, default: 0 },
+      Plot: { type: Number, default: 0 },
+      General: { type: Number, default: 0 }
+    },
+    locations: [
+      {
+        city: { type: String, trim: true },
+        score: { type: Number, default: 0 }
+      }
+    ]
+  },
   createdAt: {
     type: Date,
     default: Date.now

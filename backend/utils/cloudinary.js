@@ -148,10 +148,17 @@ export const uploadVideoToCloudinary = async (filePath, folder = 'reels', public
     const uploadOptions = {
       folder: `rukkoin/${folder}`,
       resource_type: 'video',
+      chunk_size: 6000000, // 6MB chunks for reliable video streaming
     };
     if (publicId) uploadOptions.public_id = publicId;
 
-    const result = await cloudinary.uploader.upload(filePath, uploadOptions);
+    // Use upload_large wrapped in Promise callback (Cloudinary SDK v1 upload_large requires callback to return result)
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_large(filePath, uploadOptions, (error, res) => {
+        if (error) reject(error);
+        else resolve(res);
+      });
+    });
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
@@ -168,7 +175,7 @@ export const uploadVideoToCloudinary = async (filePath, folder = 'reels', public
   } catch (error) {
     console.error('Cloudinary video upload error:', error);
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    throw new Error('Failed to upload video to Cloudinary');
+    throw new Error('Failed to upload video to Cloudinary: ' + (error.message || 'Unknown error'));
   }
 };
 

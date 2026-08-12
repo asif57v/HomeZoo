@@ -6,6 +6,11 @@ import {
   getFeed,
   getMostViewed,
   toggleLike,
+  toggleSave,
+  getSavedReels,
+  trackWatch,
+  recordPropertyClick,
+  setNotInterested,
   addComment,
   getComments,
   shareReel,
@@ -20,7 +25,7 @@ const router = express.Router();
 router.post(
   '/upload',
   protect,
-  authorizedRoles('user'),
+  authorizedRoles('user', 'partner', 'broker', 'agent', 'seller'),
   rateLimitReelUpload,
   uploadReelVideo.single('video'),
   uploadReel
@@ -28,12 +33,17 @@ router.post(
 
 router.get('/feed', optionalProtect, getFeed);
 router.get('/most-viewed', optionalProtect, getMostViewed);
+router.get('/saved', protect, getSavedReels);
 
 router.get('/:id', optionalProtect, getReelById);
 router.post('/like/:id', protect, toggleLike);
+router.post('/save/:id', protect, toggleSave);
+router.post('/:id/track-watch', optionalProtect, trackWatch);
+router.post('/:id/property-click', optionalProtect, recordPropertyClick);
+router.post('/:id/not-interested', protect, setNotInterested);
 router.post('/comment/:id', protect, addComment);
 router.get('/:id/comments', optionalProtect, getComments);
-router.post('/share/:id', protect, shareReel);
+router.post('/share/:id', optionalProtect, shareReel);
 router.post('/:id/view', optionalProtect, recordView);
 router.delete('/:id', protect, deleteReel);
 

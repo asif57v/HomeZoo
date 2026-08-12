@@ -232,6 +232,21 @@ const adminService = {
     return response.data;
   },
 
+  getAdminReels: async (params = {}) => {
+    const response = await axiosInstance.get('/admin/reels', { params });
+    return response.data;
+  },
+
+  updateReelStatus: async (id, status) => {
+    const response = await axiosInstance.patch(`/admin/reels/${id}/status`, { status });
+    return response.data;
+  },
+
+  toggleFeatureReel: async (id) => {
+    const response = await axiosInstance.patch(`/admin/reels/${id}/feature`);
+    return response.data;
+  },
+
   uploadImage: async (formData) => {
     const response = await axiosInstance.post('/admin/upload-image', formData);
     return response.data;

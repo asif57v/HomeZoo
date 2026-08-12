@@ -18,6 +18,19 @@ const reelCommentSchema = new mongoose.Schema(
       trim: true,
       maxlength: 300,
     },
+    parentComment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ReelComment',
+      default: null,
+    },
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

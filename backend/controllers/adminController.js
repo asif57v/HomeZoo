@@ -1255,3 +1255,97 @@ export const getReelAnalysis = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error fetching reel analysis' });
   }
 };
+
+/**
+ * GET /api/admin/reels
+ * Admin fetch all reels with status/featured filter
+ */
+export const getAdminReels = async (req, res) => {
+  try {
+    const { status, isFeatured, search, limit = 50, page = 1 } = req.query;
+    let query = {};
+
+    if (status && status !== 'all') query.status = status;
+    if (isFeatured !== undefined && isFeatured !== '') query.isFeatured = isFeatured === 'true';
+
+    if (search) {
+      query.caption = { $regex: search, $options: 'i' };
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [reels, total] = await Promise.all([
+      Reel.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('user', 'name phone email profileImage role')
+        .populate('property', 'propertyName propertyType address coverImage')
+        .lean(),
+      Reel.countDocuments(query),
+    ]);
+
+    res.json({
+      success: true,
+      reels,
+      total,
+      pages: Math.ceil(total / parseInt(limit)),
+    });
+  } catch (error) {
+    console.error('Get Admin Reels Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch admin reels' });
+  }
+};
+
+/**
+ * PATCH /api/admin/reels/:id/status
+ * Admin update status (pending, published, rejected, blocked)
+ */
+export const updateReelStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowed = ['pending', 'published', 'rejected', 'blocked'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const reel = await Reel.findByIdAndUpdate(
+      id,
+      { status, publishedAt: status === 'published' ? new Date() : undefined },
+      { new: true }
+    );
+
+    if (!reel) return res.status(404).json({ success: false, message: 'Reel not found' });
+
+    res.json({ success: true, reel, message: `Reel status updated to ${status}` });
+  } catch (error) {
+    console.error('Update Reel Status Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update reel status' });
+  }
+};
+
+/**
+ * PATCH /api/admin/reels/:id/feature
+ * Admin toggle isFeatured boolean
+ */
+export const toggleFeatureReel = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const reel = await Reel.findById(id);
+    if (!reel) return res.status(404).json({ success: false, message: 'Reel not found' });
+
+    reel.isFeatured = !reel.isFeatured;
+    await reel.save();
+
+    res.json({
+      success: true,
+      isFeatured: reel.isFeatured,
+      message: `Reel ${reel.isFeatured ? 'featured' : 'unfeatured'} successfully`,
+    });
+  } catch (error) {
+    console.error('Toggle Feature Reel Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to toggle reel featured status' });
+  }
+};
