@@ -37,6 +37,9 @@ const ReelCard = memo(function ReelCard({
 
   const [muted, setMuted] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [soundToast, setSoundToast] = useState(null);
+  const soundToastTimerRef = useRef(null);
+  const clickTimeoutRef = useRef(null);
 
   const currentUser = React.useMemo(() => {
     try {
@@ -59,6 +62,26 @@ const ReelCard = memo(function ReelCard({
     if (!video) return;
     video.muted = muted;
   }, [muted]);
+
+  const toggleMute = useCallback((e) => {
+    if (e) e.stopPropagation();
+    setMuted((prev) => {
+      const nextMuted = !prev;
+      if (videoRef.current) {
+        videoRef.current.muted = nextMuted;
+        if (!nextMuted) {
+          videoRef.current.volume = 1.0;
+          videoRef.current.play().catch(() => {});
+        }
+      }
+      if (soundToastTimerRef.current) clearTimeout(soundToastTimerRef.current);
+      setSoundToast(nextMuted ? 'muted' : 'unmuted');
+      soundToastTimerRef.current = setTimeout(() => {
+        setSoundToast(null);
+      }, 1000);
+      return nextMuted;
+    });
+  }, []);
 
   // Track video play/pause & watch duration
   useEffect(() => {
@@ -109,6 +132,24 @@ const ReelCard = memo(function ReelCard({
     if (!reel.likedByMe) onLikeToggle(reel._id);
   }, [reel._id, reel.likedByMe, onLikeToggle]);
 
+  const handleVideoTap = useCallback(
+    (e) => {
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.no-tap')) return;
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+        clickTimeoutRef.current = null;
+        // Double tap -> Like
+        if (!reel.likedByMe) onLikeToggle(reel._id);
+      } else {
+        clickTimeoutRef.current = setTimeout(() => {
+          clickTimeoutRef.current = null;
+          toggleMute();
+        }, 250);
+      }
+    },
+    [reel._id, reel.likedByMe, onLikeToggle, toggleMute]
+  );
+
   const handlePropertyClick = useCallback(async (e) => {
     if (e) e.stopPropagation();
     const propId = typeof reel.property === 'object' ? reel.property?._id : reel.property;
@@ -149,13 +190,13 @@ const ReelCard = memo(function ReelCard({
 
   return (
     <div
-      className="relative w-full h-full min-h-dvh snap-start snap-always flex items-end justify-center bg-black overflow-hidden"
-      onDoubleClick={handleDoubleTap}
+      className="relative w-full h-full min-h-dvh snap-start snap-always flex items-end justify-center bg-black overflow-hidden select-none"
+      onClick={handleVideoTap}
     >
       <video
         ref={videoRef}
         src={reel.videoUrl}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover cursor-pointer"
         loop
         muted
         playsInline
@@ -163,26 +204,32 @@ const ReelCard = memo(function ReelCard({
         onTimeUpdate={handleTimeUpdate}
       />
 
-      {/* Top right controls: Mute & 3-dots Menu */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+      {/* Top right floating controls: Mute & 3-dots Menu (positioned safely below top header) */}
+      <div className="absolute top-16 right-3.5 z-30 flex items-center gap-2.5">
         <button
           type="button"
-          onClick={() => setMuted((m) => !m)}
-          className="p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10"
+          onClick={toggleMute}
+          className="p-2.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-black/80 active:scale-90 transition-transform flex items-center justify-center"
+          title={muted ? 'Unmute (Turn sound on)' : 'Mute'}
+          aria-label={muted ? 'Unmute' : 'Mute'}
         >
-          {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          {muted ? <VolumeX size={18} className="text-red-400" /> : <Volume2 size={18} className="text-emerald-400" />}
         </button>
 
         <div className="relative">
           <button
             type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-            className="p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((o) => !o);
+            }}
+            className="p-2.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-black/80 active:scale-90 transition-transform flex items-center justify-center"
+            aria-label="More options"
           >
-            <MoreVertical size={20} />
+            <MoreVertical size={18} />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-44 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-xl z-30 py-1">
+            <div className="absolute right-0 mt-2 w-44 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-xl z-40 py-1">
               <button
                 type="button"
                 onClick={handleNotInterestedClick}
@@ -209,73 +256,116 @@ const ReelCard = memo(function ReelCard({
         </div>
       </div>
 
+      {/* Sound indicator toast (center of video on toggle/tap) */}
+      <AnimatePresence>
+        {soundToast && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.18 }}
+            className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center"
+          >
+            <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-2xl bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl">
+              {soundToast === 'unmuted' ? (
+                <Volume2 size={36} className="text-emerald-400 animate-pulse" />
+              ) : (
+                <VolumeX size={36} className="text-red-400" />
+              )}
+              <span className="text-xs font-bold uppercase tracking-wider">
+                {soundToast === 'unmuted' ? 'Sound On' : 'Muted'}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Right side interaction buttons */}
-      <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5 z-20">
+      <div className="absolute right-3 bottom-24 flex flex-col items-center gap-4 z-20">
         {/* Like */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             type="button"
             onClick={() => onLikeToggle(reel._id)}
-            className="p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 transition-transform active:scale-90"
+            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
           >
             <Heart
-              size={26}
+              size={24}
               className={reel.likedByMe ? 'fill-red-500 text-red-500' : ''}
             />
           </button>
-          <span className="text-xs font-bold text-white drop-shadow">
+          <span className="text-[11px] font-bold text-white drop-shadow">
             {reel.likesCount ?? 0}
           </span>
         </div>
 
         {/* Comment */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             type="button"
             onClick={() => onCommentClick(reel)}
-            className="p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 transition-transform active:scale-90"
+            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
           >
-            <MessageCircle size={26} />
+            <MessageCircle size={24} />
           </button>
-          <span className="text-xs font-bold text-white drop-shadow">
+          <span className="text-[11px] font-bold text-white drop-shadow">
             {reel.commentsCount ?? 0}
           </span>
         </div>
 
         {/* Save / Bookmark */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             type="button"
             onClick={() => onSaveToggle(reel._id)}
-            className="p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 transition-transform active:scale-90"
+            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
           >
             <Bookmark
-              size={26}
+              size={24}
               className={reel.savedByMe ? 'fill-amber-400 text-amber-400' : ''}
             />
           </button>
-          <span className="text-xs font-bold text-white drop-shadow">
+          <span className="text-[11px] font-bold text-white drop-shadow">
             {reel.savesCount ?? 0}
           </span>
         </div>
 
         {/* Share */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             type="button"
             onClick={() => onShareClick(reel)}
-            className="p-2.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 transition-transform active:scale-90"
+            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
           >
-            <Share2 size={26} />
+            <Share2 size={24} />
           </button>
-          <span className="text-xs font-bold text-white drop-shadow">
+          <span className="text-[11px] font-bold text-white drop-shadow">
             {reel.sharesCount ?? 0}
           </span>
         </div>
 
+        {/* Sound / Volume Toggle */}
+        <div className="flex flex-col items-center gap-0.5">
+          <button
+            type="button"
+            onClick={toggleMute}
+            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
+            title={muted ? 'Tap to Unmute' : 'Tap to Mute'}
+          >
+            {muted ? (
+              <VolumeX size={24} className="text-red-400" />
+            ) : (
+              <Volume2 size={24} className="text-emerald-400" />
+            )}
+          </button>
+          <span className="text-[10px] font-bold text-white drop-shadow">
+            {muted ? 'Muted' : 'Sound'}
+          </span>
+        </div>
+
         {/* Uploader Avatar */}
-        <div className="mt-2">
-          <div className="w-10 h-10 rounded-full border-2 border-white/80 overflow-hidden bg-gray-800 flex items-center justify-center shadow-lg">
+        <div className="mt-1">
+          <div className="w-9 h-9 rounded-full border-2 border-white/80 overflow-hidden bg-gray-800 flex items-center justify-center shadow-lg">
             {user.profileImage ? (
               <img
                 src={user.profileImage}
@@ -283,7 +373,7 @@ const ReelCard = memo(function ReelCard({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-white font-bold text-sm">
+              <span className="text-white font-bold text-xs">
                 {displayName.charAt(0)}
               </span>
             )}
@@ -293,7 +383,7 @@ const ReelCard = memo(function ReelCard({
 
       {/* Bottom Information & Property Overlay Banner */}
       <div
-        className="absolute left-0 right-0 bottom-0 pl-4 pr-20 pb-24 pt-16 z-10 text-left space-y-2 pointer-events-auto"
+        className="absolute left-0 right-0 bottom-0 pl-4 pr-20 pb-20 pt-16 z-10 text-left space-y-2 pointer-events-auto no-tap"
         style={{
           background:
             'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)',
@@ -424,11 +514,6 @@ function DoubleTapHeart({ reelId, onLikeToggle, likedByMe }) {
           )}
         </AnimatePresence>
       </div>
-      <div
-        className="absolute inset-0 z-0"
-        onDoubleClick={handleDoubleTap}
-        aria-hidden
-      />
     </>
   );
 }

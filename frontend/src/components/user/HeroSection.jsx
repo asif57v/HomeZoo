@@ -184,15 +184,6 @@ const HeroSection = ({ theme, selectedType }) => {
         return combined.slice(0, 8);
     };
 
-    const categoryContent = {
-        'All': "Find your space — PG/Co-Living, Rent, Buy & Plots. Your home, your way.",
-        'PG/Co-Living': "Scholar & Professional Stays. Premium PGs and Co-living spaces designed for comfort.",
-        'Rent': "Premium Homes for Rent. Find your ideal match from chic apartments to spacious villas.",
-        'Buy': "Invest in your Future. Discover exclusive properties and luxury estates for sale.",
-        'Plot': "Premium Plots in Prime Locations. Build your vision on the perfect foundation."
-    };
-
-    const displayContent = categoryContent[selectedType?.label] || categoryContent['All'];
 
     const placeholders = [
         "Search in Bucharest...",
@@ -473,27 +464,7 @@ const HeroSection = ({ theme, selectedType }) => {
                 </button>
             </div>
 
-            {/* Tagline - project related (hidden on mobile) */}
-            <div className="hidden md:flex flex-col items-center text-center text-white/95 text-sm md:text-lg font-medium drop-shadow-md px-2 max-w-3xl mx-auto mt-4 mb-4">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={displayContent}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex flex-col items-center"
-                    >
-                        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                            {selectedType?.label === 'Plot' ? "Premium Plots in Prime Locations." : displayContent.split('.')[0] + '.'}
-                        </h1>
-                        <p className="text-base md:text-lg font-medium opacity-90">
-                            {selectedType?.label === 'Plot' ? "Build your vision on the perfect foundation." : displayContent.split('.').slice(1).join('.')}
-                        </p>
-                        <div className="w-12 h-1 mt-4 rounded-full" style={{ backgroundColor: accentColor }} />
-                    </motion.div>
-                </AnimatePresence>
-            </div>            {/* 2. Search Bar - Sticky Logic with smooth animation */}
+            {/* 2. Search Bar - Sticky Logic with smooth animation */}
             <motion.div
                 layout
                 className={`
