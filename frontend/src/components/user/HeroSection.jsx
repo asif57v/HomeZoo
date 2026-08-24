@@ -184,6 +184,17 @@ const HeroSection = ({ theme, selectedType }) => {
         return combined.slice(0, 8);
     };
 
+    const categoryContent = {
+        'All': { title: "", subtitle: "Your home, your way." },
+        'PG/Co-Living': { title: "Scholar & Professional Stays.", subtitle: "Premium PGs and Co-living spaces designed for comfort." },
+        'PG': { title: "Scholar & Professional Stays.", subtitle: "Premium PGs and Co-living spaces designed for comfort." },
+        'Rent': { title: "Premium Homes for Rent.", subtitle: "Find your ideal match from chic apartments to spacious villas." },
+        'Buy': { title: "Invest in your Future.", subtitle: "Discover exclusive properties and luxury estates for sale." },
+        'Plot': { title: "Premium Plots in Prime Locations.", subtitle: "Build your vision on the perfect foundation." },
+        'Plots': { title: "Premium Plots in Prime Locations.", subtitle: "Build your vision on the perfect foundation." }
+    };
+
+    const currentTagline = categoryContent[selectedType?.label] || categoryContent['All'];
 
     const placeholders = [
         "Search in Bucharest...",
@@ -462,6 +473,32 @@ const HeroSection = ({ theme, selectedType }) => {
                         </span>
                     </div>
                 </button>
+            </div>
+
+            {/* Tagline - project related (hidden on mobile) */}
+            <div className="hidden md:flex flex-col items-center text-center text-white/95 text-sm md:text-lg font-medium drop-shadow-md px-2 max-w-3xl mx-auto mt-4 mb-4">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={selectedType?.label || 'All'}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex flex-col items-center"
+                    >
+                        {currentTagline.title ? (
+                            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                                {currentTagline.title}
+                            </h1>
+                        ) : null}
+                        {currentTagline.subtitle ? (
+                            <p className="text-base md:text-lg font-medium opacity-90">
+                                {currentTagline.subtitle}
+                            </p>
+                        ) : null}
+                        <div className="w-12 h-1 mt-4 rounded-full" style={{ backgroundColor: accentColor }} />
+                    </motion.div>
+                </AnimatePresence>
             </div>
 
             {/* 2. Search Bar - Sticky Logic with smooth animation */}
