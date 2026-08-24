@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Briefcase, Wallet, UserCircle, Building } from 'lucide-react';
+import { LayoutDashboard, Briefcase, UserCircle, Building, Clapperboard } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -11,7 +11,7 @@ const PartnerBottomNavbar = () => {
     if (path.includes('dashboard') || path === '/hotel') return 'Dashboard';
     if (path.includes('properties')) return 'Properties';
     if (path.includes('bookings')) return 'Bookings';
-    if (path.includes('wallet')) return 'Wallet';
+    if (path.includes('reels') || path.includes('reel')) return 'Reels';
     if (path.includes('profile')) return 'Profile';
     return '';
   };
@@ -20,10 +20,7 @@ const PartnerBottomNavbar = () => {
     { name: 'Dashboard', icon: LayoutDashboard, route: '/hotel/dashboard' },
     { name: 'Properties', icon: Building, route: '/hotel/properties' },
     { name: 'Bookings', icon: Briefcase, route: '/hotel/bookings' },
-    // { name: 'Wallet', icon: Wallet, route: '/hotel/wallet' }, // Hiding Wallet if space is tight, but actually 5 items fit usually. Let's keep 5 or remove one?
-    // User image shows 4 items. Adding one makes 5.
-    // Let's keep Wallet and Profile. 5 items is standard mobile pattern.
-    { name: 'Wallet', icon: Wallet, route: '/hotel/wallet' },
+    { name: 'Reels', icon: Clapperboard, route: '/reels' },
     { name: 'Profile', icon: UserCircle, route: '/hotel/profile' },
   ];
 

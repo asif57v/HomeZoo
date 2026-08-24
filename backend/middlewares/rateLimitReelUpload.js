@@ -13,6 +13,11 @@ export const rateLimitReelUpload = (req, res, next) => {
   const userId = req.user?._id?.toString();
   if (!userId) return next();
 
+  // Admins do not have daily upload rate limit
+  if (req.user?.role === 'admin' || req.user?.role === 'superadmin') {
+    return next();
+  }
+
   const key = getTodayKey(userId);
   const count = dailyCounts.get(key) || 0;
 

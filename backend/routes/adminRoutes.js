@@ -23,6 +23,7 @@ import {
   updateContactStatus,
   getPlatformSettings,
   updatePlatformSettings,
+  getReelDurationPayments,
   verifyPropertyDocuments,
   getHotelDetails,
   getBookingDetails,
@@ -88,6 +89,7 @@ router.get('/contact-messages', getContactMessages);
 router.put('/contact-messages/:id/status', updateContactStatus);
 router.get('/platform-settings', getPlatformSettings);
 router.put('/platform-settings', updatePlatformSettings);
+router.get('/reel-duration-payments', getReelDurationPayments);
 router.get('/reel-analysis', getReelAnalysis);
 router.get('/reels', getAdminReels);
 router.patch('/reels/:id/status', updateReelStatus);

@@ -140,6 +140,11 @@ const adminService = {
     return response.data;
   },
 
+  getReelDurationPayments: async (params = {}) => {
+    const response = await axiosInstance.get('/admin/reel-duration-payments', { params });
+    return response.data;
+  },
+
   updateAdminProfile: async (payload) => {
     const response = await axiosInstance.put('/auth/admin/update-profile', payload);
     return response.data;

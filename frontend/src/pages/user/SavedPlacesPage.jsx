@@ -31,15 +31,23 @@ const SavedPlacesPage = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="bg-surface text-white p-6 pb-8 rounded-b-[30px] shadow-lg sticky top-0 z-30">
-                <div className="flex items-center gap-4 mb-4">
-                    <button onClick={() => navigate(-1)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
-                        <ArrowLeft size={20} />
+            <div className="bg-surface text-white p-6 pb-6 rounded-b-[30px] shadow-lg sticky top-0 z-30">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => navigate(-1)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
+                            <ArrowLeft size={20} />
+                        </button>
+                        <h1 className="text-xl font-bold">Saved Places</h1>
+                    </div>
+                    <button
+                        onClick={() => navigate('/reels?tab=saved')}
+                        className="px-3.5 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all flex items-center gap-1.5 border border-white/20"
+                    >
+                        Saved Reels →
                     </button>
-                    <h1 className="text-xl font-bold">Saved Places</h1>
                 </div>
                 <h2 className="text-2xl font-black">Your Favorites</h2>
-                <p className="text-sm text-white/70">Hotels you have loved and saved.</p>
+                <p className="text-sm text-white/70">Hotels and property reels you have saved.</p>
             </div>
 
             <div className="max-w-7xl mx-auto px-5 pt-8 pb-24">

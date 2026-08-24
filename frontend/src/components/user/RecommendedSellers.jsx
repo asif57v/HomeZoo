@@ -89,7 +89,7 @@ const RecommendedSellers = () => {
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto gap-4 no-scrollbar pb-4 px-5 md:px-0">
+            <div className="flex overflow-x-auto lg:grid lg:grid-cols-3 gap-4 no-scrollbar pb-4 px-5 md:px-0">
                 {sellers.map((seller) => {
                     const theme = getPackageTheme(seller.plan?.tier, seller.plan?.name);
 
@@ -97,7 +97,7 @@ const RecommendedSellers = () => {
                         <motion.div
                             key={seller._id}
                             whileHover={{ y: -3 }}
-                            className={`min-w-[250px] md:min-w-[270px] ${theme.cardBg} rounded-xl border ${theme.borderColor} shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col`}
+                            className={`min-w-[250px] lg:min-w-0 ${theme.cardBg} rounded-xl border ${theme.borderColor} shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col`}
                         >
                             {/* Header with Plan Color Indicator */}
                             <div className={`h-1.5 w-full ${theme.topBarBg}`} />

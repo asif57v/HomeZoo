@@ -440,17 +440,27 @@ const PropertyDetailsPage = () => {
     return 'Rooms';
   };
 
+  const DEFAULT_FALLBACK_IMAGES = [
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80'
+  ];
+
   const getGalleryImages = () => {
+    let list = [];
     if (selectedRoom && selectedRoom.images && selectedRoom.images.length > 0) {
-      return selectedRoom.images
+      list = selectedRoom.images
         .map((img) => (typeof img === 'string' ? img : img.url))
         .filter(Boolean);
     }
-    const list = [];
-    if (images?.cover) list.push(images.cover);
-    if (Array.isArray(images?.gallery)) list.push(...images.gallery);
+    if (list.length === 0) {
+      if (images?.cover) list.push(images.cover);
+      if (Array.isArray(images?.gallery)) list.push(...images.gallery);
+    }
     if (list.length > 0) return list;
-    return ['https://via.placeholder.com/800x600'];
+    return DEFAULT_FALLBACK_IMAGES;
   };
 
   const galleryImages = getGalleryImages();
@@ -719,90 +729,141 @@ const PropertyDetailsPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-24 lg:pb-12 relative">
-      {/* Header Image Gallery */}
-      <div className="relative h-[40vh] md:h-[60vh] bg-gray-200 group z-0">
-        <div className="hidden md:grid h-full grid-cols-4 gap-1.5 p-1.5">
-          {/* Main Large Image */}
-          <div className="relative col-span-2 h-full overflow-hidden rounded-l-xl cursor-pointer" onClick={() => { setCurrentImageIndex(0); setShowImageModal(true); }}>
-            <img src={galleryImages[0]} alt={name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-          </div>
+    <div className="bg-gray-50 min-h-screen pb-24 lg:pb-12 relative font-sans text-gray-800">
+      {/* Top Header / Breadcrumb Bar */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-3 flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-black transition-colors px-3.5 py-2 rounded-xl bg-white border border-gray-200 hover:bg-gray-100 shadow-sm active:scale-95"
+        >
+          <ArrowLeft size={18} />
+          <span>Back to properties</span>
+        </button>
 
-          {/* Middle Column */}
-          <div className="col-span-1 flex flex-col gap-1.5 h-full">
-            <div className="relative h-1/2 overflow-hidden cursor-pointer" onClick={() => { setCurrentImageIndex(1); setShowImageModal(true); }}>
-              <img src={galleryImages[1] || galleryImages[0]} alt={name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-            </div>
-            <div className="relative h-1/2 overflow-hidden cursor-pointer" onClick={() => { setCurrentImageIndex(2); setShowImageModal(true); }}>
-              <img src={galleryImages[2] || galleryImages[0]} alt={name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-            </div>
-          </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+          >
+            <Share2 size={16} />
+            <span className="hidden sm:inline">Share</span>
+          </button>
+          <button
+            onClick={handleToggleSave}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+          >
+            <Heart size={16} className={isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'} />
+            <span className="hidden sm:inline">{isSaved ? 'Saved' : 'Save'}</span>
+          </button>
+        </div>
+      </div>
 
-          {/* Right Column */}
-          <div className="col-span-1 flex flex-col gap-1.5 h-full">
-            <div className="relative h-1/2 overflow-hidden rounded-tr-xl cursor-pointer" onClick={() => { setCurrentImageIndex(3); setShowImageModal(true); }}>
-              <img src={galleryImages[3] || galleryImages[0]} alt={name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+      {/* Header Image Gallery Section */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mb-8">
+        <div className="relative rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-gray-900 group">
+          {/* Desktop 5-Photo Grid */}
+          <div className="hidden md:grid grid-cols-4 gap-1.5 h-[420px]">
+            {/* Main Large Left Photo */}
+            <div
+              className="relative col-span-2 h-full overflow-hidden cursor-pointer group/item"
+              onClick={() => { setCurrentImageIndex(0); setShowImageModal(true); }}
+            >
+              <img
+                src={galleryImages[0]}
+                alt={name}
+                onError={(e) => { e.currentTarget.src = DEFAULT_FALLBACK_IMAGES[0]; }}
+                className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity" />
             </div>
-            <div className="relative h-1/2 overflow-hidden rounded-br-xl cursor-pointer" onClick={() => { setCurrentImageIndex(Math.min(4, galleryImages.length - 1)); setShowImageModal(true); }}>
-              <img src={galleryImages[Math.min(4, galleryImages.length - 1)] || galleryImages[0]} alt={name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-              {/* View All Overlay */}
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[2px] hover:bg-black/60 transition-colors group/view">
-                <span className="text-white font-bold text-sm tracking-wide border border-white/50 px-4 py-2 rounded-full group-hover/view:bg-white group-hover/view:text-black transition-all">
-                  +{galleryImages.length > 5 ? galleryImages.length - 5 : 'View'} Photos
-                </span>
+
+            {/* Middle Column (2 images) */}
+            <div className="col-span-1 flex flex-col gap-1.5 h-full">
+              <div
+                className="relative h-1/2 overflow-hidden cursor-pointer group/item"
+                onClick={() => { setCurrentImageIndex(1); setShowImageModal(true); }}
+              >
+                <img
+                  src={galleryImages[1] || galleryImages[0]}
+                  alt={name}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_FALLBACK_IMAGES[1]; }}
+                  className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                />
+              </div>
+              <div
+                className="relative h-1/2 overflow-hidden cursor-pointer group/item"
+                onClick={() => { setCurrentImageIndex(2); setShowImageModal(true); }}
+              >
+                <img
+                  src={galleryImages[2] || galleryImages[0]}
+                  alt={name}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_FALLBACK_IMAGES[2]; }}
+                  className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                />
+              </div>
+            </div>
+
+            {/* Right Column (2 images) */}
+            <div className="col-span-1 flex flex-col gap-1.5 h-full">
+              <div
+                className="relative h-1/2 overflow-hidden cursor-pointer group/item"
+                onClick={() => { setCurrentImageIndex(3); setShowImageModal(true); }}
+              >
+                <img
+                  src={galleryImages[3] || galleryImages[0]}
+                  alt={name}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_FALLBACK_IMAGES[3]; }}
+                  className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                />
+              </div>
+              <div
+                className="relative h-1/2 overflow-hidden cursor-pointer group/item"
+                onClick={() => { setCurrentImageIndex(Math.min(4, galleryImages.length - 1)); setShowImageModal(true); }}
+              >
+                <img
+                  src={galleryImages[Math.min(4, galleryImages.length - 1)] || galleryImages[0]}
+                  alt={name}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_FALLBACK_IMAGES[4]; }}
+                  className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-black/40 hover:bg-black/50 flex items-center justify-center transition-colors">
+                  <span className="text-white font-extrabold text-xs tracking-wider uppercase bg-white/20 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/30 hover:bg-white hover:text-black transition-all">
+                    +{galleryImages.length > 5 ? galleryImages.length - 5 : 'View'} Photos
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Mobile Carousel */}
-        <div className="md:hidden relative h-full w-full bg-gray-200">
-          <img
-            src={mainImage}
-            alt={name}
-            onClick={() => setShowImageModal(true)}
-            className="w-full h-full object-cover"
-          />
-          {galleryImages.length > 1 && (
-            <>
-              <button
-                onClick={handlePrevImage}
-                className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full backdrop-blur-md border border-white/20"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <button
-                onClick={handleNextImage}
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full backdrop-blur-md border border-white/20"
-              >
-                <ChevronRight size={20} />
-              </button>
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
-                {galleryImages.map((_, index) => (
-                  <span
-                    key={index}
-                    className={`w-1.5 h-1.5 rounded-full transition-all shadow-sm ${index === currentImageIndex ? 'bg-white w-4' : 'bg-white/40'}`}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Navigation & Actions */}
-        <div className="absolute top-4 left-4 z-20">
-          <button onClick={() => navigate(-1)} className="bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-all active:scale-95 text-gray-700 hover:text-black">
-            <ArrowLeft size={20} />
-          </button>
-        </div>
-        <div className="absolute top-4 right-4 flex gap-3 z-20">
-          <button onClick={handleShare} className="bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-all active:scale-95 text-gray-700 hover:text-black">
-            <Share2 size={20} />
-          </button>
-          <button onClick={handleToggleSave} className="bg-white/90 p-2 rounded-full shadow-lg hover:bg-white transition-all active:scale-95">
-            <Heart size={20} className={`${isSaved ? 'fill-red-500 text-red-500' : 'text-gray-700'}`} />
-          </button>
+          {/* Mobile Carousel View */}
+          <div className="md:hidden relative h-[280px] w-full bg-gray-900">
+            <img
+              src={mainImage}
+              alt={name}
+              onError={(e) => { e.currentTarget.src = DEFAULT_FALLBACK_IMAGES[0]; }}
+              onClick={() => setShowImageModal(true)}
+              className="w-full h-full object-cover"
+            />
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-md border border-white/20"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 rounded-full backdrop-blur-md border border-white/20"
+                >
+                  <ChevronRight size={20} />
+                </button>
+                <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
+                  {currentImageIndex + 1} / {galleryImages.length}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

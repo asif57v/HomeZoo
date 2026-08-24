@@ -70,6 +70,7 @@ const AdminFaqs = React.lazy(() => import('./app/admin/pages/AdminFaqs'));
 const AdminCategories = React.lazy(() => import('./app/admin/pages/AdminCategories'));
 const AdminSubscriptions = React.lazy(() => import('./app/admin/pages/AdminSubscriptions'));
 const AdminReelAnalysis = React.lazy(() => import('./app/admin/pages/AdminReelAnalysis'));
+const AdminReelSettings = React.lazy(() => import('./app/admin/pages/AdminReelSettings'));
 
 // Lazy Imports - Partner Pages
 const HotelLogin = React.lazy(() => import('./pages/auth/HotelLoginPage'));
@@ -468,6 +469,7 @@ function App() {
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="subscriptions" element={<AdminSubscriptions />} />
                 <Route path="reel-analysis" element={<AdminReelAnalysis />} />
+                <Route path="reel-settings" element={<AdminReelSettings />} />
               </Route>
             </Route>
 
@@ -477,6 +479,7 @@ function App() {
               <Route path="/reels" element={<ReelsPage />} />
               <Route path="/profile/edit" element={<ProfileEdit />} />
               <Route path="/hotel/:id" element={<UserPropertyDetailsPage />} />
+              <Route path="/property/:id" element={<UserPropertyDetailsPage />} />
               <Route path="/hotel/:id/amenities" element={<AmenitiesPage />} />
               <Route path="/hotel/:id/reviews" element={<ReviewsPage />} />
               <Route path="/hotel/:id/offers" element={<OffersPage />} />

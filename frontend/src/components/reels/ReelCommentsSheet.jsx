@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, CornerDownRight } from 'lucide-react';
+import { X, Send, CornerDownRight, Trash2 } from 'lucide-react';
 import { reelService } from '../../services/reelService';
+import toast from 'react-hot-toast';
 
-export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdded }) {
+export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdded, onCommentDeleted }) {
   const [comments, setComments] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -11,6 +12,15 @@ export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdde
   const [text, setText] = useState('');
   const [replyingTo, setReplyingTo] = useState(null); // Comment object replying to
   const [submitting, setSubmitting] = useState(false);
+
+  const currentUser = useMemo(() => {
+    try {
+      const u = localStorage.getItem('user');
+      return u ? JSON.parse(u) : null;
+    } catch (e) {
+      return null;
+    }
+  }, []);
 
   const loadComments = useCallback(async (cursor = null) => {
     if (!reel?._id) return;
@@ -52,8 +62,22 @@ export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdde
       onCommentAdded?.(reel._id);
     } catch (err) {
       console.error('Comment failed', err);
+      toast.error('Failed to post comment');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await reelService.deleteComment(commentId);
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      if (onCommentDeleted) onCommentDeleted(reel._id);
+      else if (onCommentAdded) onCommentAdded(reel._id, -1);
+      toast.success('Comment deleted');
+    } catch (err) {
+      console.error('Delete comment error', err);
+      toast.error(err.response?.data?.message || 'Failed to delete comment');
     }
   };
 
@@ -99,48 +123,68 @@ export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdde
                 <div className="p-6 text-center text-gray-500">No comments yet. Be the first to comment!</div>
               ) : (
                 <ul className="p-4 space-y-4">
-                  {comments.map((c) => (
-                    <li key={c._id} className="space-y-2">
-                      <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-600/20 shrink-0 overflow-hidden flex items-center justify-center">
-                          {c.user?.profileImage ? (
-                            <img
-                              src={c.user.profileImage}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-emerald-700 font-bold text-xs">
-                              {(c.user?.name || 'U').charAt(0)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold text-xs text-gray-900">
-                              {c.user?.name || 'User'}
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => setReplyingTo(c)}
-                              className="text-[11px] font-bold text-emerald-600 hover:underline"
-                            >
-                              Reply
-                            </button>
-                          </div>
-                          <p className="text-sm text-gray-700 break-words mt-0.5">{c.text}</p>
+                  {comments.map((c) => {
+                    const isMyComment =
+                      currentUser &&
+                      (c.user?._id === currentUser._id || c.user === currentUser._id);
+                    const isAdmin =
+                      currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
 
-                          {/* Show parent comment preview if it's a nested reply */}
-                          {c.parentComment && (
-                            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 p-1.5 rounded-lg">
-                              <CornerDownRight size={12} className="text-emerald-600" />
-                              <span className="truncate">Replying to comment</span>
+                    return (
+                      <li key={c._id} className="space-y-2">
+                        <div className="flex gap-3">
+                          <div className="w-8 h-8 rounded-full bg-emerald-600/20 shrink-0 overflow-hidden flex items-center justify-center">
+                            {c.user?.profileImage ? (
+                              <img
+                                src={c.user.profileImage}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-emerald-700 font-bold text-xs">
+                                {(c.user?.name || 'U').charAt(0)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="font-semibold text-xs text-gray-900">
+                                {c.user?.name || 'User'}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setReplyingTo(c)}
+                                  className="text-[11px] font-bold text-emerald-600 hover:underline"
+                                >
+                                  Reply
+                                </button>
+                                {(isMyComment || isAdmin) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteComment(c._id)}
+                                    className="text-gray-400 hover:text-red-600 p-1"
+                                    title="Delete comment"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          )}
+                            <p className="text-sm text-gray-700 break-words mt-0.5">{c.text}</p>
+
+                            {/* Show parent comment preview if it's a nested reply */}
+                            {c.parentComment && (
+                              <div className="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 p-1.5 rounded-lg">
+                                <CornerDownRight size={12} className="text-emerald-600" />
+                                <span className="truncate">Replying to comment</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
               {nextCursor && (

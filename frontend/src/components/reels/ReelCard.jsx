@@ -12,6 +12,7 @@ import {
   MapPin,
   MoreVertical,
   EyeOff,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { reelService } from '../../services/reelService';
@@ -26,6 +27,7 @@ const ReelCard = memo(function ReelCard({
   onShareClick,
   onViewed,
   onNotInterested,
+  onDeleteReel,
 }) {
   const navigate = useNavigate();
   const videoRef = useRef(null);
@@ -35,6 +37,22 @@ const ReelCard = memo(function ReelCard({
 
   const [muted, setMuted] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const currentUser = React.useMemo(() => {
+    try {
+      const u = localStorage.getItem('user');
+      return u ? JSON.parse(u) : null;
+    } catch (e) {
+      return null;
+    }
+  }, []);
+
+  const reelUserId = typeof reel.user === 'object' ? reel.user?._id : reel.user;
+  const isOwner =
+    currentUser &&
+    (reelUserId === currentUser._id ||
+      currentUser.role === 'admin' ||
+      currentUser.role === 'superadmin');
 
   useEffect(() => {
     const video = videoRef.current;
@@ -91,13 +109,15 @@ const ReelCard = memo(function ReelCard({
     if (!reel.likedByMe) onLikeToggle(reel._id);
   }, [reel._id, reel.likedByMe, onLikeToggle]);
 
-  const handlePropertyClick = useCallback(async () => {
-    if (!reel.property?._id) return;
+  const handlePropertyClick = useCallback(async (e) => {
+    if (e) e.stopPropagation();
+    const propId = typeof reel.property === 'object' ? reel.property?._id : reel.property;
+    if (!propId) return;
     try {
       reelService.recordPropertyClick(reel._id).catch(() => {});
-      navigate(`/property/${reel.property._id}`);
+      navigate(`/hotel/${propId}`);
     } catch (e) {
-      navigate(`/property/${reel.property._id}`);
+      navigate(`/hotel/${propId}`);
     }
   }, [navigate, reel._id, reel.property]);
 
@@ -171,6 +191,19 @@ const ReelCard = memo(function ReelCard({
                 <EyeOff size={16} className="text-gray-400" />
                 Not Interested
               </button>
+              {(isOwner || onDeleteReel) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    if (onDeleteReel) onDeleteReel(reel._id);
+                  }}
+                  className="w-full px-4 py-2.5 text-left text-xs font-semibold text-red-400 hover:bg-red-500/20 flex items-center gap-2 border-t border-white/10"
+                >
+                  <Trash2 size={16} className="text-red-400" />
+                  Delete Reel
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -305,6 +338,7 @@ const ReelCard = memo(function ReelCard({
             </div>
             <button
               type="button"
+              onClick={handlePropertyClick}
               className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 flex-shrink-0 group-hover:bg-emerald-500 shadow-md transition-all"
             >
               View Property
@@ -321,6 +355,11 @@ const ReelCard = memo(function ReelCard({
           {reel.creatorType === 'vendor' && (
             <span className="bg-emerald-600/80 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase">
               Partner
+            </span>
+          )}
+          {(reel.creatorType === 'admin' || user.role === 'admin' || user.role === 'superadmin') && (
+            <span className="bg-amber-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase shadow">
+              Admin
             </span>
           )}
           <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">

@@ -3,6 +3,8 @@ import Partner from '../models/Partner.js';
 import InfoPage from '../models/InfoPage.js';
 import ContactMessage from '../models/ContactMessage.js';
 import PlatformSettings from '../models/PlatformSettings.js';
+import { validateReelDurationTiers, validateRolePricingPayload } from '../utils/reelDurationPricing.js';
+import ReelDurationPayment from '../models/ReelDurationPayment.js';
 import Property from '../models/Property.js';
 import RoomType from '../models/RoomType.js';
 import Booking from '../models/Booking.js';
@@ -901,7 +903,12 @@ export const updatePlatformSettings = async (req, res) => {
       defaultCommission,
       taxRate,
       reelCouponTarget,
-      reelCouponDiscount
+      reelCouponDiscount,
+      reelFreeDurationSec,
+      reelMaxDurationSec,
+      reelPaidDurationEnabled,
+      reelDurationTiers,
+      reelPricing,
     } = req.body;
 
     const settings = await PlatformSettings.getSettings();
@@ -917,10 +924,118 @@ export const updatePlatformSettings = async (req, res) => {
     if (reelCouponTarget !== undefined) settings.reelCouponTarget = Number(reelCouponTarget);
     if (reelCouponDiscount !== undefined) settings.reelCouponDiscount = Number(reelCouponDiscount);
 
+    // Role-based Reel pricing (Users vs Vendors/Partners)
+    if (reelPricing && typeof reelPricing === 'object') {
+      if (!settings.reelPricing) settings.reelPricing = {};
+
+      if (reelPricing.user) {
+        const userVal = validateRolePricingPayload('user', reelPricing.user);
+        if (!userVal.valid) {
+          return res.status(400).json({ success: false, message: userVal.message });
+        }
+        settings.reelPricing.user = userVal.config;
+        // Keep legacy fields in sync with User config for older readers
+        settings.reelFreeDurationSec = userVal.config.freeDurationSec;
+        settings.reelMaxDurationSec = userVal.config.maxDurationSec;
+        settings.reelPaidDurationEnabled = userVal.config.paidDurationEnabled;
+        settings.reelDurationTiers = userVal.config.durationTiers;
+      }
+
+      if (reelPricing.vendor) {
+        const vendorVal = validateRolePricingPayload('vendor', reelPricing.vendor);
+        if (!vendorVal.valid) {
+          return res.status(400).json({ success: false, message: vendorVal.message });
+        }
+        settings.reelPricing.vendor = vendorVal.config;
+      }
+
+      settings.markModified('reelPricing');
+    } else {
+      // Legacy single-config payload still supported
+      const nextFree =
+        reelFreeDurationSec !== undefined
+          ? Number(reelFreeDurationSec)
+          : Number(settings.reelFreeDurationSec);
+      const nextMax =
+        reelMaxDurationSec !== undefined
+          ? Number(reelMaxDurationSec)
+          : Number(settings.reelMaxDurationSec);
+      const nextTiers =
+        reelDurationTiers !== undefined ? reelDurationTiers : settings.reelDurationTiers || [];
+
+      if (
+        reelFreeDurationSec !== undefined ||
+        reelMaxDurationSec !== undefined ||
+        reelDurationTiers !== undefined
+      ) {
+        const validation = validateReelDurationTiers(nextTiers, nextFree, nextMax);
+        if (!validation.valid) {
+          return res.status(400).json({ success: false, message: validation.message });
+        }
+        settings.reelFreeDurationSec = nextFree;
+        settings.reelMaxDurationSec = nextMax;
+        settings.reelDurationTiers = validation.tiers;
+        if (!settings.reelPricing) settings.reelPricing = {};
+        if (!settings.reelPricing.user) settings.reelPricing.user = {};
+        settings.reelPricing.user.freeDurationSec = nextFree;
+        settings.reelPricing.user.maxDurationSec = nextMax;
+        settings.reelPricing.user.durationTiers = validation.tiers;
+      }
+
+      if (typeof reelPaidDurationEnabled === 'boolean') {
+        settings.reelPaidDurationEnabled = reelPaidDurationEnabled;
+        if (!settings.reelPricing) settings.reelPricing = {};
+        if (!settings.reelPricing.user) settings.reelPricing.user = {};
+        settings.reelPricing.user.paidDurationEnabled = reelPaidDurationEnabled;
+      }
+    }
+
     await settings.save();
     res.status(200).json({ success: true, settings });
   } catch (error) {
+    console.error('Update platform settings error:', error);
     res.status(500).json({ success: false, message: 'Server error updating platform settings' });
+  }
+};
+
+/**
+ * GET /api/admin/reel-duration-payments
+ * Admin history of Reel duration surcharge payments
+ */
+export const getReelDurationPayments = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+    const status = req.query.status;
+
+    const query = {};
+    if (status && status !== 'all') query.paymentStatus = status;
+    if (req.query.uploaderType === 'user' || req.query.uploaderType === 'vendor') {
+      query.uploaderType = req.query.uploaderType;
+    }
+
+    const [items, total] = await Promise.all([
+      ReelDurationPayment.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate('user', 'name phone email profileImage')
+        .populate('reel', 'caption thumbnailUrl videoUrl durationSec category')
+        .lean(),
+      ReelDurationPayment.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      payments: items,
+      page,
+      limit,
+      total,
+      hasMore: page * limit < total,
+    });
+  } catch (error) {
+    console.error('Get reel duration payments error:', error);
+    res.status(500).json({ success: false, message: 'Failed to load reel duration payments' });
   }
 };
 
