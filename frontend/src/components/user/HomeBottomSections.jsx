@@ -72,16 +72,23 @@ const HomeBottomSections = () => {
 
         if (tier.includes('gold')) {
             return {
-                badgeLabel: planName || 'GOLD PACK',
-                cardBg: 'bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-amber-100/30',
-                borderColor: 'border-amber-300/70 hover:border-amber-400/90',
-                glowShadow: 'shadow-[0_10px_35px_-8px_rgba(245,158,11,0.15)] hover:shadow-[0_20px_50px_-10px_rgba(245,158,11,0.28)]',
-                badgeStyle: 'bg-amber-500/10 text-amber-900 border-amber-300/80',
-                accentColor: '#D4AF37',
-                profileRing: 'ring-amber-200/90 group-hover:ring-amber-400/80',
-                quoteBg: 'bg-white/90 border-amber-100/90 shadow-xs',
-                quoteIconColor: 'text-amber-500',
-                buttonGradient: 'from-amber-600 via-amber-700 to-amber-800 hover:from-amber-500 hover:to-amber-900 shadow-amber-500/25',
+                badgeLabel: planName || 'ELITE GOLD PACK',
+                cardBg: 'bg-gradient-to-br from-[#EAB031] via-[#FCE38A] to-[#D59821]',
+                borderColor: 'border-[#FEEAA7] hover:border-white',
+                glowShadow: 'shadow-[0_15px_40px_-10px_rgba(213,152,33,0.55)] hover:shadow-[0_20px_50px_-10px_rgba(213,152,33,0.7)]',
+                badgeStyle: 'bg-gradient-to-r from-[#FFF0B3] to-[#FCE38A] text-[#7A5200] border-[#D59821]/40 shadow-sm font-extrabold',
+                accentColor: '#8F6100',
+                profileRing: 'ring-4 ring-[#FFF0B3]/70 border-2 border-[#D59821] shadow-[0_0_20px_rgba(213,152,33,0.5)]',
+                quoteBg: 'bg-gradient-to-br from-[#FFF0B3]/60 to-[#EAB031]/30 border-[#FFF0B3]/80 shadow-[inset_0_1px_10px_rgba(213,152,33,0.3)]',
+                quoteIconColor: 'text-[#8F6100]',
+                buttonGradient: 'from-[#A36F00] via-[#C98A00] to-[#8F6100] hover:from-[#8F6100] hover:to-[#6E4B00] shadow-[0_6px_20px_rgba(143,97,0,0.5)] border border-[#FCE38A]/50 !text-white',
+                isDark: false,
+                subTextColor: 'text-[#7A5200]',
+                locationIconColor: 'text-[#8F6100]',
+                statLabelColor: 'text-[#8F6100]',
+                ratingBg: 'bg-gradient-to-r from-[#FFF0B3] to-[#FCE38A] border border-[#D59821]/30 text-[#7A5200] shadow-md',
+                ratingCountColor: 'text-[#8F6100]',
+                dividerColor: 'bg-[#D59821]/40',
                 hasDiamondPattern: false,
             };
         }
@@ -124,32 +131,20 @@ const HomeBottomSections = () => {
         {
             _id: 'p1',
             name: 'Seed Partner',
-            profileImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80',
-            plan: { name: 'ELITE DIAMOND PACK', tier: 'diamond', hasVerifiedTag: true },
-            experienceYears: 10,
+            profileImage: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&q=80&w=400',
+            plan: { name: 'ELITE GOLD PACK', tier: 'gold', hasVerifiedTag: true },
+            experienceYears: 0.5,
             totalListings: 13,
-            tagline: 'Professional guidance for verified plots & premium properties across prime city zones.',
-            rating: '4.9',
+            tagline: 'Trusted partner with complete knowledge about locality',
+            rating: '5.0',
             reviewsCount: 120,
             address: { city: 'Indore', locality: 'AB Road' }
-        },
-        {
-            _id: 'p2',
-            name: 'Asif mansoori',
-            profileImage: '',
-            plan: { name: 'STARTER SILVER PACK', tier: 'silver', hasVerifiedTag: true },
-            experienceYears: 10,
-            totalListings: 24,
-            tagline: 'Professional guidance for verified plots & premium properties across prime city zones.',
-            rating: '4.9',
-            reviewsCount: 120,
-            address: { city: 'Indore', locality: 'Malipura' }
         },
         {
             _id: 'p3',
             name: 'Horizon BuildMart & Estates',
             profileImage: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80',
-            plan: { name: 'GOLD PACK', tier: 'gold', hasVerifiedTag: true },
+            plan: { name: 'ELITE DIAMOND PACK', tier: 'diamond', hasVerifiedTag: true },
             experienceYears: 15,
             totalListings: 72,
             tagline: 'Trusted developers of gated plot communities & premium luxury villas.',
@@ -168,6 +163,18 @@ const HomeBottomSections = () => {
             rating: '4.9',
             reviewsCount: 98,
             address: { city: 'Hyderabad', locality: 'Gachibowli' }
+        },
+        {
+            _id: 'p2',
+            name: 'Asif mansoori',
+            profileImage: '',
+            plan: { name: 'STARTER SILVER PACK', tier: 'silver', hasVerifiedTag: true },
+            experienceYears: 10,
+            totalListings: 24,
+            tagline: 'Professional guidance for verified plots & premium properties across prime city zones.',
+            rating: '4.9',
+            reviewsCount: 120,
+            address: { city: 'Indore', locality: 'Malipura' }
         }
     ]).slice(0, 6);
 

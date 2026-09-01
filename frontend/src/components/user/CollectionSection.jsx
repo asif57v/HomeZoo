@@ -17,6 +17,13 @@ const COLLECTIONS = [
         gradient: 'from-rose-600/60 to-rose-900/80'
     },
     {
+        id: 'coliving',
+        title: 'Co-Living PG',
+        image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=400',
+        filters: { gender: 'Co-Living' },
+        gradient: 'from-purple-600/60 to-purple-900/80'
+    },
+    {
         id: 'food',
         title: 'Food Available',
         image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=400',
@@ -60,7 +67,7 @@ const CollectionSection = ({ onFilter, activeFilters = {} }) => {
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto gap-3 pb-3 px-5 md:px-0 no-scrollbar md:grid md:grid-cols-4 md:overflow-visible overflow-y-visible">
+            <div className="flex overflow-x-auto gap-3 pb-3 px-5 md:px-0 no-scrollbar md:grid md:grid-cols-5 md:overflow-visible overflow-y-visible">
                 {COLLECTIONS.map((item, index) => {
                     const isSelected = isCollectionSelected(item.filters);
 
