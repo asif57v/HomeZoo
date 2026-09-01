@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Globe, Menu, X, Home, Search, Video, Calendar, Wallet, Share2, LogOut, FileText, HelpCircle, Shield, ChevronRight } from 'lucide-react';
+import { User, Globe, Menu, X, Home, Search, Video, Calendar, Wallet, Share2, LogOut, FileText, HelpCircle, Shield, ChevronRight, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -30,7 +30,7 @@ const TopNavbar = () => {
         { name: 'Home', path: '/', icon: Home },
         { name: 'Search', path: '/search', icon: Search },
         { name: 'Reels', path: '/reels', icon: Video },
-        { name: 'Post', path: '/reels', icon: Video }, // Maps to Reels page for now as requested
+        { name: 'Post', path: '/hotel/login', icon: Plus }, // Maps to hotel login like mobile
         { name: 'Bookings', path: '/bookings', icon: Calendar },
         { name: 'Wallet', path: '/wallet', icon: Wallet },
         { name: 'Refer & Earn', path: '/refer', icon: Share2 },
@@ -65,7 +65,30 @@ const TopNavbar = () => {
                     </Link>
                 </div>
 
-                <div className="flex-1" />
+                {/* Desktop Links (Restored) */}
+                <div className="flex items-center gap-8">
+                    <Link to="/" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Home
+                    </Link>
+                    <Link to="/search" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Search
+                    </Link>
+                    <Link to="/reels" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Reels
+                    </Link>
+                    <Link to="/hotel/login" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight flex items-center gap-1">
+                        <Plus size={16} /> Post
+                    </Link>
+                    <Link to="/bookings" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Bookings
+                    </Link>
+                    <Link to="/wallet" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Wallet
+                    </Link>
+                    <Link to="/refer" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Refer & Earn
+                    </Link>
+                </div>
 
                 {/* Right Side: User Actions */}
                 <div className="flex items-center gap-4">
