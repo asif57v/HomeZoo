@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 const COLLECTIONS = [
     {
         id: 'guys',
-        title: 'For Guys',
+        title: 'For Boys',
         image: 'https://images.unsplash.com/photo-1519337265831-281ec6cc8514?auto=format&fit=crop&q=80&w=400',
         filters: { gender: 'Boys' },
         gradient: 'from-blue-600/60 to-blue-900/80'
