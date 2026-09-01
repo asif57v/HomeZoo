@@ -225,7 +225,17 @@ const Home = () => {
                 </div>
             </div>
 
-            <ExclusiveOffers />
+            {/* Exclusive Offers and Pay Hostel Fees Side-by-Side */}
+            <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-stretch md:pr-5">
+                <div className="flex-1 min-w-0">
+                    <ExclusiveOffers />
+                </div>
+                {(!selectedType.id || selectedType.label === 'All') && (
+                    <div className="w-full md:w-[300px] shrink-0 px-5 md:px-0 mt-4 md:mt-2">
+                        <PayHostelFeesSection />
+                    </div>
+                )}
+            </div>
 
             <div className="mt-2 max-w-7xl mx-auto">
                 {(!selectedType.id || selectedType.label === 'All') ? (
@@ -238,9 +248,6 @@ const Home = () => {
                                 typeId={sectionIds.pg}
                             />
                         )}
-
-                        {/* Pay Hostel Fees Section */}
-                        <PayHostelFeesSection />
 
                         {/* YouTube style Reels Section */}
                         <ReelSection category={selectedType.label} />

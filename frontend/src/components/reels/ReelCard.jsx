@@ -204,18 +204,8 @@ const ReelCard = memo(function ReelCard({
         onTimeUpdate={handleTimeUpdate}
       />
 
-      {/* Top right floating controls: Mute & 3-dots Menu (positioned safely below top header) */}
+      {/* Top right floating controls: 3-dots Menu (positioned safely below top header) */}
       <div className="absolute top-16 right-3.5 z-30 flex items-center gap-2.5">
-        <button
-          type="button"
-          onClick={toggleMute}
-          className="p-2.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-black/80 active:scale-90 transition-transform flex items-center justify-center"
-          title={muted ? 'Unmute (Turn sound on)' : 'Mute'}
-          aria-label={muted ? 'Unmute' : 'Mute'}
-        >
-          {muted ? <VolumeX size={18} className="text-red-400" /> : <Volume2 size={18} className="text-emerald-400" />}
-        </button>
-
         <div className="relative">
           <button
             type="button"

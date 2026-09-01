@@ -69,38 +69,6 @@ const PAYMENT_METHODS = [
     Icon: PhonePeIcon,
     accentBg: 'bg-purple-50 hover:bg-purple-100/60',
     btnClass: 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/20'
-  },
-  {
-    id: 'gpay',
-    name: 'Google Pay',
-    description: 'Fast & secure payment using Google Pay',
-    Icon: GPayIcon,
-    accentBg: 'bg-blue-50 hover:bg-blue-100/60',
-    btnClass: 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
-  },
-  {
-    id: 'paytm',
-    name: 'Paytm',
-    description: 'Seamless payment using Paytm wallet or UPI',
-    Icon: PaytmIcon,
-    accentBg: 'bg-sky-50 hover:bg-sky-100/60',
-    btnClass: 'bg-sky-600 hover:bg-sky-700 text-white shadow-sky-500/20'
-  },
-  {
-    id: 'upi',
-    name: 'UPI Payment',
-    description: 'Pay directly using any BHIM UPI ID',
-    Icon: UpiIcon,
-    accentBg: 'bg-teal-50 hover:bg-teal-100/60',
-    btnClass: 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/20'
-  },
-  {
-    id: 'qr',
-    name: 'Scan QR',
-    description: 'Scan & pay instantly with any scanner app',
-    Icon: QrIcon,
-    accentBg: 'bg-emerald-50 hover:bg-emerald-100/60',
-    btnClass: 'bg-slate-900 hover:bg-black text-white shadow-slate-900/20'
   }
 ];
 
@@ -233,76 +201,62 @@ const PayHostelFeesSection = () => {
   };
 
   return (
-    <section className="py-5 md:py-6 border-b border-gray-100 relative">
-      <div className="px-5 md:px-0">
+    <section className="py-4 md:py-2 relative">
+      <div className="w-full">
         
         {/* Header Section */}
-        <div className="mb-3.5">
+        <div className="mb-3">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl md:text-2xl">💳</span>
-            <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+            <span className="text-lg">💳</span>
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
               Pay Hostel Fees
             </h2>
           </div>
-          <p className="text-xs md:text-sm text-gray-500 max-w-2xl leading-relaxed font-medium">
-            Fast, 100% secure hostel fee payments transferred directly to your hostel administrator.
-          </p>
         </div>
 
-        {/* 5 Payment Cards - Horizontal Scrollable Layout */}
-        <div className="flex overflow-x-auto gap-3.5 md:gap-4 pb-2 mb-3.5 no-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+        {/* 1 Payment Card */}
+        <div className="flex flex-col gap-3">
           {PAYMENT_METHODS.map((method) => {
             const { Icon } = method;
             return (
               <motion.div
                 key={method.id}
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -2 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="min-w-[240px] sm:min-w-[260px] lg:min-w-0 lg:flex-1 shrink-0 snap-start bg-white rounded-[18px] p-4 sm:p-5 border border-gray-100 shadow-sm shadow-gray-200/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col justify-between group"
+                className="w-full bg-white rounded-2xl p-4 border border-gray-100 shadow-sm shadow-gray-200/50 hover:shadow-md transition-all duration-300 flex flex-col justify-between group"
               >
-                <div>
-                  <div className="mb-3">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="shrink-0 scale-90 origin-top-left">
                     <Icon />
                   </div>
-                  <h3 className="font-bold text-gray-900 text-base mb-0.5 group-hover:text-blue-600 transition-colors">
-                    {method.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-4 leading-snug">
-                    {method.description}
-                  </p>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm mb-0.5 group-hover:text-purple-600 transition-colors">
+                      {method.name}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 leading-snug">
+                      {method.description}
+                    </p>
+                  </div>
                 </div>
 
                 <button
                   onClick={() => handleOpenPayModal(method)}
-                  className={`w-full py-2.5 px-3.5 rounded-xl font-bold text-xs tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 shadow-xs ${method.btnClass}`}
+                  className={`w-full py-2 rounded-xl font-bold text-xs tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 shadow-xs ${method.btnClass}`}
                 >
                   <span>Pay Now</span>
-                  <ChevronRight size={15} />
+                  <ChevronRight size={14} />
                 </button>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Secure Payment Information Banner (Styled exactly like Image 1) */}
-        <div className="bg-gradient-to-r from-blue-50/90 via-sky-50/80 to-blue-50/90 rounded-2xl p-4 sm:p-5 border border-blue-200/70 shadow-xs flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-blue-100/90 border border-blue-200/80 flex items-center justify-center shrink-0 text-blue-600 shadow-2xs">
-              <Info size={20} className="stroke-[2.5]" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-sm sm:text-base font-bold text-blue-950 tracking-tight">
-                Secure & Easy Payments
-              </h3>
-              <p className="text-xs sm:text-sm text-blue-800/80 font-medium mt-0.5 leading-snug">
-                Your payment goes directly to the hostel admin account. Safe, fast and hassle-free.
-              </p>
-            </div>
-          </div>
-
-          <div className="w-10 h-10 rounded-full bg-white border border-blue-200/80 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
-            <ShieldCheck size={22} className="stroke-[2]" />
-          </div>
+        {/* Small Trust Banner */}
+        <div className="mt-3 bg-gradient-to-r from-blue-50/90 to-sky-50/80 rounded-xl p-3 border border-blue-100 shadow-xs flex items-center gap-2.5">
+          <ShieldCheck size={16} className="text-blue-600 shrink-0" />
+          <p className="text-[10px] text-blue-900 font-medium leading-snug">
+            100% secure direct payment to your hostel admin.
+          </p>
         </div>
       </div>
 

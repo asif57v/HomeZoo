@@ -16,7 +16,8 @@ import {
     User, 
     TrendingUp,
     CheckCircle2,
-    Quote
+    Quote,
+    Phone
 } from 'lucide-react';
 import { propertyService } from '../../services/apiService';
 
@@ -241,6 +242,90 @@ const HomeBottomSections = () => {
                 <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 pb-4 md:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {displayPartners.map((partner, idx) => {
                         const theme = getPackageTheme(partner.plan?.tier, partner.plan?.name);
+
+                        if (partner.plan?.tier === 'gold') {
+                            return (
+                                <motion.div
+                                    key={partner._id || idx}
+                                    whileHover={{ y: -6 }}
+                                    transition={{ duration: 0.25, ease: "easeOut" }}
+                                    onClick={() => window.location.href = `#/partners/${partner._id}`}
+                                    className="group relative w-[85vw] max-w-[340px] sm:max-w-[420px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start rounded-[16px] p-4 sm:p-5 border border-[#FFE173] bg-gradient-to-br from-[#E8AE2E] via-[#FCE38A] to-[#D59821] shadow-[0_15px_40px_-10px_rgba(213,152,33,0.55)] hover:shadow-[0_20px_50px_-10px_rgba(213,152,33,0.7)] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md"
+                                >
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-2xl rounded-full rounded-tr-none"></div>
+                                    <div className="absolute bottom-0 left-0 w-40 h-20 bg-white/20 blur-2xl rounded-t-full"></div>
+                                    
+                                    {/* Top Section */}
+                                    <div className="flex gap-4 items-center relative z-10">
+                                        {/* Golden Badge */}
+                                        <div className="w-[85px] h-[85px] shrink-0 relative flex flex-col items-center justify-center bg-gradient-to-b from-[#FFF0B3] via-[#FCE38A] to-[#D59821] rounded-full border-[3px] border-[#FFF0B3] shadow-[0_5px_15px_rgba(163,111,0,0.5)]">
+                                            <div className="absolute inset-1 rounded-full border border-dashed border-[#A36F00]/40"></div>
+                                            <div className="flex flex-col items-center z-10 text-[#7A5200] mt-1">
+                                                <svg className="w-6 h-6 mb-0.5 fill-[#A36F00]" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
+                                                <span className="font-black text-[12px] leading-none text-[#523600]">GOLD</span>
+                                                <span className="font-bold text-[7px] tracking-widest text-[#7A5200]">PARTNER</span>
+                                                <div className="flex gap-0.5 mt-0.5">
+                                                    <Star className="w-2.5 h-2.5 fill-[#523600] text-[#523600]" />
+                                                    <Star className="w-2.5 h-2.5 fill-[#523600] text-[#523600]" />
+                                                    <Star className="w-2.5 h-2.5 fill-[#523600] text-[#523600]" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Right Details */}
+                                        <div className="flex-1">
+                                            <h3 className="font-extrabold text-[#523600] text-lg sm:text-xl flex items-center gap-1.5 tracking-tight">
+                                                <span>{partner.name}</span>
+                                                <BadgeCheck className="w-[18px] h-[18px] text-[#A36F00] fill-[#FFF0B3] shrink-0" />
+                                            </h3>
+                                            <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] bg-gradient-to-r from-[#FFF0B3] to-[#FCE38A] border border-[#D59821]/40 shadow-sm">
+                                                <Sparkles className="w-3 h-3 text-[#8F6100]" />
+                                                <span className="text-[9px] sm:text-[10px] font-black uppercase text-[#523600] tracking-wider">{partner.plan?.name || 'ELITE GOLD PACK'}</span>
+                                            </div>
+                                            <p className="text-[10px] sm:text-xs font-semibold text-[#6E4B00] leading-snug mt-2.5">
+                                                {partner.tagline}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Middle Stats Pill */}
+                                    <div className="mt-5 py-2.5 px-3 rounded-xl bg-gradient-to-br from-[#FDF2CB] to-[#F1D273] shadow-[0_2px_8px_rgba(163,111,0,0.15)] flex items-center justify-between border border-[#FFF0B3] relative z-10">
+                                        <div className="flex-1 flex items-center justify-center border-r border-[#C98A00]/30 gap-2.5 sm:gap-3">
+                                            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-[#734D00]" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[#8F6100] font-extrabold uppercase text-[8px] sm:text-[9px] tracking-widest">Experience</span>
+                                                <span className="text-[#3A2600] font-black text-xs sm:text-sm">{partner.experienceYears}+ Yrs</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 flex items-center justify-center gap-2.5 sm:gap-3">
+                                            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#734D00]" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[#8F6100] font-extrabold uppercase text-[8px] sm:text-[9px] tracking-widest">Listings</span>
+                                                <span className="text-[#3A2600] font-black text-xs sm:text-sm">{partner.totalListings}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Top Rated & Button */}
+                                    <div className="mt-3.5 relative z-10">
+                                        <div className="inline-flex items-center gap-1.5 bg-[#FDF2CB] text-[#523600] text-[9px] font-extrabold px-2.5 py-1 rounded shadow-sm mb-2 border border-[#F1D273]/50">
+                                            <Star className="w-2.5 h-2.5 fill-[#C98A00] text-[#C98A00]" />
+                                            <span className="uppercase tracking-wide">Top Rated</span>
+                                        </div>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                window.location.href = `#/partners/${partner._id}`;
+                                            }}
+                                            className="w-full py-2.5 sm:py-3 rounded-[8px] bg-gradient-to-b from-[#D4981C] via-[#A66F00] to-[#784E00] text-white font-extrabold text-xs sm:text-sm shadow-[0_5px_15px_rgba(80,50,0,0.4)] flex items-center justify-center gap-2 hover:from-[#B58217] hover:to-[#5C3B00] transition-colors border border-[#FEEAA7]/30 border-t-[#FFF0B3]/50"
+                                        >
+                                            <Phone className="w-4 h-4" />
+                                            <span>Show Contact</span>
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            );
+                        }
 
                         return (
                             <motion.div
