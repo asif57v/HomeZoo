@@ -201,62 +201,50 @@ const PayHostelFeesSection = () => {
   };
 
   return (
-    <section className="py-4 md:py-2 relative">
+    <section className="py-2 mt-2 relative">
       <div className="w-full">
         
         {/* Header Section */}
-        <div className="mb-3">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">💳</span>
-            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-              Pay Hostel Fees
-            </h2>
-          </div>
-        </div>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 tracking-tight flex items-center gap-2">
+          💳 Pay Hostel Fees
+        </h2>
 
-        {/* 1 Payment Card */}
-        <div className="flex flex-col gap-3">
+        {/* 1 Payment Card styled like Exclusive Offers */}
+        <div className="flex">
           {PAYMENT_METHODS.map((method) => {
             const { Icon } = method;
             return (
               <motion.div
                 key={method.id}
+                onClick={() => handleOpenPayModal(method)}
                 whileHover={{ y: -2 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="w-full bg-white rounded-2xl p-4 border border-gray-100 shadow-sm shadow-gray-200/50 hover:shadow-md transition-all duration-300 flex flex-col justify-between group"
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-white border border-gray-200 rounded-2xl md:rounded-[1.25rem] p-4 md:p-5 flex items-center gap-4 md:gap-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 group"
               >
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="shrink-0 scale-90 origin-top-left">
+                {/* Left side Image/Logo Box */}
+                <div className="w-16 h-14 sm:w-20 sm:h-16 shrink-0 flex items-center justify-center">
+                  <div className="scale-75 sm:scale-100 origin-center transition-transform group-hover:scale-105">
                     <Icon />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-sm mb-0.5 group-hover:text-purple-600 transition-colors">
-                      {method.name}
-                    </h3>
-                    <p className="text-[11px] text-gray-500 leading-snug">
-                      {method.description}
-                    </p>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleOpenPayModal(method)}
-                  className={`w-full py-2 rounded-xl font-bold text-xs tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 shadow-xs ${method.btnClass}`}
-                >
-                  <span>Pay Now</span>
-                  <ChevronRight size={14} />
-                </button>
+                {/* Right side Title and Details */}
+                <div className="flex flex-col justify-center min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg md:text-[20px] font-bold text-gray-900 leading-tight truncate">
+                    {method.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium truncate mt-0.5">
+                    {method.description}
+                  </p>
+                  <div className="mt-1.5 flex items-center">
+                    <span className="text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-100/80 px-2 py-0.5 rounded-md flex items-center gap-1 group-hover:bg-purple-100 transition-colors">
+                      Pay Now <ChevronRight size={12} />
+                    </span>
+                  </div>
+                </div>
               </motion.div>
             );
           })}
-        </div>
-
-        {/* Small Trust Banner */}
-        <div className="mt-3 bg-gradient-to-r from-blue-50/90 to-sky-50/80 rounded-xl p-3 border border-blue-100 shadow-xs flex items-center gap-2.5">
-          <ShieldCheck size={16} className="text-blue-600 shrink-0" />
-          <p className="text-[10px] text-blue-900 font-medium leading-snug">
-            100% secure direct payment to your hostel admin.
-          </p>
         </div>
       </div>
 
