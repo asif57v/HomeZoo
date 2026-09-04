@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Briefcase, UserCircle, Plus, Clapperboard } from 'lucide-react';
+import { LayoutDashboard, Briefcase, UserCircle, Crown, Clapperboard } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -11,7 +11,7 @@ const PartnerBottomNavbar = () => {
     const path = location.pathname;
     if (path.includes('dashboard') || path === '/hotel') return 'Dashboard';
     if (path.includes('bookings')) return 'Bookings';
-    if (path.includes('properties') || path.includes('join')) return 'Properties';
+    if (path.includes('subscription')) return 'Subscription';
     if (path.includes('reels') || path.includes('reel')) return 'Reels';
     if (path.includes('profile')) return 'Profile';
     return '';
@@ -20,7 +20,7 @@ const PartnerBottomNavbar = () => {
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, route: '/hotel/dashboard' },
     { name: 'Bookings', icon: Briefcase, route: '/hotel/bookings' },
-    { name: 'Properties', icon: Plus, route: '/hotel/properties', isCenter: true },
+    { name: 'Subscription', icon: Crown, route: '/hotel/subscriptions', isCenter: true },
     { name: 'Reels', icon: Clapperboard, route: '/reels' },
     { name: 'Profile', icon: UserCircle, route: '/hotel/profile' },
   ];
@@ -56,9 +56,9 @@ const PartnerBottomNavbar = () => {
                     border-[3px] border-white
                     ${isActive ? 'ring-2 ring-amber-400 ring-offset-2' : ''}
                   `}
-                  aria-label="Properties"
+                  aria-label="Subscription"
                 >
-                  <Plus className="w-7 h-7 text-[#f59e0b]" strokeWidth={2.6} />
+                  <Crown className="w-7 h-7 text-[#f59e0b]" strokeWidth={2.4} />
                 </button>
               </div>
             );

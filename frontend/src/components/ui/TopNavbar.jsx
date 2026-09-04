@@ -76,8 +76,8 @@ const TopNavbar = () => {
                     <Link to="/reels" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Reels
                     </Link>
-                    <Link to="/hotel/login" className="w-10 h-10 bg-[#0b1329] hover:bg-[#070d1e] rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95 border-2 border-white" aria-label="Add Post">
-                        <Plus className="w-5 h-5 text-[#f59e0b]" strokeWidth={2.5} />
+                    <Link to="/hotel/login" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Post
                     </Link>
                     <Link to="/bookings" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Bookings
