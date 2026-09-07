@@ -1619,7 +1619,7 @@ const AddHostelWizard = () => {
       </footer>
 
       <style>{`
-        .btn-primary { background: #004F4D; color: white; font-weight: 700; padding: 10px 16px; border-radius: 12px; transition: transform 0.1s, background 0.1s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: #005CA8; color: white; font-weight: 700; padding: 10px 16px; border-radius: 12px; transition: transform 0.1s, background 0.1s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary:active { transform: scale(0.97); }
         .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
         .btn-secondary { background: white; color: #374151; font-weight: 600; padding: 10px 16px; border-radius: 12px; border: 1px solid #e5e7eb; transition: all 0.1s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }

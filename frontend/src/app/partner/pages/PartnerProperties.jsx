@@ -148,7 +148,7 @@ const PartnerProperties = () => {
           <div className="flex gap-2">
             <button
               onClick={handleAddProperty}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#004F4D] text-white text-[11px] font-bold uppercase tracking-wide active:scale-95"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#005CA8] hover:bg-[#004b8a] text-white text-[11px] font-bold uppercase tracking-wide active:scale-95 transition-all"
             >
               <PlusCircle size={14} /> Add New
             </button>
@@ -169,7 +169,7 @@ const PartnerProperties = () => {
                    onClick={() => setActiveFilter(filterType)}
                    className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border uppercase tracking-wide flex-shrink-0 ${
                      activeFilter === filterType
-                       ? 'bg-[#004F4D] text-white border-[#004F4D] shadow-sm'
+                       ? 'bg-[#005CA8] text-white border-[#005CA8] shadow-sm'
                        : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
                    }`}
                  >
@@ -214,7 +214,7 @@ const PartnerProperties = () => {
                     <div className="flex justify-between items-start gap-4">
                       {/* Left: Info */}
                       <div className="flex-1 pt-1 min-w-0">
-                        <h3 className="text-[18px] font-bold text-[#0B403D] leading-tight mb-2.5 truncate">
+                        <h3 className="text-[18px] font-bold text-slate-900 leading-tight mb-2.5 truncate">
                           {property.propertyName}
                         </h3>
                         
@@ -270,7 +270,7 @@ const PartnerProperties = () => {
                     <div className="flex items-center gap-2 mt-1">
                       <button
                         onClick={() => handleEditProperty(property)}
-                        className="flex-1 py-2.5 rounded-[10px] bg-green-50 hover:bg-green-100 text-green-600 text-[13px] font-bold flex items-center justify-center gap-2 transition-colors"
+                        className="flex-1 py-2.5 rounded-[10px] bg-blue-50 hover:bg-blue-100 text-[#005CA8] text-[13px] font-bold flex items-center justify-center gap-2 transition-colors"
                       >
                         <Pencil size={14} /> Edit
                       </button>
@@ -347,7 +347,7 @@ const PartnerProperties = () => {
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000] w-full max-w-md px-4">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-6 text-center">
-                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4 text-teal-600">
+                <div className="w-16 h-16 bg-[#005CA8]/10 rounded-full flex items-center justify-center mx-auto mb-4 text-[#005CA8]">
                   <Lock size={32} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Subscription Required</h3>
@@ -362,7 +362,7 @@ const PartnerProperties = () => {
                       setShowSubscriptionModal(false);
                       navigate('/hotel/subscriptions');
                     }}
-                    className="w-full px-4 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold transition-colors shadow-lg"
+                    className="w-full px-4 py-3 bg-[#005CA8] hover:bg-[#004b8a] text-white rounded-xl text-sm font-bold transition-colors shadow-lg"
                   >
                     View Subscription Plans
                   </button>

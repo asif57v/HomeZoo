@@ -47,7 +47,7 @@ const PartnerDashboard = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-[#004F4D] border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-[#005CA8] border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -60,7 +60,7 @@ const PartnerDashboard = () => {
                 {/* Header & Greeting */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                     <div>
-                        <h1 className="text-2xl font-black text-[#003836]">
+                        <h1 className="text-2xl font-black text-slate-900">
                             Welcome back, {user?.name?.split(' ')[0] || 'Partner'}! 👋
                         </h1>
                         <p className="text-gray-500 mt-1 text-sm font-medium">
@@ -72,7 +72,7 @@ const PartnerDashboard = () => {
                         {/* Add Property - High Visible */}
                         <button
                             onClick={() => navigate('/hotel/join')}
-                            className="flex items-center gap-2 bg-[#004F4D] hover:bg-[#003836] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md active:scale-95"
+                            className="flex items-center gap-2 bg-[#005CA8] hover:bg-[#004b8a] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md active:scale-95"
                         >
                             <Plus size={18} />
                             Add Property

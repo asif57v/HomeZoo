@@ -24,7 +24,7 @@ const FaqItem = ({ question, answer }) => {
                 onClick={toggle}
                 className="w-full flex items-center justify-between p-4 text-left"
             >
-                <span className="font-bold text-sm text-[#003836]">{question}</span>
+                <span className="font-bold text-sm text-slate-900">{question}</span>
                 <ChevronDown size={18} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             <div ref={contentRef} className="h-0 opacity-0 overflow-hidden px-4">
@@ -64,14 +64,14 @@ const PartnerSupport = () => {
                 <div className="grid grid-cols-2 gap-3 mb-8">
                     <button
                         onClick={() => window.open('https://wa.me/919111384535', '_blank')}
-                        className="bg-[#004F4D] text-white p-5 rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="bg-[#005CA8] hover:bg-[#004b8a] text-white p-5 rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         <MessageSquare size={24} />
                         <span className="text-sm font-bold">WhatsApp Chat</span>
                     </button>
                     <a
                         href="tel:9111384535"
-                        className="bg-white border border-gray-200 text-[#003836] p-5 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="bg-white border border-gray-200 text-slate-900 p-5 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         <Phone size={24} />
                         <span className="text-sm font-bold">Call Support</span>
@@ -80,13 +80,13 @@ const PartnerSupport = () => {
 
                 <div className="flex items-center gap-2 mb-4">
                     <CircleHelp size={18} className="text-gray-400" />
-                    <h3 className="font-black text-[#003836]">Frequently Asked Questions</h3>
+                    <h3 className="font-black text-slate-900">Frequently Asked Questions</h3>
                 </div>
 
                 <div>
                     {loading ? (
                         <div className="p-8 flex justify-center">
-                            <Loader2 className="animate-spin text-[#004F4D]" />
+                            <Loader2 className="animate-spin text-[#005CA8]" />
                         </div>
                     ) : faqs.length === 0 ? (
                         <div className="p-8 text-center text-gray-400 text-sm">No FAQs available.</div>
@@ -99,7 +99,7 @@ const PartnerSupport = () => {
 
                 <div className="mt-8 text-center">
                     <p className="text-xs text-gray-400 mb-2">Still have questions?</p>
-                    <a href="mailto:partners@rokkooin.com" className="inline-flex items-center gap-2 text-sm font-bold text-[#004F4D] border-b border-[#004F4D]/20 pb-0.5 hover:border-[#004F4D] transition-colors">
+                    <a href="mailto:partners@rokkooin.com" className="inline-flex items-center gap-2 text-sm font-bold text-[#005CA8] border-b border-[#005CA8]/20 pb-0.5 hover:border-[#005CA8] transition-colors">
                         <Mail size={14} /> Email us at partners@rokkooin.com
                     </a>
                 </div>

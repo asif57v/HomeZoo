@@ -1020,7 +1020,7 @@ const AddResortWizard = () => {
                   <button
                     type="button"
                     onClick={searchLocationForAddress}
-                    className="px-4 py-2 bg-[#004F4D] text-white rounded-xl font-bold text-sm hover:bg-[#003d3b] transition-colors"
+                    className="px-4 py-2 bg-[#005CA8] text-white rounded-xl font-bold text-sm hover:bg-[#004b8a] transition-colors"
                   >
                     Search
                   </button>
@@ -1060,7 +1060,7 @@ const AddResortWizard = () => {
                 type="button"
                 onClick={useCurrentLocation}
                 disabled={loadingLocation}
-                className="w-full py-4 rounded-xl border border-dashed border-[#004F4D] text-[#004F4D] bg-[#004F4D]/5 font-bold flex items-center justify-center gap-2 hover:bg-[#004F4D]/10 transition-colors disabled:opacity-50"
+                className="w-full py-4 rounded-xl border border-dashed border-[#005CA8] text-[#005CA8] bg-[#005CA8]/5 font-bold flex items-center justify-center gap-2 hover:bg-[#005CA8]/10 transition-colors disabled:opacity-50"
               >
                 {loadingLocation ? (
                   <>

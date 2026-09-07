@@ -48,7 +48,7 @@ const PartnerHome = () => {
             <section className="relative min-h-[60vh] md:min-h-[90vh] flex flex-col justify-center items-center text-center px-4 pt-12 pb-12 md:pt-20 md:pb-20">
                 <div className="max-w-4xl mx-auto z-10">
                     <h1 className="hero-title text-4xl md:text-7xl font-black text-partner-text-primary tracking-tight leading-[1.1] mb-4 md:mb-6">
-                        Grow Your Revenue <br /> with <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-600 to-[#004F4D]">HoomZo Hub</span>
+                        Grow Your Revenue <br /> with <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-600 to-[#005CA8]">HoomZo Hub</span>
                     </h1>
                     <p className="hero-subtitle text-base md:text-xl text-partner-text-secondary max-w-xl mx-auto mb-8 font-medium px-2">
                         List your property. Reach verified guests. Earn up to 30% more.
@@ -94,7 +94,7 @@ const PartnerHome = () => {
                             {/* Card Image (Top Half) */}
                             <div className="h-1/2 relative overflow-hidden">
                                 <img src={card.img} alt={card.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#004F4D]/60 to-transparent flex items-end p-5 justify-between">
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#005CA8]/60 to-transparent flex items-end p-5 justify-between">
                                     <span className="text-5xl font-black text-white/30">{card.step}</span>
                                     <span className="text-xs font-bold text-white bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 self-end mb-1">{card.tag}</span>
                                 </div>
@@ -106,10 +106,10 @@ const PartnerHome = () => {
                                 <p className="text-partner-text-secondary text-sm leading-relaxed mb-4">{card.desc}</p>
 
                                 {/* Animated Bottom Line - Desktop Hover Only */}
-                                <div className="hidden md:block absolute bottom-0 left-0 w-0 h-1 bg-[#004F4D] group-hover:w-full transition-all duration-500 ease-out" />
+                                <div className="hidden md:block absolute bottom-0 left-0 w-0 h-1 bg-[#005CA8] group-hover:w-full transition-all duration-500 ease-out" />
 
                                 {/* Mobile Active Indicator (Always visible if active class present) */}
-                                <div className="absolute bottom-0 left-0 w-full h-1 bg-[#004F4D] opacity-0 transition-opacity duration-300 mobile-active-line md:hidden" />
+                                <div className="absolute bottom-0 left-0 w-full h-1 bg-[#005CA8] opacity-0 transition-opacity duration-300 mobile-active-line md:hidden" />
                             </div>
                         </div>
                     ))}
@@ -121,7 +121,7 @@ const PartnerHome = () => {
                 @media (max-width: 768px) {
                     .mobile-card-zoom { opacity: 0.7; transform: scale(0.9); transition: all 0.4s ease-out; }
                     /* Active state applied by IntersectionObserver */
-                    .mobile-card-active { opacity: 1; transform: scale(1); border-color: #004F4D; box-shadow: 0 20px 25px -5px rgb(0 79 77 / 0.1); }
+                    .mobile-card-active { opacity: 1; transform: scale(1); border-color: #005CA8; box-shadow: 0 20px 25px -5px rgb(0 92 168 / 0.15); }
                     .mobile-card-active .mobile-active-line { opacity: 1; }
                 }
             `}</style>
@@ -144,7 +144,7 @@ const PartnerHome = () => {
                             { icon: Star, title: "Marketing Boost", text: "Premium placement for top-rated properties." },
                         ].map((item, i) => (
                             <div key={i} className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl transition-shadow border border-gray-100 flex md:block items-center gap-4 md:gap-0">
-                                <div className="w-12 h-12 md:w-14 md:h-14 bg-[#004F4D] text-white rounded-xl md:rounded-2xl flex items-center justify-center md:mb-6 shrink-0">
+                                <div className="w-12 h-12 md:w-14 md:h-14 bg-[#005CA8] text-white rounded-xl md:rounded-2xl flex items-center justify-center md:mb-6 shrink-0">
                                     <item.icon size={24} className="md:w-7 md:h-7" />
                                 </div>
                                 <div>
@@ -159,12 +159,12 @@ const PartnerHome = () => {
 
             {/* 4️⃣ COMPARISON SECTION */}
             <section className="py-12 md:py-24 px-4 md:px-12 max-w-5xl mx-auto reveal">
-                <div className="bg-[#004F4D] text-white rounded-3xl md:rounded-[2.5rem] p-8 md:p-16 text-center shadow-xl relative overflow-hidden">
+                <div className="bg-[#005CA8] text-white rounded-3xl md:rounded-[2.5rem] p-8 md:p-16 text-center shadow-xl relative overflow-hidden">
                     <div className="relative z-10">
                         <h2 className="text-2xl md:text-5xl font-bold mb-4 md:mb-6">Ready to transform your business?</h2>
                         <p className="text-white/80 mb-8 text-sm md:text-lg">Join 500+ hotel partners growing with HoomZo Hub today.</p>
                         <Link to="/hotel/join">
-                            <button className="bg-white text-[#004F4D] px-8 py-3.5 md:px-10 md:py-4 rounded-full font-bold text-sm md:text-base hover:bg-gray-100 hover:scale-105 transition-all">
+                            <button className="bg-white text-[#005CA8] px-8 py-3.5 md:px-10 md:py-4 rounded-full font-bold text-sm md:text-base hover:bg-gray-100 hover:scale-105 transition-all">
                                 List Your Property
                             </button>
                         </Link>

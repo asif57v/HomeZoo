@@ -16,12 +16,12 @@ const OTPInput = () => {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center space-y-2">
-                <div className="w-16 h-16 bg-[#004F4D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#004F4D]"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                <div className="w-16 h-16 bg-[#005CA8]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#005CA8]"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 </div>
-                <h3 className="text-xl font-bold text-[#003836]">Verify Phone Number</h3>
+                <h3 className="text-xl font-bold text-slate-900">Verify Phone Number</h3>
                 <p className="text-sm text-gray-500">
-                    We've sent a 6-digit code to <span className="font-bold text-[#003836]">{formData.phone}</span>
+                    We've sent a 6-digit code to <span className="font-bold text-slate-900">{formData.phone}</span>
                 </p>
             </div>
 
@@ -31,7 +31,7 @@ const OTPInput = () => {
                     type="text"
                     maxLength={6}
                     placeholder="123456"
-                    className="w-full h-14 text-center text-2xl font-bold tracking-widest border border-gray-400 rounded-xl focus:border-[#004F4D] focus:ring-2 focus:ring-[#004F4D]/10 outline-none transition-all placeholder:text-gray-200"
+                    className="w-full h-14 text-center text-2xl font-bold tracking-widest border border-gray-400 rounded-xl focus:border-[#005CA8] focus:ring-2 focus:ring-[#005CA8]/10 outline-none transition-all placeholder:text-gray-200"
                     value={formData.otpCode || ''}
                     onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, '');
@@ -42,7 +42,7 @@ const OTPInput = () => {
             </div>
 
             <p className="text-center text-xs text-gray-400">
-                Didn't receive code? <button className="text-[#004F4D] font-bold hover:underline">Resend</button>
+                Didn't receive code? <button className="text-[#005CA8] font-bold hover:underline">Resend</button>
             </p>
         </div>
     );
@@ -160,7 +160,7 @@ const HotelSignup = () => {
     };
 
     return (
-        <div className="h-screen overflow-hidden bg-white text-[#003836] flex flex-col font-sans selection:bg-[#004F4D] selection:text-white">
+        <div className="h-screen overflow-hidden bg-white text-slate-900 flex flex-col font-sans selection:bg-[#005CA8] selection:text-white">
             {/* Top Bar */}
             <header className="absolute top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md z-50 px-4 flex items-center justify-between border-b border-gray-100">
                 <button
@@ -168,21 +168,21 @@ const HotelSignup = () => {
                     className={`p-2 rounded-full transition-colors ${currentStep === 1 ? 'opacity-20 cursor-not-allowed' : 'hover:bg-gray-100'}`}
                     disabled={currentStep === 1}
                 >
-                    <ArrowLeft size={20} className="text-[#003836]" />
+                    <ArrowLeft size={20} className="text-slate-900" />
                 </button>
                 <div className="flex flex-col items-center">
                     <span className="text-xs font-bold text-gray-400 tracking-widest uppercase">Step {currentStep} of {steps.length}</span>
-                    <span className="text-xs md:text-sm font-bold text-[#003836] truncate">{steps[currentStepIndex]?.title}</span>
+                    <span className="text-xs md:text-sm font-bold text-slate-900 truncate">{steps[currentStepIndex]?.title}</span>
                 </div>
                 <button onClick={() => navigate('/hotel/login')} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <X size={20} className="text-[#003836]" />
+                    <X size={20} className="text-slate-900" />
                 </button>
             </header>
 
             {/* Progress Bar */}
             <div className="absolute top-16 left-0 right-0 z-40 bg-gray-100 h-1">
                 <div
-                    className="h-full bg-[#004F4D] transition-all duration-500 ease-out"
+                    className="h-full bg-[#005CA8] transition-all duration-500 ease-out"
                     style={{ width: `${progress}%` }}
                 />
             </div>
@@ -206,7 +206,7 @@ const HotelSignup = () => {
                                     Already have a partner account?{' '}
                                     <button
                                         onClick={() => navigate('/hotel/login')}
-                                        className="text-[#004F4D] font-bold hover:underline"
+                                        className="text-[#005CA8] font-bold hover:underline"
                                     >
                                         Login Here
                                     </button>
@@ -223,7 +223,7 @@ const HotelSignup = () => {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleBack}
-                            className={`text-xs font-bold underline px-3 py-2 transition-colors ${currentStep === 1 || loading ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-[#004F4D]'}`}
+                            className={`text-xs font-bold underline px-3 py-2 transition-colors ${currentStep === 1 || loading ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-[#005CA8]'}`}
                             disabled={currentStep === 1 || loading}
                         >
                             Back
@@ -242,7 +242,7 @@ const HotelSignup = () => {
                         <button
                             onClick={handleNext}
                             disabled={loading}
-                            className={`bg-[#004F4D] text-white px-8 py-3.5 rounded-full font-bold text-sm shadow-lg active:scale-95 transition-all flex items-center gap-2 w-full md:w-auto justify-center ${loading ? 'opacity-75 cursor-not-allowed' : ''}`}
+                            className={`bg-[#005CA8] hover:bg-[#004b8a] text-white px-8 py-3.5 rounded-full font-bold text-sm shadow-lg active:scale-95 transition-all flex items-center gap-2 w-full md:w-auto justify-center ${loading ? 'opacity-75 cursor-not-allowed' : ''}`}
                         >
                             {loading ? (
                                 <>Processing...</>

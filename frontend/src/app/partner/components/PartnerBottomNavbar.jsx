@@ -50,9 +50,9 @@ const PartnerBottomNavbar = () => {
                 <button
                   onClick={() => handleNavClick(item)}
                   className={`
-                    absolute -top-4 w-14 h-14 bg-[#003836] hover:bg-[#002624] 
+                    absolute -top-4 w-14 h-14 bg-[#0b1329] hover:bg-[#070d1e] 
                     rounded-full flex items-center justify-center 
-                    shadow-lg shadow-[#003836]/30 transition-transform active:scale-95 
+                    shadow-lg shadow-slate-900/30 transition-transform active:scale-95 
                     border-[3px] border-white
                     ${isActive ? 'ring-2 ring-amber-400 ring-offset-2' : ''}
                   `}
@@ -73,7 +73,7 @@ const PartnerBottomNavbar = () => {
               {isActive && (
                 <motion.div
                   layoutId="partner-active-pill"
-                  className="absolute inset-x-2 inset-y-1.5 bg-[#003836]/10 rounded-xl -z-10"
+                  className="absolute inset-x-2 inset-y-1.5 bg-[#005CA8]/10 rounded-xl -z-10"
                   initial={false}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
@@ -81,11 +81,11 @@ const PartnerBottomNavbar = () => {
 
               <Icon
                 size={22}
-                className={`transition-colors duration-200 ${isActive ? 'text-[#003836] fill-[#003836]/10' : 'text-gray-400'}`}
+                className={`transition-colors duration-200 ${isActive ? 'text-[#005CA8] fill-[#005CA8]/10' : 'text-gray-400'}`}
                 strokeWidth={isActive ? 2.5 : 2}
               />
 
-              <span className={`text-[10px] font-bold tracking-wide transition-colors duration-200 ${isActive ? 'text-[#003836]' : 'text-gray-400'}`}>
+              <span className={`text-[10px] font-bold tracking-wide transition-colors duration-200 ${isActive ? 'text-[#005CA8]' : 'text-gray-400'}`}>
                 {item.name}
               </span>
             </button>

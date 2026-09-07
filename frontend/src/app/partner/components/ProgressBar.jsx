@@ -6,7 +6,7 @@ const ProgressBar = ({ currentStep, totalSteps }) => {
     return (
         <div className="w-full h-1 bg-gray-100 fixed top-0 left-0 z-50">
             <div
-                className="h-full bg-[#004F4D] transition-all duration-500 ease-out"
+                className="h-full bg-[#005CA8] transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
             />
         </div>

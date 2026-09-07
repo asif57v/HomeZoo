@@ -165,7 +165,7 @@ const PartnerBookingDetail = () => {
             {property.images?.[0] ? <img src={property.images[0]} alt="property" className="w-full h-full object-cover" /> : <MapPin size={24} className="m-5 text-gray-300" />}
           </div>
           <div>
-            <h2 className="font-black text-[#003836] text-base leading-tight uppercase">{property.propertyName || 'Property Name'}</h2>
+            <h2 className="font-black text-slate-900 text-base leading-tight uppercase">{property.propertyName || 'Property Name'}</h2>
             <div className="flex items-center gap-2 mt-1">
               <span className="px-2 py-0.5 bg-gray-100 text-[9px] font-bold rounded text-gray-500 uppercase">{pType}</span>
               <p className="text-xs text-gray-400 font-medium truncate max-w-[150px]">

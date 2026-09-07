@@ -6,8 +6,8 @@ import { legalService } from '../../../services/apiService';
 
 const Section = ({ title, children }) => (
     <div className="mb-8">
-        <h4 className="font-bold text-[#003836] mb-2 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#004F4D]"></span>
+        <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#005CA8]"></span>
             {title}
         </h4>
         <div className="text-xs text-gray-500 leading-relaxed pl-3.5 border-l border-gray-100">
@@ -61,7 +61,7 @@ const PartnerTerms = () => {
                             <Shield size={24} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-black text-[#003836]">
+                            <h2 className="text-lg font-black text-slate-900">
                                 {page?.title || 'Partner Agreement'}
                             </h2>
                             <p className="text-xs text-gray-400">Last updated: August 15, 2024</p>
@@ -109,7 +109,7 @@ const PartnerTerms = () => {
                             <CheckCircle size={16} />
                             <span className="text-xs font-bold">You accepted these terms on 12 Aug 2024</span>
                         </div>
-                        <button className="flex items-center gap-1 text-xs font-bold text-[#004F4D] hover:underline">
+                        <button className="flex items-center gap-1 text-xs font-bold text-[#005CA8] hover:underline">
                             Download PDF <ExternalLink size={12} />
                         </button>
                     </div>

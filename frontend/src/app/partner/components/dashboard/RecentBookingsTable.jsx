@@ -20,7 +20,7 @@ const RecentBookingsTable = ({ bookings }) => {
         <h3 className="font-bold text-gray-900 text-lg">Recent Activity</h3>
         <button
           onClick={() => navigate('/hotel/bookings')}
-          className="text-xs font-semibold text-[#004F4D] flex items-center gap-1 hover:gap-2 transition-all"
+          className="text-xs font-semibold text-[#005CA8] hover:text-[#004b8a] flex items-center gap-1 hover:gap-2 transition-all"
         >
           View All <ChevronRight size={14} />
         </button>
@@ -95,7 +95,7 @@ const RecentBookingsTable = ({ bookings }) => {
       {/* Desktop View: Details Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-500">
-          <thead className="bg-[#004F4D]/5 text-gray-700">
+          <thead className="bg-[#005CA8]/5 text-gray-700">
             <tr>
               <th className="px-6 py-3 font-semibold">Guest/Lead</th>
               <th className="px-6 py-3 font-semibold">Property</th>
@@ -163,7 +163,7 @@ const RecentBookingsTable = ({ bookings }) => {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => navigate(`/hotel/bookings/${booking._id}`)}
-                      className="text-[#004F4D] hover:text-[#003836] font-medium text-xs border border-[#004F4D]/20 px-3 py-1.5 rounded-lg hover:bg-[#004F4D]/5 transition"
+                      className="text-[#005CA8] hover:text-[#004b8a] font-medium text-xs border border-[#005CA8]/20 px-3 py-1.5 rounded-lg hover:bg-[#005CA8]/5 transition"
                     >
                       Details
                     </button>

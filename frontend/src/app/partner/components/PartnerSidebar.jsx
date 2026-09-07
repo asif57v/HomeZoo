@@ -48,16 +48,16 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
             onClick={() => handleNavigation(path)}
             className="flex items-center gap-4 w-full p-2.5 hover:bg-gray-50 rounded-xl transition-all group active:scale-95"
         >
-            <div className="w-8 h-8 rounded-full bg-[#004F4D]/5 flex items-center justify-center group-hover:bg-[#004F4D]/10 transition-colors">
-                <Icon size={16} className="text-[#004F4D]" />
+            <div className="w-8 h-8 rounded-full bg-[#005CA8]/5 flex items-center justify-center group-hover:bg-[#005CA8]/10 transition-colors">
+                <Icon size={16} className="text-[#005CA8]" />
             </div>
             <span className="flex-1 text-left font-medium text-gray-700 text-sm">{label}</span>
             {badge && (
-                <span className="text-[10px] font-bold bg-[#004F4D] text-white px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold bg-[#005CA8] text-white px-2 py-0.5 rounded-full">
                     {badge}
                 </span>
             )}
-            <ChevronRight size={14} className="text-gray-300 group-hover:text-[#004F4D] transition-colors" />
+            <ChevronRight size={14} className="text-gray-300 group-hover:text-[#005CA8] transition-colors" />
         </button>
     );
 
@@ -125,7 +125,7 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
                                     <span className="text-xl font-black tracking-tighter text-slate-900 flex items-center gap-0.5">
                                         HOOM<span className="text-amber-600">ZO</span>
                                 </span>
-                                <div className="h-1 w-6 bg-teal-600 rounded-full mt-0.5"></div>
+                                <div className="h-1 w-6 bg-amber-600 rounded-full mt-0.5"></div>
                             </div>
                             <button onClick={onClose} className="p-2 rounded-full bg-gray-50 hover:bg-gray-100 transition border border-gray-100">
                                 <X size={20} className="text-gray-500" />
@@ -133,7 +133,7 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
                         </div>
 
                         <div className="px-5 mb-6">
-                            <div className="bg-gradient-to-br from-[#004F4D] to-teal-700 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-[#005CA8] to-[#003768] rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
 
                                 <div className="flex items-start justify-between relative z-10">

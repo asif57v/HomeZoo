@@ -42,7 +42,7 @@ const PartnerKYC = () => {
         <div className="min-h-screen bg-gray-50 pb-20">
             <PartnerHeader title="KYC Verification" subtitle="Complete your profile" />
 
-            <div className="bg-[#004F4D] text-white p-6 pb-12">
+            <div className="bg-[#005CA8] text-white p-6 pb-12">
                 <div className="max-w-3xl mx-auto">
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md">
@@ -62,10 +62,10 @@ const PartnerKYC = () => {
                         <div key={idx} className="p-4 rounded-2xl hover:bg-gray-50 transition-colors group cursor-pointer border-b border-gray-50 last:border-0">
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-[#004F4D] group-hover:text-white transition-colors">
+                                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-[#005CA8] group-hover:text-white transition-colors">
                                         <FileText size={16} />
                                     </div>
-                                    <h4 className="font-bold text-[#003836] text-sm">{step.label}</h4>
+                                    <h4 className="font-bold text-slate-900 text-sm">{step.label}</h4>
                                 </div>
                                 <DocStatus status={step.status} />
                             </div>
@@ -78,7 +78,7 @@ const PartnerKYC = () => {
                                 </button>
                             )}
                             {step.status === 'none' && (
-                                <button className="ml-11 mt-3 text-xs font-bold bg-[#004F4D] text-white px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg active:scale-95 transition-transform">
+                                <button className="ml-11 mt-3 text-xs font-bold bg-[#005CA8] hover:bg-[#004b8a] text-white px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg active:scale-95 transition-transform">
                                     Upload Now <ChevronRight size={14} />
                                 </button>
                             )}

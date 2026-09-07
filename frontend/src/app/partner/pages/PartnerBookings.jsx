@@ -92,16 +92,16 @@ const BookingCard = ({ booking }) => {
                         className="flex items-center gap-1.5 cursor-pointer group"
                         onClick={(e) => { e.stopPropagation(); navigate(`/hotel/bookings/${booking._id}`); }}
                     >
-                        <h3 className="text-xl font-black text-[#0B403D] group-hover:opacity-80 transition-opacity leading-none">
+                        <h3 className="text-xl font-black text-slate-900 group-hover:opacity-80 transition-opacity leading-none">
                             {guestName}
                         </h3>
-                        <ChevronRight size={20} className="text-[#0B403D] group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+                        <ChevronRight size={20} className="text-[#005CA8] group-hover:translate-x-1 transition-transform" strokeWidth={3} />
                     </div>
                     {booking.userId?.phone && (
                         <a
                             href={`tel:${booking.userId.phone}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-8 h-8 rounded-full bg-[#F5F7F7] text-[#0B403D] flex items-center justify-center hover:bg-[#E8ECEC] active:scale-95 transition-all flex-shrink-0"
+                            className="w-8 h-8 rounded-full bg-[#F5F7F7] text-[#005CA8] flex items-center justify-center hover:bg-[#E8ECEC] active:scale-95 transition-all flex-shrink-0"
                         >
                             <Phone size={14} />
                         </a>
@@ -113,7 +113,7 @@ const BookingCard = ({ booking }) => {
             </div>
 
             {/* Details Grid */}
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-3 text-[12px] font-semibold text-[#0B403D]">
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-3 text-[12px] font-semibold text-slate-700">
                 <div className="flex items-center gap-1.5">
                     <Calendar size={15} strokeWidth={2} />
                     <span>{checkInDate} {!isBuyPlot && ` - ${checkOutDate}`}</span>
@@ -193,7 +193,7 @@ const PartnerBookings = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${activeTab === tab.id
-                                ? 'bg-[#004F4D] text-white border-[#004F4D] shadow-sm'
+                                ? 'bg-[#005CA8] text-white border-[#005CA8] shadow-sm'
                                 : 'bg-white text-gray-500 border-gray-200'
                                 }`}
                         >
@@ -207,7 +207,7 @@ const PartnerBookings = () => {
             <div className="px-4 mt-2">
                 {loading ? (
                     <div className="flex justify-center py-12">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#004F4D]"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#005CA8]"></div>
                     </div>
                 ) : filteredBookings.length > 0 ? (
                     <div className="space-y-3 animate-fadeIn">

@@ -60,7 +60,7 @@ const PartnerAbout = () => {
               <Info size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-[#003836]">
+              <h2 className="text-lg font-black text-slate-900">
                 {page?.title || 'Built for hospitality partners'}
               </h2>
               <p className="text-xs text-gray-400">Mobile-first control center for your property business.</p>

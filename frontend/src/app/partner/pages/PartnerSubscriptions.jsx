@@ -186,7 +186,7 @@ const PartnerSubscriptions = () => {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <div className="w-10 h-10 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
+                    <div className="w-10 h-10 border-4 border-blue-200 border-t-[#005CA8] rounded-full animate-spin" />
                 </div>
             ) : (
                 <>
@@ -194,13 +194,13 @@ const PartnerSubscriptions = () => {
                     {currentSub && currentSub.planId && (
                         <div className="relative overflow-hidden rounded-3xl bg-gray-900 text-white p-8 md:p-10 shadow-2xl">
                             {/* Decorative Elements */}
-                            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl" />
+                            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-[#005CA8]/20 rounded-full blur-3xl" />
                             <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
 
                             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
-                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isActive ? 'bg-teal-500/20 text-teal-400 border border-teal-500/40' : 'bg-red-500/20 text-red-400 border border-red-500/40'}`}>
+                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isActive ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'bg-red-500/20 text-red-400 border border-red-500/40'}`}>
                                             {isActive ? (currentSub.isPaused ? 'Paused' : 'Active Plan') : 'Expired'}
                                         </span>
                                         {currentSub.planId.tier === 'gold' && (
@@ -215,7 +215,7 @@ const PartnerSubscriptions = () => {
                                     </div>
                                     <h2 className="text-4xl font-black flex items-center gap-3">
                                         {currentSub.planId.name}
-                                        <ShieldCheck className="text-teal-400" />
+                                        <ShieldCheck className="text-blue-400" />
                                     </h2>
                                     <p className="text-gray-400 max-w-md text-sm leading-relaxed">
                                         {currentSub.planId.description}
@@ -250,14 +250,14 @@ const PartnerSubscriptions = () => {
                             return (
                                 <div
                                     key={plan._id}
-                                    className={`relative group bg-white rounded-[2rem] border-2 transition-all duration-500 hover:-translate-y-2 flex flex-col overflow-hidden ${isCurrent ? 'border-teal-500 shadow-2xl shadow-teal-100' : 'border-gray-100 hover:border-gray-200 hover:shadow-xl'}`}
+                                    className={`relative group bg-white rounded-[2rem] border-2 transition-all duration-500 hover:-translate-y-2 flex flex-col overflow-hidden ${isCurrent ? 'border-[#005CA8] shadow-2xl shadow-blue-100' : 'border-gray-100 hover:border-gray-200 hover:shadow-xl'}`}
                                 >
                                     {/* Header Gradient */}
                                     <div className={`h-24 bg-gradient-to-br ${config.color} p-6 flex justify-between items-start`}>
                                         <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
                                             <Icon className="text-white" size={24} />
                                         </div>
-                                        {isCurrent && <div className="bg-white text-teal-600 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">Current</div>}
+                                        {isCurrent && <div className="bg-white text-[#005CA8] text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">Current</div>}
                                     </div>
 
                                     <div className="p-6 flex-1 flex flex-col pt-8">

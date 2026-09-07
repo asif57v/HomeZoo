@@ -181,7 +181,7 @@ const PartnerPropertyDetails = () => {
         {/* Inventory Management Button */}
         <button
           onClick={() => navigate(`/hotel/inventory/${id}`)}
-          className="w-full bg-[#004F4D] text-white p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-emerald-900/10 active:scale-[0.99] transition-all mb-4"
+          className="w-full bg-[#005CA8] hover:bg-[#004b8a] text-white p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-blue-900/10 active:scale-[0.99] transition-all mb-4"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-white">
@@ -189,10 +189,10 @@ const PartnerPropertyDetails = () => {
             </div>
             <div className="text-left">
               <h3 className="font-bold text-base">Manage Inventory</h3>
-              <p className="text-emerald-100 text-xs mt-0.5">Availability & Manual Blocks</p>
+              <p className="text-blue-100 text-xs mt-0.5">Availability & Manual Blocks</p>
             </div>
           </div>
-          <ChevronRight size={20} className="text-emerald-100" />
+          <ChevronRight size={20} className="text-blue-100" />
         </button>
 
         <div className="grid grid-cols-2 gap-3">
@@ -200,9 +200,9 @@ const PartnerPropertyDetails = () => {
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className="bg-white p-3 rounded-2xl border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col items-start gap-3 active:scale-[0.98] transition-all hover:border-emerald-100 group relative overflow-hidden"
+              className="bg-white p-3 rounded-2xl border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col items-start gap-3 active:scale-[0.98] transition-all hover:border-blue-100 group relative overflow-hidden"
             >
-              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-blue-50 group-hover:text-[#005CA8] transition-colors">
                 <section.icon size={16} />
               </div>
               <div className="text-left w-full">

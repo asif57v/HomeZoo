@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-const DashboardStatCard = ({ icon: Icon, label, value, subtext, actionLabel, onAction, colorClass = "text-[#004F4D]" }) => {
+const DashboardStatCard = ({ icon: Icon, label, value, subtext, actionLabel, onAction, colorClass = "text-[#005CA8]" }) => {
   return (
     <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-full transition-transform hover:scale-[1.01]">
       <div className="flex justify-between items-start mb-1 sm:mb-2">
@@ -11,7 +11,7 @@ const DashboardStatCard = ({ icon: Icon, label, value, subtext, actionLabel, onA
         {actionLabel && (
           <button
             onClick={onAction}
-            className="text-[9px] sm:text-xs font-semibold text-[#004F4D] hover:underline whitespace-nowrap ml-1"
+            className="text-[9px] sm:text-xs font-semibold text-[#005CA8] hover:text-[#004b8a] hover:underline whitespace-nowrap ml-1"
           >
             {actionLabel}
           </button>
@@ -23,7 +23,7 @@ const DashboardStatCard = ({ icon: Icon, label, value, subtext, actionLabel, onA
 
         {/* Subtext shown conditionally or very small */}
         {subtext && (
-          <p className="hidden sm:block text-[9px] sm:text-xs text-green-600 font-medium mt-1 truncate">
+          <p className="hidden sm:block text-[9px] sm:text-xs text-emerald-600 font-medium mt-1 truncate">
             {subtext}
           </p>
         )}
