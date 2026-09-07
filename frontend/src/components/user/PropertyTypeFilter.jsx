@@ -122,12 +122,16 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
               <div className="relative">
                 <div
                   className={`
-                    w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 mx-auto
-                    ${isSelected ? 'bg-white shadow-xl scale-105' : 'bg-black/20 hover:bg-black/40'}
+                    w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 mx-auto
+                    ${
+                      isSelected
+                        ? 'bg-white shadow-[0_8px_20px_rgba(0,0,0,0.25)] scale-105 ring-2 ring-white/60'
+                        : 'bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 shadow-md hover:scale-105 active:scale-95'
+                    }
                   `}
                 >
                   <Icon
-                    className="w-5 h-5 md:w-6 md:h-6 transition-colors"
+                    className="w-5 h-5 md:w-6 md:h-6 transition-all duration-300"
                     style={{ color: isSelected ? accentColor : '#ffffff' }}
                     strokeWidth={isSelected ? 2.5 : 2}
                   />
@@ -136,8 +140,8 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
 
               <span
                 className={`
-                  text-[11px] md:text-xs font-bold tracking-wide transition-colors whitespace-nowrap text-center w-full mt-1
-                  ${isSelected ? 'text-white drop-shadow-md' : 'text-white/80'}
+                  text-[11px] md:text-xs tracking-wide transition-colors whitespace-nowrap text-center w-full mt-1
+                  ${isSelected ? 'font-extrabold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]' : 'font-semibold text-white/85 group-hover:text-white'}
                 `}
               >
                 {type.label}
