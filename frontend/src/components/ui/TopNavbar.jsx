@@ -30,7 +30,7 @@ const TopNavbar = () => {
         { name: 'Home', path: '/', icon: Home },
         { name: 'Search', path: '/search', icon: Search },
         { name: 'Reels', path: '/reels', icon: Video },
-        { name: 'Post', path: '/hotel/login', icon: Plus }, // Maps to hotel login like mobile
+        { name: 'Add Property', path: '/hotel/login', icon: Plus }, // Maps to hotel login like mobile
         { name: 'Bookings', path: '/bookings', icon: Calendar },
         { name: 'Wallet', path: '/wallet', icon: Wallet },
         { name: 'Refer & Earn', path: '/refer', icon: Share2 },
@@ -77,7 +77,7 @@ const TopNavbar = () => {
                         Reels
                     </Link>
                     <Link to="/hotel/login" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
-                        Post
+                        Add Property
                     </Link>
                     <Link to="/bookings" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Bookings

@@ -10,14 +10,14 @@ const BottomNavbar = () => {
     const navItems = [
         { name: 'Home', icon: Home, route: '/' },
         { name: 'Reels', icon: Clapperboard, route: '/reels' },
-        { name: 'Post', icon: Plus, route: '/hotel/login', isCenter: true },
+        { name: 'Add Property', icon: Plus, route: '/hotel/login', isCenter: true },
         { name: 'Bookings', icon: Calendar, route: '/bookings' },
         { name: 'Profile', icon: User, route: '/profile/edit' },
     ];
 
     const getActiveTab = (path) => {
         if (path.includes('reels')) return 'Reels';
-        if (path.includes('hotel') || path.includes('post')) return 'Post';
+        if (path.includes('hotel') || path.includes('post') || path.includes('property')) return 'Add Property';
         if (path.includes('bookings') || path.includes('checkout')) return 'Bookings';
         if (path.includes('profile') || path.includes('account')) return 'Profile';
         return 'Home';
@@ -42,7 +42,7 @@ const BottomNavbar = () => {
                                 <button
                                     onClick={() => handleNavClick(item)}
                                     className="absolute -top-3 w-14 h-14 bg-[#0b1329] hover:bg-[#070d1e] rounded-full flex items-center justify-center shadow-lg shadow-slate-900/30 transition-transform active:scale-95 border-[3px] border-white"
-                                    aria-label="Add Post"
+                                    aria-label="Add Property"
                                 >
                                     <Plus className="w-7 h-7 text-[#f59e0b]" strokeWidth={2.5} />
                                 </button>
