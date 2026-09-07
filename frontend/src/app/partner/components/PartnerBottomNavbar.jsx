@@ -20,7 +20,7 @@ const PartnerBottomNavbar = () => {
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, route: '/hotel/dashboard' },
     { name: 'Bookings', icon: Briefcase, route: '/hotel/bookings' },
-    { name: 'Subscription', icon: Crown, route: '/hotel/subscriptions', isCenter: true },
+    { name: 'Subscription', icon: Crown, route: '/hotel/subscriptions' },
     { name: 'Reels', icon: Clapperboard, route: '/reels' },
     { name: 'Profile', icon: UserCircle, route: '/hotel/profile' },
   ];
@@ -43,26 +43,6 @@ const PartnerBottomNavbar = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = getActiveTab() === item.name;
-
-          if (item.isCenter) {
-            return (
-              <div key={item.name} className="relative flex justify-center items-center h-full">
-                <button
-                  onClick={() => handleNavClick(item)}
-                  className={`
-                    absolute -top-4 w-14 h-14 bg-[#0b1329] hover:bg-[#070d1e] 
-                    rounded-full flex items-center justify-center 
-                    shadow-lg shadow-slate-900/30 transition-transform active:scale-95 
-                    border-[3px] border-white
-                    ${isActive ? 'ring-2 ring-amber-400 ring-offset-2' : ''}
-                  `}
-                  aria-label="Subscription"
-                >
-                  <Crown className="w-7 h-7 text-[#f59e0b]" strokeWidth={2.4} />
-                </button>
-              </div>
-            );
-          }
 
           return (
             <button
