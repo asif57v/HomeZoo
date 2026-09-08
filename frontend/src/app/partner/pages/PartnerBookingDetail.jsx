@@ -139,7 +139,7 @@ const PartnerBookingDetail = () => {
         <button onClick={() => navigate('/hotel/bookings')} className="p-2 hover:bg-gray-100 rounded-full">
           <ChevronLeft size={20} />
         </button>
-        <h1 className="font-bold text-lg">Booking Details</h1>
+        <h1 className="font-bold text-lg">Enquiry Details</h1>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -147,7 +147,7 @@ const PartnerBookingDetail = () => {
         {/* Status Card - Compact */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">{isInquiry ? 'Inquiry ID' : 'Booking ID'}</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Enquiry ID</span>
             <p className="text-sm font-black text-gray-900 break-all">#{booking.bookingId || booking._id}</p>
           </div>
           <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${booking.bookingStatus === 'confirmed' ? 'bg-green-50 text-green-700 border-green-100' :

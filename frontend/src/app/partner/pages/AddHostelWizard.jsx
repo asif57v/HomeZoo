@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
+import toast from 'react-hot-toast';
 // Compression removed - Cloudinary handles optimization
 import { CheckCircle, FileText, Home, Image, Bed, MapPin, Search, Plus, Trash2, ChevronLeft, ChevronRight, Upload, X, ArrowLeft, ArrowRight, BedDouble, Users, Wifi, Clock, Loader2, Camera } from 'lucide-react';
 import logo from '../../../assets/rokologin-removebg-preview.png';
@@ -22,7 +23,7 @@ const HOSTEL_AMENITIES = [
 ];
 
 const ROOM_AMENITIES = [
-  { key: 'bunk_bed', label: 'Bunk Bed', icon: Bed },
+  { key: 'bunk_bed', label: 'Bed', icon: Bed },
   { key: 'personal_locker', label: 'Personal Locker', icon: FileText },
   { key: 'fan', label: 'Fan', icon: CheckCircle },
   { key: 'common_washroom', label: 'Common Washroom', icon: MapPin }
@@ -749,7 +750,15 @@ const AddHostelWizard = () => {
       localStorage.removeItem(STORAGE_KEY);
       setStep(10);
     } catch (e) {
-      setError(e?.message || 'Failed to submit property');
+      const errMsg = e?.message || (typeof e === 'string' ? e : 'Failed to submit property');
+      setError(errMsg);
+      const isSubLimit = e?.limitReached || e?.requiresSubscription || errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('subscription') || errMsg.toLowerCase().includes('upgrade');
+      if (isSubLimit) {
+        toast.error(errMsg);
+        setTimeout(() => {
+          navigate('/hotel/subscriptions');
+        }, 1500);
+      }
     } finally {
       setLoading(false);
     }
@@ -853,7 +862,7 @@ const AddHostelWizard = () => {
                   <label className="text-xs font-semibold text-gray-500">Hostel Name</label>
                   <input
                     className="input w-full"
-                    placeholder="e.g. UrbanStay Boys Hostel"
+                    placeholder="e.g. Hoomzo Boys Hostel"
                     value={propertyForm.propertyName}
                     onChange={e => updatePropertyForm('propertyName', e.target.value)}
                   />
@@ -1565,6 +1574,23 @@ const AddHostelWizard = () => {
                   <p className="text-xs text-gray-500">{propertyForm.documents.filter(d => d.fileUrl).length} of {propertyForm.documents.length} documents uploaded.</p>
                 </div>
               </div>
+
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{error}</span>
+                  </div>
+                  {(error.toLowerCase().includes('limit') || error.toLowerCase().includes('subscription') || error.toLowerCase().includes('upgrade')) && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/hotel/subscriptions')}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all shrink-0 active:scale-95"
+                    >
+                      Upgrade Plan
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

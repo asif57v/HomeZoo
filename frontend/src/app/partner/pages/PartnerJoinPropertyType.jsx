@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { BedDouble, Landmark, Home, TreePine, ArrowLeft, ChevronRight, X } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { categoryService } from '../../../services/categoryService';
+import { propertyService } from '../../../services/apiService';
+import subscriptionService from '../../../services/subscriptionService';
+import toast from 'react-hot-toast';
 
 // Only these 4 options, in this order. No duplicates.
 const FOUR_OPTIONS = [
@@ -15,6 +18,25 @@ const FOUR_OPTIONS = [
 const PartnerJoinPropertyType = () => {
   const navigate = useNavigate();
   const [allTypes, setAllTypes] = useState(FOUR_OPTIONS);
+  const [subscription, setSubscription] = useState(null);
+  const [propertyCount, setPropertyCount] = useState(0);
+
+  useEffect(() => {
+    const fetchSubData = async () => {
+      try {
+        const subRes = await subscriptionService.getCurrentSubscription();
+        if (subRes?.subscription) {
+          setSubscription(subRes.subscription);
+        }
+        const propRes = await propertyService.getPartnerProperties();
+        const list = Array.isArray(propRes) ? propRes : (propRes?.properties || []);
+        setPropertyCount(list.length);
+      } catch (err) {
+        console.error("Failed to check subscription status", err);
+      }
+    };
+    fetchSubData();
+  }, []);
 
   useEffect(() => {
     const buildFourOptions = async () => {
@@ -75,6 +97,33 @@ const PartnerJoinPropertyType = () => {
     buildFourOptions();
   }, []);
 
+  const handleSelectType = (item) => {
+    if (!item.route) return;
+
+    if (subscription) {
+      const isActive =
+        subscription?.status === 'active' &&
+        subscription?.expiryDate &&
+        new Date(subscription.expiryDate) > new Date();
+
+      const maxAllowed = subscription?.planId?.maxProperties;
+
+      if (!isActive) {
+        toast.error("Your subscription plan has expired. Please choose a subscription plan.");
+        navigate('/hotel/subscriptions');
+        return;
+      }
+
+      if (maxAllowed && propertyCount >= maxAllowed) {
+        toast.error(`Property limit reached! Your plan allows ${maxAllowed} properties.`);
+        navigate('/hotel/subscriptions');
+        return;
+      }
+    }
+
+    navigate(item.route, { state: { categoryName: item.label, categoryId: item.categoryId } });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <div className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
@@ -101,7 +150,7 @@ const PartnerJoinPropertyType = () => {
             return (
               <button
                 key={item.key}
-                onClick={() => item.route && navigate(item.route, { state: { categoryName: item.label, categoryId: item.categoryId } })}
+                onClick={() => handleSelectType(item)}
                 disabled={!item.route}
                 className="group relative flex items-start gap-4 p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-200 text-left active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
               >

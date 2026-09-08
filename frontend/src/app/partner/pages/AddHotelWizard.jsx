@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
+import toast from 'react-hot-toast';
 // Compression removed - Cloudinary handles optimization
 import { CheckCircle, FileText, Home, Image, Plus, Trash2, MapPin, Search, BedDouble, Wifi, Tv, Snowflake, Coffee, ShowerHead, ArrowLeft, ArrowRight, Clock, Loader2, Camera, X } from 'lucide-react';
 import logo from '../../../assets/rokologin-removebg-preview.png';
@@ -737,7 +738,15 @@ const AddHotelWizard = () => {
       localStorage.removeItem(STORAGE_KEY);
       setStep(10);
     } catch (e) {
-      setError(e?.message || 'Failed to submit property');
+      const errMsg = e?.message || (typeof e === 'string' ? e : 'Failed to submit property');
+      setError(errMsg);
+      const isSubLimit = e?.limitReached || e?.requiresSubscription || errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('subscription') || errMsg.toLowerCase().includes('upgrade');
+      if (isSubLimit) {
+        toast.error(errMsg);
+        setTimeout(() => {
+          navigate('/hotel/subscriptions');
+        }, 1500);
+      }
     } finally {
       setLoading(false);
     }
@@ -1549,7 +1558,22 @@ const AddHotelWizard = () => {
                 </div>
               </div>
 
-              {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{error}</span>
+                  </div>
+                  {(error.toLowerCase().includes('limit') || error.toLowerCase().includes('subscription') || error.toLowerCase().includes('upgrade')) && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/hotel/subscriptions')}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all shrink-0 active:scale-95"
+                    >
+                      Upgrade Plan
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div className="border border-gray-200 rounded-2xl p-5 bg-white shadow-sm">

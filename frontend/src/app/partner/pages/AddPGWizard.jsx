@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
 import { categoryService } from '../../../services/categoryService';
+import toast from 'react-hot-toast';
 // Compression removed - Cloudinary handles optimization
 import {
   CheckCircle, FileText, Home, Image, Bed, MapPin, Search, Plus, Trash2,
@@ -43,7 +44,7 @@ const PG_AMENITIES = [
 
 
 const ROOM_AMENITIES = [
-  { key: 'bunk_bed', label: 'Bunk Bed', icon: Bed },
+  { key: 'bunk_bed', label: 'Bed', icon: Bed },
   { key: 'personal_locker', label: 'Personal Locker', icon: Lock },
   { key: 'fan', label: 'Fan', icon: Fan },
   { key: 'ac', label: 'AC', icon: Wind },
@@ -661,8 +662,8 @@ const AddPGWizard = () => {
 
   const nextFromBasic = () => {
     setError('');
-    if (!propertyForm.propertyName || !propertyForm.shortDescription) {
-      setError('Name and short description required');
+    if (!propertyForm.propertyName) {
+      setError('Property name is required');
       return;
     }
     setStep(2);
@@ -746,7 +747,7 @@ const AddPGWizard = () => {
         contactNumber: propertyForm.contactNumber,
         pgType: propertyForm.pgType,
         description: propertyForm.description,
-        shortDescription: propertyForm.shortDescription,
+        shortDescription: propertyForm.shortDescription || propertyForm.description?.slice(0, 60) || propertyForm.propertyName || '',
         coverImage: propertyForm.coverImage,
         propertyImages: propertyForm.propertyImages.filter(Boolean),
         address: propertyForm.address,
@@ -848,7 +849,15 @@ const AddPGWizard = () => {
       localStorage.removeItem(STORAGE_KEY);
       setStep(7);
     } catch (e) {
-      setError(e?.message || 'Failed to submit property');
+      const errMsg = e?.message || (typeof e === 'string' ? e : 'Failed to submit property');
+      setError(errMsg);
+      const isSubLimit = e?.limitReached || e?.requiresSubscription || errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('subscription') || errMsg.toLowerCase().includes('upgrade');
+      if (isSubLimit) {
+        toast.error(errMsg);
+        setTimeout(() => {
+          navigate('/hotel/subscriptions');
+        }, 1500);
+      }
     } finally {
       setLoading(false);
     }
@@ -912,9 +921,8 @@ const AddPGWizard = () => {
     let total = 0;
 
     // Step 1: Basic Info
-    total += 4;
+    total += 3;
     if (propertyForm.propertyName?.trim()) completed++;
-    if (propertyForm.shortDescription?.trim()) completed++;
     if (propertyForm.minStay?.trim()) completed++;
     if (propertyForm.noticePeriod?.trim()) completed++;
 
@@ -987,7 +995,7 @@ const AddPGWizard = () => {
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Name</label>
                   <input
                     className="input"
-                    placeholder="e.g. UrbanNest PG"
+                    placeholder="e.g. Hoomzo PG"
                     value={propertyForm.propertyName}
                     onChange={e => updatePropertyForm('propertyName', e.target.value)}
                   />
@@ -1023,7 +1031,7 @@ const AddPGWizard = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Min Stay</label>
-                    <input className="input w-full" placeholder="e.g. 3 Months" value={propertyForm.minStay} onChange={e => updatePropertyForm('minStay', e.target.value)} />
+                    <input className="input w-full" placeholder="e.g. 1 Month" value={propertyForm.minStay} onChange={e => updatePropertyForm('minStay', e.target.value)} />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notice Period</label>
@@ -1047,18 +1055,6 @@ const AddPGWizard = () => {
                       <span className="text-sm font-bold text-gray-700">Dinner</span>
                     </label>
                   </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Short Tagline</label>
-                  <input
-                    className="input"
-                    placeholder="e.g. Premium student housing near North Campus"
-                    maxLength={60}
-                    value={propertyForm.shortDescription}
-                    onChange={e => updatePropertyForm('shortDescription', e.target.value)}
-                  />
-                  <div className="flex justify-end text-[10px] text-gray-400">{propertyForm.shortDescription.length}/60</div>
                 </div>
 
                 <div className="space-y-1">
@@ -1380,9 +1376,9 @@ const AddPGWizard = () => {
                   <div className="p-4 space-y-5">
                     <div className="p-1 bg-gray-100 rounded-xl flex gap-1">
                       {[
-                        { id: 'triple', label: 'Triple Sharing' },
+                        { id: 'private', label: 'Private Room' },
                         { id: 'double', label: 'Double Sharing' },
-                        { id: 'private', label: 'Private Room' }
+                        { id: 'triple', label: 'Triple Sharing' }
                       ].map(opt => (
                         <button
                           key={opt.id}
@@ -1653,7 +1649,22 @@ const AddPGWizard = () => {
                 </div>
               </div>
 
-              {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm text-center font-medium">{error}</div>}
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{error}</span>
+                  </div>
+                  {(error.toLowerCase().includes('limit') || error.toLowerCase().includes('subscription') || error.toLowerCase().includes('upgrade')) && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/hotel/subscriptions')}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all shrink-0 active:scale-95"
+                    >
+                      Upgrade Plan
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {step === 7 && (

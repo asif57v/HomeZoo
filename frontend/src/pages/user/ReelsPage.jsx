@@ -359,7 +359,7 @@ export default function ReelsPage() {
       if (navigator.share) {
         await navigator.share({
           title: 'Reel',
-          text: reel.caption || 'Check this reel on HomeZoo',
+          text: reel.caption || 'Check this reel on HomeZo',
           url,
         });
       } else {
@@ -481,7 +481,7 @@ export default function ReelsPage() {
         key: razorpayKeyId,
         amount: order.amount,
         currency: order.currency || 'INR',
-        name: 'HomeZoo',
+        name: 'HomeZo',
         description: `Reel duration charge (${quote.duration}s)`,
         order_id: order.id,
         theme: { color: '#059669' },

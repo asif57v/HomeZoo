@@ -73,7 +73,7 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
             items: [
                 { icon: Wallet, label: 'Wallet', path: '/hotel/wallet' },
                 { icon: Crown, label: 'Subscription Plans', path: '/hotel/subscriptions' },
-                { icon: History, label: 'Booking History', path: '/hotel/bookings' },
+                { icon: History, label: 'Enquiry History', path: '/hotel/bookings' },
             ]
         },
         {

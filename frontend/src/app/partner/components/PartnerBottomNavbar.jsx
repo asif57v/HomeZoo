@@ -10,7 +10,7 @@ const PartnerBottomNavbar = () => {
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes('dashboard') || path === '/hotel') return 'Dashboard';
-    if (path.includes('bookings')) return 'Bookings';
+    if (path.includes('bookings')) return 'Enquiry';
     if (path.includes('subscription')) return 'Subscription';
     if (path.includes('reels') || path.includes('reel')) return 'Reels';
     if (path.includes('profile')) return 'Profile';
@@ -19,7 +19,7 @@ const PartnerBottomNavbar = () => {
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, route: '/hotel/dashboard' },
-    { name: 'Bookings', icon: Briefcase, route: '/hotel/bookings' },
+    { name: 'Enquiry', icon: Briefcase, route: '/hotel/bookings' },
     { name: 'Subscription', icon: Crown, route: '/hotel/subscriptions' },
     { name: 'Reels', icon: Clapperboard, route: '/reels' },
     { name: 'Profile', icon: UserCircle, route: '/hotel/profile' },
