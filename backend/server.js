@@ -22,19 +22,57 @@ const app = express();
 const server = createServer(app); // Create HTTP server
 const PORT = process.env.PORT || 5000;
 
+// Allowed origins configuration - supports FRONTEND_URL env (comma-separated if multiple)
+const envFrontendUrls = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map((u) => u.trim().replace(/\/$/, '')).filter(Boolean)
+  : [];
+
+const allowedOrigins = [
+  ...envFrontendUrls,
+  'https://hoomzo.com',
+  'https://www.hoomzo.com',
+  'https://homezoo.vercel.app',
+  'https://homezoo-rust.vercel.app',
+  'https://rukkoo.in',
+  'https://www.rukkoo.in',
+  'https://rukkoo-project.vercel.app',
+  'https://homezoo.onrender.com'
+];
+
+// Helper function to check allowed origin dynamically (any localhost port, local IP, or allowed domain)
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // Allow requests with no origin (mobile apps, curl, etc.)
+  const normalizedOrigin = origin.replace(/\/$/, '');
+
+  // Dynamic localhost / 127.0.0.1 (any port from env or dev server)
+  const isLocalhost =
+    normalizedOrigin.startsWith('http://localhost') ||
+    normalizedOrigin.startsWith('http://127.0.0.1');
+
+  // Dynamic local network IPs
+  const isLocalNetwork =
+    normalizedOrigin.startsWith('http://192.168.') ||
+    normalizedOrigin.startsWith('http://10.') ||
+    normalizedOrigin.startsWith('http://172.');
+
+  return (
+    allowedOrigins.includes(normalizedOrigin) ||
+    isLocalhost ||
+    isLocalNetwork ||
+    normalizedOrigin.endsWith('.vercel.app')
+  );
+};
+
 // Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || [
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'https://homezoo.vercel.app',
-      'homezoo.vercel.app',
-      'https://homezoo-rust.vercel.app',
-      'homezoo-rust.vercel.app',
-      'https://hoomzo.com/',
-      'https://www.hoomzo.com/'
-    ],
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
   }
@@ -74,30 +112,10 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Dynamic CORS to allow local network IPs (192.168.x.x) and localhost
+// Dynamic CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    // Check if origin is localhost or local network IP
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://126.0.0.1:5173',
-      'https://rukkoo.in',
-      'https://www.rukkoo.in',
-      'https://rukkoo-project.vercel.app',
-      'https://homezoo.vercel.app',
-      'https://homezoo.onrender.com',
-      'https://homezoo-rust.vercel.app'
-    ];
-    // Add 172.16-31 range (often used by hotspots) and 10.x
-    const isLocalNetwork =
-      origin.startsWith('http://192.168.') ||
-      origin.startsWith('http://10.') ||
-      origin.startsWith('http://172.');
-
-    if (allowedOrigins.indexOf(origin) !== -1 || isLocalNetwork || origin.endsWith('.vercel.app')) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
       console.log('Blocked by CORS:', origin); // Log blocked origin for debugging
@@ -105,7 +123,7 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Added OPTIONS
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
