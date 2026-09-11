@@ -31,7 +31,9 @@ const io = new Server(server, {
       'https://homezoo.vercel.app',
       'homezoo.vercel.app',
       'https://homezoo-rust.vercel.app',
-      'homezoo-rust.vercel.app'
+      'homezoo-rust.vercel.app',
+      'https://hoomzo.com/',
+      'https://www.hoomzo.com/'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
