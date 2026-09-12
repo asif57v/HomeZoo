@@ -29,7 +29,7 @@ const envFrontendUrls = process.env.FRONTEND_URL
 
 const allowedOrigins = [
   ...envFrontendUrls,
-  'https://hoomzo.com',
+  'https://hoomzo.com/api',
   'https://www.hoomzo.com',
   'https://homezoo.vercel.app',
   'https://homezoo-rust.vercel.app',
