@@ -4,8 +4,10 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-const MONGO_URI = process.env.MONGODB_URL || 'mongodb://localhost:27017/test';
+const MONGO_URI = process.env.MONGODB_URL;
+if (!MONGO_URI) {
+  throw new Error('MONGODB_URL is not defined in environment variables');
+}
 
 async function fixEmailIndex() {
   try {
