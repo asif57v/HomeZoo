@@ -3,6 +3,7 @@ import Partner from '../models/Partner.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import PaymentConfig from '../config/payment.config.js';
+import notificationService from '../services/notificationService.js';
 
 // Initialize Razorpay
 let razorpay;
@@ -262,6 +263,18 @@ export const verifySubscription = async (req, res) => {
         };
 
         await partner.save();
+
+        // NOTIFICATION: Notify Partner
+        notificationService.sendToUser(partner._id, {
+            title: 'Subscription Activated! 💎',
+            body: `Your "${plan.name}" plan is active until ${expiryDate.toLocaleDateString('en-IN')}.`
+        }, { type: 'subscription_activated', planId: plan._id, url: '/partner/subscriptions' }, 'partner').catch(e => console.error(e));
+
+        // NOTIFICATION: Notify Admins
+        notificationService.sendToAdmins({
+            title: 'New Subscription Purchased 💵',
+            body: `${partner.name || 'Partner'} purchased "${plan.name}" plan (₹${plan.price}).`
+        }, { type: 'admin_subscription', planId: plan._id, partnerId: partner._id, url: '/admin/subscriptions' }).catch(e => console.error(e));
 
         res.json({
             success: true,

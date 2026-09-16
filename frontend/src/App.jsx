@@ -14,7 +14,7 @@ import ScrollToTop from './components/ui/ScrollToTop';
 import { useLenis } from './app/shared/hooks/useLenis';
 import { legalService, userService } from './services/apiService';
 import adminService from './services/adminService';
-import { requestNotificationPermission, onMessageListener } from './utils/firebase';
+import { requestNotificationPermission, onMessageListener, detectPlatform } from './utils/firebase';
 import logo from './assets/rokologin-removebg-preview.png';
 
 // Lazy Imports - User Pages
@@ -335,26 +335,26 @@ function App() {
         }
       });
 
-      // 3. Web FCM: Only request if user is already logged in
-      // (Login/Signup pages handle FCM for fresh sessions themselves)
+      // 3. Web/App FCM: Request if user is logged in
       const isLoggedIn = localStorage.getItem('token') || localStorage.getItem('adminToken');
       if (!isLoggedIn) return;
 
       try {
         const token = await requestNotificationPermission();
         if (token) {
+          const currentPlatform = detectPlatform();
           const adminToken = localStorage.getItem('adminToken');
           if (adminToken) {
-            console.log('FCM Token received, updating for Admin');
-            await adminService.updateFcmToken(token, 'web');
+            console.log(`[FCM] Token received, updating for Admin on ${currentPlatform}`);
+            await adminService.updateFcmToken(token, currentPlatform);
             return;
           }
           const tokenAuth = localStorage.getItem('token');
           const userStr = localStorage.getItem('user');
           if (tokenAuth && userStr) {
             const user = JSON.parse(userStr);
-            console.log('FCM Token received, updating backend for role:', user.role);
-            await userService.updateFcmToken(token, 'web');
+            console.log(`[FCM] Token received, updating backend for ${user.role || 'user'} on ${currentPlatform}`);
+            await userService.updateFcmToken(token, currentPlatform);
           }
         }
       } catch (error) {
@@ -366,18 +366,40 @@ function App() {
 
     // Listen for foreground messages
     onMessageListener((payload) => {
-      console.log('Foreground Message:', payload);
+      console.log('Foreground Message received:', payload);
+      const targetUrl = payload.data?.url;
+
       toast((t) => (
-        <div className="flex flex-col">
-          <span className="font-bold">{payload.notification?.title || 'Notification'}</span>
-          <span className="text-sm">{payload.notification?.body}</span>
+        <div
+          className="flex flex-col cursor-pointer p-1"
+          onClick={() => {
+            if (targetUrl) {
+              window.location.href = targetUrl;
+            }
+            toast.dismiss(t.id);
+          }}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-semibold text-white">{payload.notification?.title || 'HomeZoo'}</span>
+            <span className="text-[10px] text-teal-400 font-medium">Just now</span>
+          </div>
+          <span className="text-sm text-gray-200 mt-0.5">{payload.notification?.body}</span>
+          {targetUrl && (
+            <span className="text-xs text-teal-300 font-medium mt-1 inline-flex items-center gap-1 hover:underline">
+              View details →
+            </span>
+          )}
         </div>
       ), {
-        duration: 5000,
+        duration: 6000,
         position: 'top-right',
         style: {
-          background: '#333',
+          background: '#0f172a',
           color: '#fff',
+          borderRadius: '12px',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          minWidth: '280px'
         },
       });
     });

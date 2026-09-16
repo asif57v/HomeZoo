@@ -6,6 +6,7 @@ import Transaction from '../models/Transaction.js';
 import Wallet from '../models/Wallet.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import notificationService from '../services/notificationService.js';
 
 // Initialize Razorpay
 let razorpay;
@@ -205,6 +206,19 @@ export const verifyHostelFeePayment = async (req, res) => {
     } catch (adminErr) {
       console.error('Failed to credit admin wallet for hostel fee:', adminErr.message);
     }
+
+    // Send Notifications
+    if (feeRecord.userId) {
+      notificationService.sendToUser(feeRecord.userId, {
+        title: 'Hostel Fee Paid Successfully ✅',
+        body: `Receipt #${feeRecord.receiptNumber}: ₹${feeRecord.amount} paid for ${feeRecord.hostelName} (${feeRecord.feePeriod}).`
+      }, { type: 'hostel_fee_paid', feeId: feeRecord._id, url: '/' }, 'user').catch(e => console.error(e));
+    }
+
+    notificationService.sendToAdmins({
+      title: 'Hostel Rent Collected 🏢',
+      body: `${feeRecord.studentName} paid ₹${feeRecord.amount} for ${feeRecord.hostelName}.`
+    }, { type: 'admin_hostel_fee', feeId: feeRecord._id, url: '/admin/finance' }).catch(e => console.error(e));
 
     res.json({
       success: true,

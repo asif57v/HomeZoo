@@ -6,8 +6,18 @@ import PropertyDocument from '../models/PropertyDocument.js';
 import Partner from '../models/Partner.js';
 import { PROPERTY_DOCUMENTS } from '../config/propertyDocumentRules.js';
 import emailService from '../services/emailService.js';
+import notificationService from '../services/notificationService.js';
 import User from '../models/User.js'; // Needed to find Admins? Or Admin model
 import Admin from '../models/Admin.js';
+
+const sanitizePhone = (phone) => {
+  if (!phone) return phone;
+  let cleaned = String(phone).replace(/\D/g, '');
+  if ((cleaned.startsWith('91') || cleaned.startsWith('0')) && cleaned.length > 10) {
+    cleaned = cleaned.replace(/^(91|0)/, '');
+  }
+  return cleaned.slice(0, 10);
+};
 
 const notifyAdminOfNewProperty = async (property) => {
   try {
@@ -15,6 +25,10 @@ const notifyAdminOfNewProperty = async (property) => {
     if (admin && admin.email) {
       await emailService.sendAdminNewPropertyEmail(admin.email, property);
     }
+    await notificationService.sendToAdmins({
+      title: 'New Property Submitted 🏢',
+      body: `"${property.propertyName}" (${property.propertyType || 'Property'}) was submitted for verification.`
+    }, { type: 'new_property', propertyId: property._id, url: '/admin/property-requests' });
   } catch (err) {
     console.warn('Could not notify admin about property:', err.message);
   }
@@ -92,7 +106,7 @@ export const createProperty = async (req, res) => {
     const dynamicCategoryId = dynamicCategory && mongoose.Types.ObjectId.isValid(dynamicCategory) ? new mongoose.Types.ObjectId(dynamicCategory) : undefined;
     const doc = new Property({
       propertyName,
-      contactNumber,
+      contactNumber: sanitizePhone(contactNumber),
       propertyType: lowerType,
       description,
       shortDescription,
@@ -164,9 +178,13 @@ export const createProperty = async (req, res) => {
       await doc.save();
     }
 
-    // NOTIFICATION: Notify Admin only if pending
+    // NOTIFICATION: Notify Admin & Partner only if pending
     if (doc.status === 'pending') {
       notifyAdminOfNewProperty(doc).catch(e => console.error(e));
+      notificationService.sendToUser(req.user._id, {
+        title: 'Property Submitted for Review 📋',
+        body: `"${doc.propertyName}" has been submitted for admin verification. You will be notified once it is live.`
+      }, { type: 'property_submitted', propertyId: doc._id, url: '/partner/properties' }, 'partner').catch(e => console.error(e));
     }
 
     // INCREMENT SUBSCRIPTION COUNTER: Update propertiesAdded count
@@ -219,6 +237,10 @@ export const updateProperty = async (req, res) => {
       'contactNumber',
       'isLive'
     ];
+
+    if (payload.contactNumber !== undefined) {
+      payload.contactNumber = sanitizePhone(payload.contactNumber);
+    }
 
     updatableFields.forEach(field => {
       if (Object.prototype.hasOwnProperty.call(payload, field)) {

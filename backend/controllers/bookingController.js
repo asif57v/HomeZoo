@@ -34,18 +34,18 @@ const triggerBookingNotifications = async (booking) => {
     // 2. User Push
     if (user) {
       notificationService.sendToUser(user._id, {
-        title: 'Booking Confirmed!',
-        body: `You are going to ${property ? property.propertyName : 'Hotel'}.`
-      }, { type: 'booking', bookingId: fullBooking._id }, 'user').catch(err => console.error('User Push failed:', err));
+        title: 'Booking Confirmed! 🎉',
+        body: `Your reservation at ${property ? property.propertyName : 'property'} is confirmed. Booking ID: #${fullBooking.bookingId || fullBooking._id.toString().slice(-6)}`
+      }, { type: 'booking', bookingId: fullBooking._id, url: '/bookings' }, 'user').catch(err => console.error('User Push failed:', err));
     }
 
     // 3. Partner Notifications
     if (property && property.partnerId) {
       // Push
       notificationService.sendToUser(property.partnerId, {
-        title: 'New Booking Alert!',
-        body: `${fullBooking.totalNights} Night, ${fullBooking.guests.adults} Guests. Check App.`
-      }, { type: 'new_booking', bookingId: fullBooking._id }, 'partner').catch(err => console.error('Partner Push failed:', err));
+        title: 'New Booking Alert! 🔔',
+        body: `${user?.name || 'A guest'} booked ${property.propertyName || 'your property'} for ${fullBooking.totalNights || 1} Night, ${fullBooking.guests?.adults || 1} Guests.`
+      }, { type: 'new_booking', bookingId: fullBooking._id, url: '/partner/bookings' }, 'partner').catch(err => console.error('Partner Push failed:', err));
 
       // SMS
       // Need to find Partner Phone. Property has partnerId, need to fetch Partner User.
@@ -60,6 +60,12 @@ const triggerBookingNotifications = async (booking) => {
         console.error('Partner SMS Lookup Error:', smsErr);
       }
     }
+
+    // 4. Admin Push
+    notificationService.sendToAdmins({
+      title: 'New Booking Placed 📋',
+      body: `Booking #${fullBooking.bookingId || fullBooking._id.toString().slice(-6)} at ${property?.propertyName || 'Property'} (₹${fullBooking.totalAmount || 0})`
+    }, { type: 'admin_booking', bookingId: fullBooking._id, url: '/admin/bookings' }).catch(e => console.error('Admin Push failed:', e));
 
   } catch (err) {
     console.error('Trigger Notification Error:', err);
@@ -126,10 +132,16 @@ export const createBooking = async (req, res) => {
       // Notify Partner
       if (property.partnerId) {
         notificationService.sendToUser(property.partnerId, {
-          title: 'New Property Inquiry!',
-          body: `You have a new inquiry for ${property.propertyName}.`
-        }, { type: 'new_inquiry', bookingId: inquiry._id }, 'partner').catch(e => console.error(e));
+          title: 'New Property Inquiry! 🎯',
+          body: `You have a new inquiry for ${property.propertyName} from ${req.user.name || 'a guest'}.`
+        }, { type: 'new_inquiry', bookingId: inquiry._id, url: '/partner/bookings' }, 'partner').catch(e => console.error(e));
       }
+
+      // Notify User
+      notificationService.sendToUser(req.user._id, {
+        title: 'Inquiry Sent Successfully 📨',
+        body: `Your inquiry for ${property.propertyName} has been sent to the property owner.`
+      }, { type: 'inquiry_sent', bookingId: inquiry._id, url: '/bookings' }, 'user').catch(e => console.error(e));
 
       return res.status(201).json({
         success: true,
@@ -727,11 +739,18 @@ export const cancelBooking = async (req, res) => {
             .catch(e => console.error('Cancel Email failed', e));
         }
 
+        if (fullBooking.userId) {
+          notificationService.sendToUser(fullBooking.userId._id || fullBooking.userId, {
+            title: 'Booking Cancelled ℹ️',
+            body: `Your booking #${fullBooking.bookingId} at ${fullBooking.propertyId?.propertyName || 'property'} has been cancelled.`
+          }, { type: 'booking_cancelled', bookingId: booking._id, url: '/bookings' }, 'user').catch(e => console.error('Cancel User Push failed', e));
+        }
+
         if (fullBooking.propertyId && fullBooking.propertyId.partnerId) {
           notificationService.sendToUser(fullBooking.propertyId.partnerId, {
-            title: 'Booking Cancelled',
-            body: `Booking #${fullBooking.bookingId} Cancelled by User. Inventory released.`
-          }, { type: 'booking_cancelled', bookingId: booking._id }, 'partner').catch(e => console.error('Cancel Push failed', e));
+            title: 'Booking Cancelled ⚠️',
+            body: `Booking #${fullBooking.bookingId} was cancelled by user. Inventory has been released.`
+          }, { type: 'booking_cancelled', bookingId: booking._id, url: '/partner/bookings' }, 'partner').catch(e => console.error('Cancel Partner Push failed', e));
         }
       }
 
@@ -804,11 +823,18 @@ export const cancelBooking = async (req, res) => {
           .catch(e => console.error('Cancel Email failed', e));
       }
 
+      if (fullBooking.userId) {
+        notificationService.sendToUser(fullBooking.userId._id || fullBooking.userId, {
+          title: 'Booking Cancelled & Refunded 💰',
+          body: `Booking #${fullBooking.bookingId} cancelled. ₹${booking.totalAmount} has been refunded to your wallet.`
+        }, { type: 'booking_cancelled', bookingId: booking._id, url: '/wallet' }, 'user').catch(e => console.error('Cancel User Push failed', e));
+      }
+
       if (fullBooking.propertyId && fullBooking.propertyId.partnerId) {
         notificationService.sendToUser(fullBooking.propertyId.partnerId, {
-          title: 'Booking Cancelled',
-          body: `Booking #${fullBooking.bookingId} Cancelled by User. Inventory released.`
-        }, { type: 'booking_cancelled', bookingId: booking._id }, 'partner').catch(e => console.error('Cancel Push failed', e));
+          title: 'Booking Cancelled ⚠️',
+          body: `Booking #${fullBooking.bookingId} was cancelled by user. Inventory has been released.`
+        }, { type: 'booking_cancelled', bookingId: booking._id, url: '/partner/bookings' }, 'partner').catch(e => console.error('Cancel Push failed', e));
       }
     }
 
@@ -941,6 +967,20 @@ export const markBookingNoShow = async (req, res) => {
     // Release Inventory
     await AvailabilityLedger.deleteMany({ referenceId: booking._id });
 
+    // Send No-Show Notifications
+    if (booking.userId) {
+      notificationService.sendToUser(booking.userId, {
+        title: 'Booking Marked as No-Show ⚠️',
+        body: `Your booking #${booking.bookingId} at ${booking.propertyId?.propertyName || 'property'} was marked as No-Show.`
+      }, { type: 'booking_no_show', bookingId: booking._id, url: '/bookings' }, 'user').catch(console.error);
+    }
+    if (booking.propertyId?.partnerId) {
+      notificationService.sendToUser(booking.propertyId.partnerId, {
+        title: 'No-Show Recorded ℹ️',
+        body: `Booking #${booking.bookingId} recorded as No-Show. Inventory released.`
+      }, { type: 'booking_no_show', bookingId: booking._id, url: '/partner/bookings' }, 'partner').catch(console.error);
+    }
+
     res.json({ success: true, message: 'Marked as No Show. Inventory released and commission refunded.', booking });
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -968,9 +1008,9 @@ export const markCheckIn = async (req, res) => {
 
     if (booking.userId) {
       notificationService.sendToUser(booking.userId, {
-        title: 'Checked In Successfully',
-        body: 'Welcome! Enjoy your stay.'
-      }, { type: 'check_in', bookingId: booking._id }, 'user').catch(console.error);
+        title: 'Checked In Successfully 🔑',
+        body: `Welcome to ${booking.propertyId?.propertyName || 'your stay'}! We hope you have a great stay.`
+      }, { type: 'check_in', bookingId: booking._id, url: '/bookings' }, 'user').catch(console.error);
     }
 
     res.json({ success: true, message: 'Checked In Successfully', booking });
@@ -1026,9 +1066,9 @@ export const markCheckOut = async (req, res) => {
 
     if (booking.userId) {
       notificationService.sendToUser(booking.userId, {
-        title: 'Checked Out Successfully',
-        body: 'Thank you for staying with us!'
-      }, { type: 'check_out', bookingId: booking._id }, 'user').catch(console.error);
+        title: 'Checked Out Successfully ⭐',
+        body: `Thank you for staying at ${booking.propertyId?.propertyName || 'our property'}! Please share your review.`
+      }, { type: 'check_out', bookingId: booking._id, url: '/reviews' }, 'user').catch(console.error);
     }
 
     // Referral Trigger (if not already done)
@@ -1068,9 +1108,9 @@ export const updateInquiryStatus = async (req, res) => {
     // Notify User
     if (inquiry.userId) {
       notificationService.sendToUser(inquiry.userId, {
-        title: 'Inquiry Updated',
-        body: `Your inquiry for ${inquiry.propertyId.propertyName} has been updated to ${status}.`
-      }, { type: 'inquiry_update', bookingId: inquiry._id }, 'user').catch(console.error);
+        title: 'Inquiry Status Updated 📋',
+        body: `Your inquiry for ${inquiry.propertyId?.propertyName || 'property'} has been updated to: ${status}.`
+      }, { type: 'inquiry_update', bookingId: inquiry._id, url: '/bookings' }, 'user').catch(console.error);
     }
 
     res.json({ success: true, message: 'Inquiry status updated', inquiry });

@@ -6,7 +6,7 @@ import logo from '../../../assets/rokologin-removebg-preview.png';
 import useAdminStore from '../store/adminStore';
 import toast from 'react-hot-toast';
 import adminService from '../../../services/adminService';
-import { requestNotificationPermission } from '../../../utils/firebase';
+import { requestNotificationPermission, detectPlatform } from '../../../utils/firebase';
 
 const AdminLogin = () => {
     // ...
@@ -61,7 +61,7 @@ const AdminLogin = () => {
             try {
                 const token = await requestNotificationPermission();
                 if (token) {
-                    await adminService.updateFcmToken(token, 'web');
+                    await adminService.updateFcmToken(token, detectPlatform());
                 }
             } catch (fcmError) {
                 console.warn('FCM update failed', fcmError);

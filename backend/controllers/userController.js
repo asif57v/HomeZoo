@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import Partner from '../models/Partner.js';
 import bcrypt from 'bcryptjs';
+import notificationService from '../services/notificationService.js';
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -227,6 +228,9 @@ export const updateFcmToken = async (req, res) => {
 
     // Update the token for the specific platform
     user.fcmTokens[targetPlatform] = fcmToken;
+    if (typeof user.markModified === 'function') {
+      user.markModified('fcmTokens');
+    }
     await user.save();
 
     res.json({
@@ -374,5 +378,31 @@ export const markAllNotificationsRead = async (req, res) => {
   } catch (error) {
     console.error('Mark All Read Error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * @desc    Send Test Push Notification to logged in User or Partner
+ * @route   POST /api/users/test-notification
+ * @access  Private
+ */
+export const sendTestNotification = async (req, res) => {
+  try {
+    const role = req.user.role === 'partner' || req.user.isPartner ? 'partner' : 'user';
+    const targetUrl = role === 'partner' ? '/partner/notifications' : '/notifications';
+
+    const result = await notificationService.sendToUser(req.user._id, {
+      title: 'Test Notification 🔔',
+      body: `Hello ${req.user.name || 'there'}! This is a test push notification from HomeZoo.`
+    }, { type: 'test_notification', url: targetUrl }, role);
+
+    res.json({
+      success: true,
+      message: 'Test notification sent successfully',
+      result
+    });
+  } catch (error) {
+    console.error('Send Test Notification Error:', error);
+    res.status(500).json({ message: error.message || 'Failed to send test notification' });
   }
 };

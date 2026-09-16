@@ -9,6 +9,7 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import axios from 'axios';
 import Joi from 'joi';
+import notificationService from '../services/notificationService.js';
 
 // Initialize Razorpay
 let razorpay;
@@ -397,6 +398,17 @@ export const requestWithdrawal = async (req, res) => {
     withdrawal.transactionId = transaction._id;
     await withdrawal.save();
 
+    // Send Notifications
+    notificationService.sendToUser(req.user._id, {
+      title: 'Withdrawal Request Submitted 💸',
+      body: `Your payout request of ₹${amount} (ID: ${withdrawal.withdrawalId}) has been submitted and is processing.`
+    }, { type: 'withdrawal_request', withdrawalId: withdrawal._id, url: '/partner/wallet' }, 'partner').catch(e => console.error(e));
+
+    notificationService.sendToAdmins({
+      title: 'New Payout Request 💳',
+      body: `${req.user.name || 'Partner'} requested a withdrawal of ₹${amount}.`
+    }, { type: 'admin_withdrawal', withdrawalId: withdrawal._id, url: '/admin/finance' }).catch(e => console.error(e));
+
     res.json({
       success: true,
       message: 'Withdrawal initiated successfully via Razorpay',
@@ -774,6 +786,12 @@ export const verifyAddMoneyPayment = async (req, res) => {
       razorpay_payment_id,
       'topup'
     );
+
+    // Send Notification
+    notificationService.sendToUser(req.user._id, {
+      title: 'Wallet Credited 💳',
+      body: `₹${amount} has been added to your wallet. Current balance: ₹${wallet.balance}`
+    }, { type: 'wallet_topup', url: role === 'partner' ? '/partner/wallet' : '/wallet' }, role).catch(e => console.error(e));
 
     res.json({
       success: true,

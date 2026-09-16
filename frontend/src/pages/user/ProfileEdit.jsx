@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera } from 'lucide-react';
-import { authService } from '../../services/apiService';
+import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera, Bell } from 'lucide-react';
+import { authService, userService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 import { isFlutterApp, openFlutterCamera, uploadBase64Image } from '../../utils/flutterBridge';
 
@@ -12,6 +12,7 @@ const ProfileEdit = () => {
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [testNotifLoading, setTestNotifLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -470,6 +471,44 @@ const ProfileEdit = () => {
             </div>
           </div>
 
+
+          {/* Test Push Notification Card */}
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                  <Bell size={14} className="text-amber-600" />
+                  Test Push Notification
+                </h4>
+                <p className="text-[11px] font-medium text-slate-500 mt-0.5">
+                  Send a live push notification to test your device.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setTestNotifLoading(true);
+                    const res = await userService.sendTestNotification();
+                    if (res.success) {
+                      toast.success('Test notification sent! Check your device.');
+                    } else {
+                      toast.error(res.message || 'Failed to send test notification');
+                    }
+                  } catch (err) {
+                    toast.error(err.message || 'Error sending test notification');
+                  } finally {
+                    setTestNotifLoading(false);
+                  }
+                }}
+                disabled={testNotifLoading}
+                className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+              >
+                {testNotifLoading ? <Loader2 size={12} className="animate-spin" /> : <Bell size={12} />}
+                Send Test
+              </button>
+            </div>
+          </div>
 
           <button
             type="submit"

@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { CheckCircle, FileText, Home, Image, Plus, Trash2, MapPin, Search, BedDouble, Wifi, Tv, Snowflake, Coffee, ShowerHead, ArrowLeft, ArrowRight, Clock, Loader2, Camera, X } from 'lucide-react';
 import logo from '../../../assets/rokologin-removebg-preview.png';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
+import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
 
 const REQUIRED_DOCS_HOTEL = [
   { type: "trade_license", name: "Trade License" },
@@ -87,6 +88,9 @@ const AddHotelWizard = () => {
     if (saved) {
       try {
         const { step: savedStep, propertyForm: savedForm, roomTypes: savedRooms, createdProperty: savedProp } = JSON.parse(saved);
+        if (savedForm?.contactNumber) {
+          savedForm.contactNumber = sanitizePhoneNumber(savedForm.contactNumber);
+        }
         setStep(savedStep);
         setPropertyForm(savedForm);
         setRoomTypes(savedRooms);
@@ -571,7 +575,7 @@ const AddHotelWizard = () => {
           checkOutTime: prop.checkOutTime || '',
           cancellationPolicy: prop.cancellationPolicy || '',
           houseRules: prop.houseRules || [],
-          contactNumber: prop.contactNumber || '',
+          contactNumber: sanitizePhoneNumber(prop.contactNumber || ''),
           documents: docs.length
             ? docs.map(d => ({ type: d.type || d.name, name: d.name, fileUrl: d.fileUrl || '' }))
             : REQUIRED_DOCS_HOTEL.map(d => ({ type: d.type, name: d.name, fileUrl: '' })),
@@ -614,6 +618,16 @@ const AddHotelWizard = () => {
     if (!propertyForm.propertyName) {
       setError('Property name required');
       return;
+    }
+    if (propertyForm.contactNumber) {
+      if (propertyForm.contactNumber.length !== 10) {
+        setError('Contact number must be exactly 10 digits');
+        return;
+      }
+      if (!isValidPhoneNumber(propertyForm.contactNumber)) {
+        setError('Please enter a valid 10-digit mobile number (starting with 6, 7, 8, or 9)');
+        return;
+      }
     }
     setStep(2);
   };
@@ -894,14 +908,37 @@ const AddHotelWizard = () => {
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Detailed Description</label>
                   <textarea className="input w-full h-24" placeholder={`Tell guests what makes your ${propertyForm.propertyType === 'tent' ? 'campsite' : 'hotel'} unique...`} value={propertyForm.description} onChange={e => updatePropertyForm('description', e.target.value)} />
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Contact Number (For Guest Inquiries)</label>
-                  <input
-                    className="input w-full"
-                    placeholder="e.g. +91 9876543210"
-                    value={propertyForm.contactNumber}
-                    onChange={e => updatePropertyForm('contactNumber', e.target.value)}
-                  />
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Contact Number (For Guest Inquiries)
+                    </label>
+                    {propertyForm.contactNumber ? (
+                      <span className={`text-[11px] font-medium ${propertyForm.contactNumber.length === 10 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {propertyForm.contactNumber.length}/10 digits
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="relative flex items-center">
+                    <div className="absolute left-3.5 flex items-center gap-1.5 text-gray-500 font-semibold text-sm pointer-events-none select-none border-r border-gray-200 pr-2.5">
+                      <span>+91</span>
+                    </div>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="input pl-16 w-full"
+                      placeholder="9876543210"
+                      value={propertyForm.contactNumber || ''}
+                      onChange={e => updatePropertyForm('contactNumber', sanitizePhoneNumber(e.target.value))}
+                    />
+                  </div>
+                  {propertyForm.contactNumber && propertyForm.contactNumber.length > 0 && propertyForm.contactNumber.length < 10 && (
+                    <p className="text-xs text-amber-600 font-medium">Please enter a 10-digit mobile number</p>
+                  )}
+                  {propertyForm.contactNumber && propertyForm.contactNumber.length === 10 && !isValidPhoneNumber(propertyForm.contactNumber) && (
+                    <p className="text-xs text-amber-600 font-medium">Mobile number should start with 6, 7, 8, or 9</p>
+                  )}
                 </div>
               </div>
             </div>

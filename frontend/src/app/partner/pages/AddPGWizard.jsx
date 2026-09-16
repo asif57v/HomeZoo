@@ -11,8 +11,8 @@ import {
   Sparkles, Shield, Car, Dumbbell, Box, Flame, ArrowUpCircle, Tv, Utensils, User, Users,
   Lock, Fan, Bath, Sofa, Armchair, Monitor
 } from 'lucide-react';
-import logo from '../../../assets/rokologin-removebg-preview.png';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
+import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
 
 const REQUIRED_DOCS_PG = [
   { type: 'rent_agreement', name: 'Rent Agreement' },
@@ -157,6 +157,9 @@ const AddPGWizard = () => {
     if (saved) {
       try {
         const { step: savedStep, propertyForm: savedForm, roomTypes: savedRooms, createdProperty: savedProp } = JSON.parse(saved);
+        if (savedForm?.contactNumber) {
+          savedForm.contactNumber = sanitizePhoneNumber(savedForm.contactNumber);
+        }
         setStep(savedStep);
         setPropertyForm(savedForm);
         setRoomTypes(savedRooms);
@@ -242,7 +245,7 @@ const AddPGWizard = () => {
           checkOutTime: prop.checkOutTime || '10:00 AM',
           cancellationPolicy: prop.cancellationPolicy || 'No refund after check-in',
           houseRules: prop.houseRules || [],
-          contactNumber: prop.contactNumber || '',
+          contactNumber: sanitizePhoneNumber(prop.contactNumber || ''),
           documents: docs.length
             ? docs.map(d => ({ type: d.type || d.name, name: d.name, fileUrl: d.fileUrl || '' }))
             : REQUIRED_DOCS_PG.map(d => ({ type: d.type, name: d.name, fileUrl: '' })),
@@ -666,6 +669,16 @@ const AddPGWizard = () => {
       setError('Property name is required');
       return;
     }
+    if (propertyForm.contactNumber) {
+      if (propertyForm.contactNumber.length !== 10) {
+        setError('Contact number must be exactly 10 digits');
+        return;
+      }
+      if (!isValidPhoneNumber(propertyForm.contactNumber)) {
+        setError('Please enter a valid 10-digit mobile number (starting with 6, 7, 8, or 9)');
+        return;
+      }
+    }
     setStep(2);
   };
 
@@ -738,6 +751,14 @@ const AddPGWizard = () => {
   const submitAll = async () => {
     setLoading(true);
     setError('');
+    if (propertyForm.contactNumber) {
+      if (propertyForm.contactNumber.length !== 10 || !isValidPhoneNumber(propertyForm.contactNumber)) {
+        setError('Please enter a valid 10-digit contact number');
+        setStep(1);
+        setLoading(false);
+        return;
+      }
+    }
     try {
       const [lng, lat] = await resolveCoordinatesFromAddress();
       const propertyPayload = {
@@ -877,7 +898,7 @@ const AddPGWizard = () => {
   const clearCurrentStep = () => {
     if (!window.confirm("Clear all fields in this step?")) return;
     if (step === 1) {
-      setPropertyForm(prev => ({ ...prev, propertyName: '', description: '', shortDescription: '', pgType: 'boys' }));
+      setPropertyForm(prev => ({ ...prev, propertyName: '', description: '', shortDescription: '', pgType: 'boys', contactNumber: '' }));
     } else if (step === 2) {
       updatePropertyForm('address', { state: '', city: '', fullAddress: '', pincode: '' });
       updatePropertyForm(['location', 'coordinates'], ['', '']);
@@ -1068,13 +1089,36 @@ const AddPGWizard = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact Number (For Guest Inquiries)</label>
-                  <input
-                    className="input"
-                    placeholder="e.g. +91 9876543210"
-                    value={propertyForm.contactNumber}
-                    onChange={e => updatePropertyForm('contactNumber', e.target.value)}
-                  />
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Contact Number (For Guest Inquiries)
+                    </label>
+                    {propertyForm.contactNumber ? (
+                      <span className={`text-[11px] font-medium ${propertyForm.contactNumber.length === 10 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {propertyForm.contactNumber.length}/10 digits
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="relative flex items-center">
+                    <div className="absolute left-3.5 flex items-center gap-1.5 text-gray-500 font-semibold text-sm pointer-events-none select-none border-r border-gray-200 pr-2.5">
+                      <span>+91</span>
+                    </div>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      className="input pl-16 w-full"
+                      placeholder="9876543210"
+                      value={propertyForm.contactNumber || ''}
+                      onChange={e => updatePropertyForm('contactNumber', sanitizePhoneNumber(e.target.value))}
+                    />
+                  </div>
+                  {propertyForm.contactNumber && propertyForm.contactNumber.length > 0 && propertyForm.contactNumber.length < 10 && (
+                    <p className="text-xs text-amber-600 font-medium">Please enter a 10-digit mobile number</p>
+                  )}
+                  {propertyForm.contactNumber && propertyForm.contactNumber.length === 10 && !isValidPhoneNumber(propertyForm.contactNumber) && (
+                    <p className="text-xs text-amber-600 font-medium">Mobile number should start with 6, 7, 8, or 9</p>
+                  )}
                 </div>
               </div>
 

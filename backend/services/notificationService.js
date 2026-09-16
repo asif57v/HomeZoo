@@ -4,20 +4,23 @@ import Notification from '../models/Notification.js';
 
 class NotificationService {
   /**
-   * Helper function to get all FCM tokens from a user (app + web)
+   * Helper function to get all FCM tokens from a user with their platform
    * @param {Object} user - User document
-   * @returns {Array<string>} - Array of FCM tokens
+   * @returns {Array<{token: string, platform: string}>} - Array of token objects
    */
   getUserFcmTokens(user) {
     const tokens = [];
 
-    // Get platform-based tokens (app and web)
     if (user.fcmTokens) {
-      if (user.fcmTokens.app) tokens.push(user.fcmTokens.app);
-      if (user.fcmTokens.web) tokens.push(user.fcmTokens.web);
+      if (user.fcmTokens.app) {
+        tokens.push({ token: user.fcmTokens.app, platform: 'app' });
+      }
+      if (user.fcmTokens.web) {
+        tokens.push({ token: user.fcmTokens.web, platform: 'web' });
+      }
     }
 
-    return tokens.filter(Boolean); // Remove null/undefined
+    return tokens;
   }
 
   /**
@@ -43,20 +46,24 @@ class NotificationService {
         }
       }
 
+      const defaultUrl = data.url || '/';
+
       const message = {
         token: fcmToken,
         notification: {
-          title: notification.title || 'Rukkoin',
+          title: notification.title || 'HomeZoo',
           body: notification.body || '',
         },
         data: {
           ...stringifiedData,
+          url: defaultUrl,
           click_action: 'FLUTTER_NOTIFICATION_CLICK',
         },
         android: {
           priority: 'high',
           notification: {
-            channelId: 'rukkoin_channel',
+            channelId: 'homezoo_channel',
+            sound: 'default',
           },
         },
         apns: {
@@ -73,7 +80,7 @@ class NotificationService {
             badge: '/badge-72x72.png',
           },
           fcmOptions: {
-            link: data.url || '/', // Ensure URL is passed for web clicks
+            link: defaultUrl,
           },
         },
       };
@@ -87,11 +94,14 @@ class NotificationService {
     } catch (error) {
       console.error('Error sending notification to token:', error);
 
-      // Handle invalid token
-      if (error.code === 'messaging/invalid-registration-token' ||
-        error.code === 'messaging/registration-token-not-registered') {
+      // Handle invalid or unregistered token
+      if (
+        error.code === 'messaging/invalid-registration-token' ||
+        error.code === 'messaging/registration-token-not-registered'
+      ) {
         return {
           success: false,
+          isInvalidToken: true,
           error: 'Invalid or unregistered token',
           code: error.code,
         };
@@ -102,11 +112,11 @@ class NotificationService {
   }
 
   /**
-   * Send notification to a user or admin by ID
-   * @param {string} userId - User or Admin ID
+   * Send notification to a user, partner, or admin by ID
+   * @param {string} userId - User, Partner, or Admin ID
    * @param {Object} notification - Notification payload
    * @param {Object} data - Additional data payload
-   * @param {string} userType - 'user', 'admin' (default: 'user')
+   * @param {string} userType - 'user', 'partner', 'admin' (default: 'user')
    * @returns {Promise<Object>} - Result of sending notification
    */
   async sendToUser(userId, notification, data = {}, userType = 'user') {
@@ -125,7 +135,7 @@ class NotificationService {
       }
 
       if (!user) {
-        console.warn(`[NotificationService] User not found: ${userId} (${userType})`);
+        console.warn(`[NotificationService] ${userType} not found: ${userId}`);
         return {
           success: false,
           error: `${userType} not found`,
@@ -134,51 +144,60 @@ class NotificationService {
 
       let savedNotification;
       try {
-        console.log('[NotificationService] Saving notification to DB...');
         savedNotification = await Notification.create({
           userId: user._id,
-          userType: userType, // 'user' or 'admin'
-          title: notification.title || 'Rukkoin',
+          userType: userType,
+          title: notification.title || 'HomeZoo',
           body: notification.body || '',
           data: data || {},
           type: data.type || 'general',
         });
-        console.log(`[NotificationService] DB Save Success. ID: ${savedNotification._id}`);
       } catch (dbError) {
-        console.error('[NotificationService] [ERROR] Failed to save notification to database:', dbError);
+        console.error('[NotificationService] Failed to save notification to database:', dbError);
       }
 
-      // Get all FCM tokens (app + web)
-      const fcmTokens = this.getUserFcmTokens(user);
-      console.log(`[NotificationService] Found ${fcmTokens.length} FCM tokens for user.`);
+      // Get platform-based FCM tokens (app and web)
+      const tokenEntries = this.getUserFcmTokens(user);
+      console.log(`[NotificationService] Found ${tokenEntries.length} FCM token(s) for ${userType} (${tokenEntries.map(t => t.platform).join(', ')}).`);
 
-      if (fcmTokens.length === 0) {
-        console.warn('[NotificationService] User has no FCM tokens. Skipping Push.');
+      if (tokenEntries.length === 0) {
         return {
           success: false,
-          error: 'User does not have FCM token',
-          notificationId: savedNotification?._id
+          error: 'User does not have any registered FCM tokens',
+          notificationId: savedNotification?._id,
         };
       }
 
-      // Send to all tokens (app + web)
       let lastResult = null;
       let successCount = 0;
+      let hasTokenCleaned = false;
 
-      for (const token of fcmTokens) {
+      for (const entry of tokenEntries) {
         try {
-          console.log(`[NotificationService] Sending to token: ${token.substring(0, 10)}...`);
-          const result = await this.sendToToken(token, notification, data);
+          console.log(`[NotificationService] Dispatching to ${entry.platform} token: ${entry.token.substring(0, 10)}...`);
+          const result = await this.sendToToken(entry.token, notification, data);
           if (result.success) {
-            console.log('[NotificationService] Push Sent Successfully.');
             successCount++;
             lastResult = result;
-          } else {
-            console.warn('[NotificationService] Push Failed:', result.error);
+          } else if (result.isInvalidToken) {
+            // Clean up invalid token for this platform from DB
+            console.warn(`[NotificationService] Stale token detected on platform: ${entry.platform}. Removing from DB.`);
+            if (user.fcmTokens) {
+              user.fcmTokens[entry.platform] = null;
+              hasTokenCleaned = true;
+            }
           }
         } catch (err) {
-          console.error('[NotificationService] FCM send exception:', err);
+          console.error(`[NotificationService] Exception sending to ${entry.platform} token:`, err);
         }
+      }
+
+      // Save user if stale tokens were cleaned
+      if (hasTokenCleaned) {
+        if (typeof user.markModified === 'function') {
+          user.markModified('fcmTokens');
+        }
+        await user.save().catch(e => console.error('[NotificationService] Error saving cleaned token state:', e));
       }
 
       // Update notification with FCM Message ID if sent
@@ -187,15 +206,37 @@ class NotificationService {
         await savedNotification.save().catch(e => console.error('Failed to update FCM ID:', e));
       }
 
-      console.log(`[NotificationService] Complete. Success: ${successCount}/${fcmTokens.length}`);
       return {
         success: successCount > 0,
         successCount,
-        notificationId: savedNotification?._id
+        notificationId: savedNotification?._id,
       };
     } catch (error) {
-      console.error('[NotificationService] [ERROR] Error sending notification to user:', error);
-      throw error;
+      console.error('[NotificationService] Error sending notification to user:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Helper to send notification to all active Admins
+   * @param {Object} notification - Notification payload
+   * @param {Object} data - Additional data payload
+   */
+  async sendToAdmins(notification, data = {}) {
+    try {
+      const Admin = (await import('../models/Admin.js')).default;
+      const admins = await Admin.find({ isActive: true });
+      if (!admins || admins.length === 0) return [];
+
+      const promises = admins.map(admin =>
+        this.sendToUser(admin._id, notification, data, 'admin').catch(err => {
+          console.error(`Failed to notify admin ${admin._id}:`, err);
+        })
+      );
+      return await Promise.all(promises);
+    } catch (err) {
+      console.error('[NotificationService] Error in sendToAdmins:', err);
+      return [];
     }
   }
 }

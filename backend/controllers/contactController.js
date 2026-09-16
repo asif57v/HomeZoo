@@ -38,27 +38,16 @@ export const createContactMessage = async (req, res) => {
       const adminUsers = await Admin.find({ role: { $in: ['admin', 'superadmin'] }, isActive: true });
 
       for (const adminUser of adminUsers) {
-        // 1. Send Email (Optional: maybe just send to one? For now, sending to all active admins is safer for visibility)
+        // 1. Send Email
         if (adminUser.email) {
           emailService.sendAdminSupportQueryEmail(adminUser.email, doc).catch(e => console.error('Email failed:', e));
         }
 
-        // 2. Create In-App Notification
-        await Notification.create({
-          userId: adminUser._id,
-          userType: 'admin',
-          title: `New Support Message: ${subject}`,
-          body: `From: ${name} (${audience}). Click to view.`,
-          type: 'support_message',
-          data: { messageId: doc._id, audience },
-          isRead: false
-        });
-
-        // 3. Trigger Push Notification
+        // 2. Trigger In-App + Push Notification
         notificationService.sendToUser(adminUser._id, {
           title: `New Support Message: ${subject}`,
-          body: `From: ${name} (${audience}).`
-        }, { type: 'support_message', messageId: doc._id }, 'admin').catch(e => console.error('Push failed:', e));
+          body: `From: ${name} (${audience}). Click to view.`
+        }, { type: 'support_message', messageId: doc._id, audience, url: '/admin/contact-messages' }, 'admin').catch(e => console.error('Push failed:', e));
       }
     } catch (err) {
       console.warn('Could not notify admin about support query:', err);

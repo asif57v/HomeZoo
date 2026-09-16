@@ -73,4 +73,22 @@ export const onMessageListener = (callback) => {
   }
 };
 
+/**
+ * Detects whether the current client is a Mobile App (Flutter WebView / Native) or Web Browser
+ * @returns {'app' | 'web'}
+ */
+export const detectPlatform = () => {
+  if (typeof window !== 'undefined') {
+    if (
+      window.flutter_inappwebview !== undefined ||
+      window.flutter !== undefined ||
+      navigator.userAgent.includes('FlutterWebView') ||
+      window.NativeApp !== undefined
+    ) {
+      return 'app';
+    }
+  }
+  return 'web';
+};
+
 export default app;

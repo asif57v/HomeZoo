@@ -284,28 +284,34 @@ export const verifyPayment = async (req, res) => {
       // 2. User Push
       if (user) {
         notificationService.sendToUser(user._id, {
-          title: 'Booking Confirmed!',
-          body: `You are going to ${property.name || 'Hotel'}.`
-        }, { type: 'booking', bookingId: populatedBooking._id }, 'user').catch(err => console.error('User Push failed:', err));
+          title: 'Booking Confirmed! 🎉',
+          body: `Payment of ₹${populatedBooking.totalAmount} confirmed for ${property.propertyName || property.name || 'your stay'}. Booking ID: #${populatedBooking.bookingId}`
+        }, { type: 'booking', bookingId: populatedBooking._id, url: '/bookings' }, 'user').catch(err => console.error('User Push failed:', err));
       }
 
       // 3. Partner Notifications
       if (property && property.partnerId) {
         // Push
         notificationService.sendToUser(property.partnerId, {
-          title: 'New Booking Alert!',
-          body: `1 Night, ${populatedBooking.guests.adults} Guests. Check App.`
-        }, { type: 'new_booking', bookingId: populatedBooking._id }, 'partner').catch(err => console.error('Partner Push failed:', err));
+          title: 'New Paid Booking! 🔔',
+          body: `${user?.name || 'A guest'} paid ₹${populatedBooking.totalAmount} for ${property.propertyName || property.name || 'your property'}.`
+        }, { type: 'new_booking', bookingId: populatedBooking._id, url: '/partner/bookings' }, 'partner').catch(err => console.error('Partner Push failed:', err));
 
         // SMS
         // Fetch partner user to get phone
         const PartnerModel = mongoose.model('Partner');
         const partnerUser = await PartnerModel.findById(property.partnerId);
         if (partnerUser && partnerUser.phone) {
-          smsService.sendSMS(partnerUser.phone, `New Booking Alert! Booking #${populatedBooking.bookingId} at ${property.name}. Check App for details.`)
+          smsService.sendSMS(partnerUser.phone, `New Booking Alert! Booking #${populatedBooking.bookingId} at ${property.propertyName || property.name}. Check App for details.`)
             .catch(err => console.error('Partner SMS failed:', err));
         }
       }
+
+      // 4. Admin Push
+      notificationService.sendToAdmins({
+        title: 'New Paid Reservation 💳',
+        body: `Booking #${populatedBooking.bookingId} paid (₹${populatedBooking.totalAmount}) at ${property.propertyName || property.name || 'property'}`
+      }, { type: 'admin_booking', bookingId: populatedBooking._id, url: '/admin/bookings' }).catch(err => console.error('Admin Push failed:', err));
     } catch (notifErr) {
       console.error('Notification Trigger Custom Error:', notifErr);
     }

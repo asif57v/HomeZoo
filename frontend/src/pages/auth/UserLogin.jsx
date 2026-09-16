@@ -4,7 +4,7 @@ import { Phone, Mail, ArrowRight, Loader2, Shield } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/rokologin-removebg-preview.png';
 import { authService, userService } from '../../services/apiService';
-import { requestNotificationPermission } from '../../utils/firebase';
+import { requestNotificationPermission, detectPlatform } from '../../utils/firebase';
 import toast from 'react-hot-toast';
 
 const UserLogin = () => {
@@ -118,7 +118,7 @@ const UserLogin = () => {
             try {
                 const token = await requestNotificationPermission();
                 if (token) {
-                    await userService.updateFcmToken(token, 'web');
+                    await userService.updateFcmToken(token, detectPlatform());
                 }
             } catch (fcmError) {
                 console.warn('FCM update failed', fcmError);

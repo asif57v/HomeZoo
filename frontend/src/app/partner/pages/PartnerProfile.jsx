@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { User, Mail, Phone, MapPin, Edit, Save, Camera, CreditCard } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit, Save, Camera, CreditCard, Bell, Loader2 } from 'lucide-react';
 import gsap from 'gsap';
+import toast from 'react-hot-toast';
 import usePartnerStore from '../store/partnerStore';
 import { userService, authService, hotelService } from '../../../services/apiService';
 import PartnerHeader from '../components/PartnerHeader';
@@ -49,6 +50,7 @@ const PartnerProfile = () => {
         profileImagePublicId: ''
     });
     const [uploading, setUploading] = useState(false);
+    const [testNotifLoading, setTestNotifLoading] = useState(false);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -327,6 +329,44 @@ const PartnerProfile = () => {
                         isEditing={false} // Always read-only
                         onChange={() => { }}
                     />
+                </div>
+
+                {/* Test Push Notification Card */}
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-[2rem] p-5 mb-6 shadow-sm">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                                <Bell size={18} />
+                            </div>
+                            <div>
+                                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Test Push Notification</h4>
+                                <p className="text-[11px] font-medium text-slate-500 mt-0.5">Send a test push notification to check FCM setup on this device</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                try {
+                                    setTestNotifLoading(true);
+                                    const res = await userService.sendTestNotification();
+                                    if (res.success) {
+                                        toast.success('Test notification sent! Check your device.');
+                                    } else {
+                                        toast.error(res.message || 'Failed to send test notification');
+                                    }
+                                } catch (err) {
+                                    toast.error(err.message || 'Failed to send test notification');
+                                } finally {
+                                    setTestNotifLoading(false);
+                                }
+                            }}
+                            disabled={testNotifLoading}
+                            className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                        >
+                            {testNotifLoading ? <Loader2 size={14} className="animate-spin" /> : <Bell size={14} />}
+                            Send Test
+                        </button>
+                    </div>
                 </div>
 
                 <div className="mt-8 text-center text-xs text-gray-400">

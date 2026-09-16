@@ -535,6 +535,16 @@ export const userService = {
     }
   },
 
+  // Send Test Notification
+  sendTestNotification: async () => {
+    try {
+      const response = await api.post('/users/test-notification');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Get Notifications
   getNotifications: async (page = 1, limit = 20) => {
     try {
