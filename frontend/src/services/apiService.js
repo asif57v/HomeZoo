@@ -130,8 +130,16 @@ export const authService = {
     }
   },
 
-  // Logout
-  logout: () => {
+  // Logout - clears FCM tokens on server then clears local storage
+  logout: async (platform = null) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await api.post('/users/logout', { platform }).catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Logout API call failed:', e);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }

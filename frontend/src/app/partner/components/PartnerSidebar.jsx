@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import usePartnerStore from '../store/partnerStore';
 import logo from '../../../assets/rokologin-removebg-preview.png';
+import { authService } from '../../../services/apiService';
+import { detectPlatform } from '../../../utils/firebase';
 
 const PartnerSidebar = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -35,9 +37,8 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
         }
     };
 
-    const handleLogout = () => {
-        // Clear everything
-        localStorage.clear();
+    const handleLogout = async () => {
+        await authService.logout(detectPlatform());
         usePartnerStore.getState().resetForm();
         onClose();
         navigate('/hotel/login');

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Wallet, Heart, Gift, HelpCircle, FileText, Shield, ChevronRight, LogOut, Settings, BookOpen, Building, Briefcase, Bell, Edit3, Video } from 'lucide-react';
 import logo from '../../assets/rokologin-removebg-preview.png';
-import { userService } from '../../services/apiService';
+import { userService, authService } from '../../services/apiService';
+import { detectPlatform } from '../../utils/firebase';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -122,8 +123,8 @@ const MobileMenu = ({ isOpen, onClose }) => {
         </button>
     );
 
-    const handleLogout = () => {
-        localStorage.clear();
+    const handleLogout = async () => {
+        await authService.logout(detectPlatform());
         onClose();
         navigate('/login');
     };

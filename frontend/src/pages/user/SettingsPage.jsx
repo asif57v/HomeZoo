@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Moon, ChevronRight, LogOut, FileText, Shield, Info, Phone } from 'lucide-react';
-import { userService } from '../../services/apiService';
+import { userService, authService } from '../../services/apiService';
+import { detectPlatform } from '../../utils/firebase';
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -22,8 +23,8 @@ const SettingsPage = () => {
         },
     ];
 
-    const handleLogout = () => {
-        localStorage.clear();
+    const handleLogout = async () => {
+        await authService.logout(detectPlatform());
         navigate('/login');
     };
 

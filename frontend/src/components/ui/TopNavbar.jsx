@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { User, Globe, Menu, X, Home, Search, Video, Calendar, Wallet, Share2, LogOut, FileText, HelpCircle, Shield, ChevronRight, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { authService } from '../../services/apiService';
+import { detectPlatform } from '../../utils/firebase';
 
 const TopNavbar = () => {
     const navigate = useNavigate();
@@ -195,8 +197,8 @@ const TopNavbar = () => {
 
                             {/* Sidebar Footer */}
                             <div className="p-4 border-t border-gray-100">
-                                <button onClick={() => {
-                                    localStorage.clear();
+                                <button onClick={async () => {
+                                    await authService.logout(detectPlatform());
                                     handleNavigation('/login');
                                 }} className="flex items-center gap-2 text-red-500 font-bold text-xs px-2 hover:opacity-80 transition-opacity">
                                     <LogOut size={16} /> Log Out

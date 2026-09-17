@@ -112,6 +112,51 @@ class NotificationService {
   }
 
   /**
+   * Remove FCM tokens for a user on logout
+   */
+  async clearUserTokens(userId, platform = null, userType = 'user') {
+    try {
+      let user;
+      if (userType === 'admin') {
+        const Admin = (await import('../models/Admin.js')).default;
+        user = await Admin.findById(userId);
+      } else {
+        // Clear from both User and Partner collections
+        const Partner = (await import('../models/Partner.js')).default;
+        const userDoc = await User.findById(userId);
+        const partnerDoc = await Partner.findById(userId);
+
+        for (const doc of [userDoc, partnerDoc]) {
+          if (doc && doc.fcmTokens) {
+            if (platform) {
+              doc.fcmTokens[platform] = null;
+            } else {
+              doc.fcmTokens = { app: null, web: null };
+            }
+            doc.markModified('fcmTokens');
+            await doc.save();
+          }
+        }
+        return { success: true };
+      }
+
+      if (user && user.fcmTokens) {
+        if (platform) {
+          user.fcmTokens[platform] = null;
+        } else {
+          user.fcmTokens = { app: null, web: null };
+        }
+        user.markModified('fcmTokens');
+        await user.save();
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('[NotificationService] Error clearing tokens:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Send notification to a user, partner, or admin by ID
    * @param {string} userId - User, Partner, or Admin ID
    * @param {Object} notification - Notification payload

@@ -245,6 +245,33 @@ export const updateFcmToken = async (req, res) => {
 };
 
 /**
+ * @desc    Logout user and clear FCM tokens
+ * @route   POST /api/users/logout
+ * @access  Private
+ */
+export const logoutUser = async (req, res) => {
+  try {
+    const { platform } = req.body; // 'web', 'app', or null (clear all)
+    const userId = req.user._id;
+    const role = req.user.role === 'partner' || req.user.isPartner ? 'partner' : 'user';
+
+    // Clear FCM tokens from DB
+    await notificationService.clearUserTokens(userId, platform || null, role);
+
+    console.log(`[Logout] FCM tokens cleared for user ${userId} (${role}), platform: ${platform || 'all'}`);
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully. FCM tokens cleared.',
+    });
+  } catch (error) {
+    console.error('Logout Error:', error);
+    // Still respond with success so user can logout even if token clearing fails
+    res.json({ success: true, message: 'Logged out' });
+  }
+};
+
+/**
  * @desc    Get user notifications
  * @route   GET /api/users/notifications
  * @access  Private
