@@ -718,6 +718,29 @@ export const updateFcmToken = async (req, res) => {
 
     await user.save();
 
+    // Sync across both User and Partner collections if present
+    try {
+      const Partner = (await import('../models/Partner.js')).default;
+      const partnerDoc = await Partner.findById(user._id);
+      if (partnerDoc && partnerDoc._id.toString() !== user._id.toString()) {
+        if (!partnerDoc.fcmTokens) partnerDoc.fcmTokens = { app: null, web: null };
+        partnerDoc.fcmTokens[targetPlatform] = fcmToken;
+        if (typeof partnerDoc.markModified === 'function') partnerDoc.markModified('fcmTokens');
+        await partnerDoc.save();
+      }
+    } catch (e) {}
+
+    try {
+      const User = (await import('../models/User.js')).default;
+      const userDoc = await User.findById(user._id);
+      if (userDoc && userDoc._id.toString() !== user._id.toString()) {
+        if (!userDoc.fcmTokens) userDoc.fcmTokens = { app: null, web: null };
+        userDoc.fcmTokens[targetPlatform] = fcmToken;
+        if (typeof userDoc.markModified === 'function') userDoc.markModified('fcmTokens');
+        await userDoc.save();
+      }
+    } catch (e) {}
+
     res.json({
       success: true,
       message: `FCM Token updated successfully for ${targetPlatform}`,

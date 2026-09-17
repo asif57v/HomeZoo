@@ -277,6 +277,20 @@ export const updatePartnerFcmToken = async (req, res) => {
 
     await partner.save();
 
+    // Also sync to User model if exists
+    try {
+      const User = (await import('../models/User.js')).default;
+      const userDoc = await User.findById(partner._id);
+      if (userDoc) {
+        if (!userDoc.fcmTokens) userDoc.fcmTokens = { app: null, web: null };
+        userDoc.fcmTokens[targetPlatform] = fcmToken;
+        if (typeof userDoc.markModified === 'function') userDoc.markModified('fcmTokens');
+        await userDoc.save();
+      }
+    } catch (e) {
+      console.warn('Sync to User FCM token failed:', e.message);
+    }
+
     console.log(`[Partner FCM] Token updated for partner: ${partner._id} | platform: ${targetPlatform}`);
 
     res.json({

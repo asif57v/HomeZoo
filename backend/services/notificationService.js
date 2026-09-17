@@ -130,8 +130,23 @@ class NotificationService {
       } else if (userType === 'partner') {
         const Partner = (await import('../models/Partner.js')).default;
         user = await Partner.findById(userId);
+        // Fallback to User model if partner has no tokens or not found
+        if (!user || (!user.fcmTokens?.app && !user.fcmTokens?.web)) {
+          const userFallback = await User.findById(userId);
+          if (userFallback && (userFallback.fcmTokens?.app || userFallback.fcmTokens?.web)) {
+            user = userFallback;
+          }
+        }
       } else {
         user = await User.findById(userId);
+        // Fallback to Partner model if user has no tokens or not found
+        if (!user || (!user.fcmTokens?.app && !user.fcmTokens?.web)) {
+          const Partner = (await import('../models/Partner.js')).default;
+          const partnerFallback = await Partner.findById(userId);
+          if (partnerFallback && (partnerFallback.fcmTokens?.app || partnerFallback.fcmTokens?.web)) {
+            user = partnerFallback;
+          }
+        }
       }
 
       if (!user) {

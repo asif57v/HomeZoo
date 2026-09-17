@@ -209,29 +209,25 @@ export const updateFcmToken = async (req, res) => {
 
     // Try to find user first
     let user = await User.findById(req.user._id);
+    let partner = await Partner.findById(req.user._id);
 
-    // If not found, check Partner model
-    if (!user) {
-      user = await Partner.findById(req.user._id);
-    }
-
-    if (!user) {
+    if (!user && !partner) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (!user.fcmTokens) {
-      user.fcmTokens = {
-        app: null,
-        web: null
-      };
+    if (user) {
+      if (!user.fcmTokens) user.fcmTokens = { app: null, web: null };
+      user.fcmTokens[targetPlatform] = fcmToken;
+      if (typeof user.markModified === 'function') user.markModified('fcmTokens');
+      await user.save();
     }
 
-    // Update the token for the specific platform
-    user.fcmTokens[targetPlatform] = fcmToken;
-    if (typeof user.markModified === 'function') {
-      user.markModified('fcmTokens');
+    if (partner) {
+      if (!partner.fcmTokens) partner.fcmTokens = { app: null, web: null };
+      partner.fcmTokens[targetPlatform] = fcmToken;
+      if (typeof partner.markModified === 'function') partner.markModified('fcmTokens');
+      await partner.save();
     }
-    await user.save();
 
     res.json({
       success: true,
