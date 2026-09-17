@@ -130,21 +130,27 @@ class NotificationService {
       } else if (userType === 'partner') {
         const Partner = (await import('../models/Partner.js')).default;
         user = await Partner.findById(userId);
+        console.log(`[NotificationService] Partner lookup: found=${!!user}, app=${user?.fcmTokens?.app ? 'yes' : 'no'}, web=${user?.fcmTokens?.web ? 'yes' : 'no'}`);
         // Fallback to User model if partner has no tokens or not found
         if (!user || (!user.fcmTokens?.app && !user.fcmTokens?.web)) {
           const userFallback = await User.findById(userId);
+          console.log(`[NotificationService] User fallback: found=${!!userFallback}, app=${userFallback?.fcmTokens?.app ? 'yes' : 'no'}, web=${userFallback?.fcmTokens?.web ? 'yes' : 'no'}`);
           if (userFallback && (userFallback.fcmTokens?.app || userFallback.fcmTokens?.web)) {
             user = userFallback;
+            console.log(`[NotificationService] Using User fallback for partner notification`);
           }
         }
       } else {
         user = await User.findById(userId);
+        console.log(`[NotificationService] User lookup: found=${!!user}, app=${user?.fcmTokens?.app ? 'yes' : 'no'}, web=${user?.fcmTokens?.web ? 'yes' : 'no'}`);
         // Fallback to Partner model if user has no tokens or not found
         if (!user || (!user.fcmTokens?.app && !user.fcmTokens?.web)) {
           const Partner = (await import('../models/Partner.js')).default;
           const partnerFallback = await Partner.findById(userId);
+          console.log(`[NotificationService] Partner fallback: found=${!!partnerFallback}, app=${partnerFallback?.fcmTokens?.app ? 'yes' : 'no'}, web=${partnerFallback?.fcmTokens?.web ? 'yes' : 'no'}`);
           if (partnerFallback && (partnerFallback.fcmTokens?.app || partnerFallback.fcmTokens?.web)) {
             user = partnerFallback;
+            console.log(`[NotificationService] Using Partner fallback for user notification`);
           }
         }
       }

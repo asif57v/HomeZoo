@@ -384,13 +384,29 @@ export const markAllNotificationsRead = async (req, res) => {
  */
 export const sendTestNotification = async (req, res) => {
   try {
+    const userId = req.user._id;
     const role = req.user.role === 'partner' || req.user.isPartner ? 'partner' : 'user';
     const targetUrl = role === 'partner' ? '/partner/notifications' : '/notifications';
 
-    const result = await notificationService.sendToUser(req.user._id, {
+    // First try with the detected role
+    let result = await notificationService.sendToUser(userId, {
       title: 'Test Notification 🔔',
       body: `Hello ${req.user.name || 'there'}! This is a test push notification from HomeZoo.`
     }, { type: 'test_notification', url: targetUrl }, role);
+
+    // If failed, try the other role as fallback
+    if (!result.success) {
+      const fallbackRole = role === 'partner' ? 'user' : 'partner';
+      console.log(`[TestNotification] First attempt with role '${role}' failed. Trying fallback role '${fallbackRole}'...`);
+      const fallbackResult = await notificationService.sendToUser(userId, {
+        title: 'Test Notification 🔔',
+        body: `Hello ${req.user.name || 'there'}! This is a test push notification from HomeZoo.`
+      }, { type: 'test_notification', url: targetUrl }, fallbackRole);
+
+      if (fallbackResult.success) {
+        result = fallbackResult;
+      }
+    }
 
     if (!result.success) {
       return res.status(400).json({

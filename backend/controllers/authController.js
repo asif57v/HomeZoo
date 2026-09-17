@@ -721,25 +721,28 @@ export const updateFcmToken = async (req, res) => {
     // Sync across both User and Partner collections if present
     try {
       const Partner = (await import('../models/Partner.js')).default;
+      const UserModel = (await import('../models/User.js')).default;
+
+      // Save to Partner collection if doc exists there
       const partnerDoc = await Partner.findById(user._id);
-      if (partnerDoc && partnerDoc._id.toString() !== user._id.toString()) {
+      if (partnerDoc) {
         if (!partnerDoc.fcmTokens) partnerDoc.fcmTokens = { app: null, web: null };
         partnerDoc.fcmTokens[targetPlatform] = fcmToken;
-        if (typeof partnerDoc.markModified === 'function') partnerDoc.markModified('fcmTokens');
+        partnerDoc.markModified('fcmTokens');
         await partnerDoc.save();
       }
-    } catch (e) {}
 
-    try {
-      const User = (await import('../models/User.js')).default;
-      const userDoc = await User.findById(user._id);
-      if (userDoc && userDoc._id.toString() !== user._id.toString()) {
+      // Save to User collection if doc exists there
+      const userDoc = await UserModel.findById(user._id);
+      if (userDoc) {
         if (!userDoc.fcmTokens) userDoc.fcmTokens = { app: null, web: null };
         userDoc.fcmTokens[targetPlatform] = fcmToken;
-        if (typeof userDoc.markModified === 'function') userDoc.markModified('fcmTokens');
+        userDoc.markModified('fcmTokens');
         await userDoc.save();
       }
-    } catch (e) {}
+    } catch (syncErr) {
+      console.warn('[Auth FCM Sync] Error syncing FCM token across collections:', syncErr.message);
+    }
 
     res.json({
       success: true,
