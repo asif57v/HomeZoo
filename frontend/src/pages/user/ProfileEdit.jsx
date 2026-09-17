@@ -5,6 +5,7 @@ import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, 
 import { authService, userService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 import { isFlutterApp, openFlutterCamera, uploadBase64Image } from '../../utils/flutterBridge';
+import { requestNotificationPermission, detectPlatform } from '../../utils/firebase';
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -489,14 +490,27 @@ const ProfileEdit = () => {
                 onClick={async () => {
                   try {
                     setTestNotifLoading(true);
+                    
+                    // 1. Ensure token is requested & registered with backend
+                    toast.loading('Checking notification permission...', { id: 'test-notif' });
+                    const token = await requestNotificationPermission();
+                    if (token) {
+                      await userService.updateFcmToken(token, detectPlatform());
+                      toast.loading('Sending test notification...', { id: 'test-notif' });
+                    } else {
+                      toast.error('Permission denied or FCM token unavailable. Please allow notifications in browser.', { id: 'test-notif' });
+                      return;
+                    }
+
+                    // 2. Trigger test notification
                     const res = await userService.sendTestNotification();
                     if (res.success) {
-                      toast.success('Test notification sent! Check your device.');
+                      toast.success('Test notification sent! Check your device.', { id: 'test-notif' });
                     } else {
-                      toast.error(res.message || 'Failed to send test notification');
+                      toast.error(res.message || 'Failed to send test notification', { id: 'test-notif' });
                     }
                   } catch (err) {
-                    toast.error(err.message || 'Error sending test notification');
+                    toast.error(err.response?.data?.message || err.message || 'Error sending test notification', { id: 'test-notif' });
                   } finally {
                     setTestNotifLoading(false);
                   }

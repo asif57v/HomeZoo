@@ -396,6 +396,14 @@ export const sendTestNotification = async (req, res) => {
       body: `Hello ${req.user.name || 'there'}! This is a test push notification from HomeZoo.`
     }, { type: 'test_notification', url: targetUrl }, role);
 
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.error || 'Failed to send push notification. No active device token found.',
+        result
+      });
+    }
+
     res.json({
       success: true,
       message: 'Test notification sent successfully',
@@ -403,6 +411,6 @@ export const sendTestNotification = async (req, res) => {
     });
   } catch (error) {
     console.error('Send Test Notification Error:', error);
-    res.status(500).json({ message: error.message || 'Failed to send test notification' });
+    res.status(500).json({ success: false, message: error.message || 'Failed to send test notification' });
   }
 };

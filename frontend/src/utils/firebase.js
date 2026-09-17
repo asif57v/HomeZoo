@@ -45,8 +45,20 @@ export const requestNotificationPermission = async () => {
       if (!messagingInstance) return null;
 
       try {
-        const token = await getToken(messagingInstance, { vapidKey });
+        let swRegistration = null;
+        if ('serviceWorker' in navigator) {
+          swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          console.log('[FCM] Service worker registered with scope:', swRegistration.scope);
+        }
+
+        const tokenOptions = { vapidKey };
+        if (swRegistration) {
+          tokenOptions.serviceWorkerRegistration = swRegistration;
+        }
+
+        const token = await getToken(messagingInstance, tokenOptions);
         if (token) {
+          console.log('[FCM] Token retrieved successfully:', token.substring(0, 15) + '...');
           return token;
         } else {
           console.warn('No FCM token received');

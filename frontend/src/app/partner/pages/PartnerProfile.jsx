@@ -6,6 +6,7 @@ import usePartnerStore from '../store/partnerStore';
 import { userService, authService, hotelService } from '../../../services/apiService';
 import PartnerHeader from '../components/PartnerHeader';
 import { isFlutterApp, openFlutterCamera, uploadBase64Image } from '../../../utils/flutterBridge';
+import { requestNotificationPermission, detectPlatform } from '../../../utils/firebase';
 
 const Field = ({ label, value, icon: Icon, isEditing, onChange }) => (
     <div className="mb-6 group">
@@ -348,14 +349,27 @@ const PartnerProfile = () => {
                             onClick={async () => {
                                 try {
                                     setTestNotifLoading(true);
+
+                                    // 1. Ensure token is requested & registered with backend
+                                    toast.loading('Checking notification permission...', { id: 'partner-test-notif' });
+                                    const token = await requestNotificationPermission();
+                                    if (token) {
+                                        await userService.updateFcmToken(token, detectPlatform());
+                                        toast.loading('Sending test notification...', { id: 'partner-test-notif' });
+                                    } else {
+                                        toast.error('Permission denied or FCM token unavailable. Please allow notifications in browser.', { id: 'partner-test-notif' });
+                                        return;
+                                    }
+
+                                    // 2. Trigger test notification
                                     const res = await userService.sendTestNotification();
                                     if (res.success) {
-                                        toast.success('Test notification sent! Check your device.');
+                                        toast.success('Test notification sent! Check your device.', { id: 'partner-test-notif' });
                                     } else {
-                                        toast.error(res.message || 'Failed to send test notification');
+                                        toast.error(res.message || 'Failed to send test notification', { id: 'partner-test-notif' });
                                     }
                                 } catch (err) {
-                                    toast.error(err.message || 'Failed to send test notification');
+                                    toast.error(err.response?.data?.message || err.message || 'Failed to send test notification', { id: 'partner-test-notif' });
                                 } finally {
                                     setTestNotifLoading(false);
                                 }
