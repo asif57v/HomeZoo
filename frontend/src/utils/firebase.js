@@ -32,6 +32,31 @@ const getMessagingInstance = () => {
   return null;
 };
 
+/**
+ * Clears stale Firebase IndexedDB databases that cause VersionError
+ */
+const clearFirebaseIndexedDBs = async () => {
+  const dbNames = [
+    'firebase-messaging-database',
+    'firebase-installations-database',
+    'fcm_token_details_db',
+    'firebase-heartbeat-database',
+  ];
+  for (const name of dbNames) {
+    try {
+      await new Promise((resolve, reject) => {
+        const req = indexedDB.deleteDatabase(name);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+        req.onblocked = () => resolve(); // proceed anyway
+      });
+      console.log(`[FCM] Cleared stale IndexedDB: ${name}`);
+    } catch (e) {
+      // ignore - DB may not exist
+    }
+  }
+};
+
 export const requestNotificationPermission = async () => {
   try {
     if (!('Notification' in window)) {
@@ -44,27 +69,48 @@ export const requestNotificationPermission = async () => {
       const messagingInstance = getMessagingInstance();
       if (!messagingInstance) return null;
 
+      let swRegistration = null;
+      if ('serviceWorker' in navigator) {
+        swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        console.log('[FCM] Service worker registered with scope:', swRegistration.scope);
+      }
+
+      const tokenOptions = { vapidKey };
+      if (swRegistration) {
+        tokenOptions.serviceWorkerRegistration = swRegistration;
+      }
+
+      // First attempt
       try {
-        let swRegistration = null;
-        if ('serviceWorker' in navigator) {
-          swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-          console.log('[FCM] Service worker registered with scope:', swRegistration.scope);
-        }
-
-        const tokenOptions = { vapidKey };
-        if (swRegistration) {
-          tokenOptions.serviceWorkerRegistration = swRegistration;
-        }
-
         const token = await getToken(messagingInstance, tokenOptions);
         if (token) {
           console.log('[FCM] Token retrieved successfully:', token.substring(0, 15) + '...');
           return token;
-        } else {
-          console.warn('No FCM token received');
         }
+        console.warn('No FCM token received');
       } catch (error) {
-        console.error('Error getting FCM token:', error);
+        // Handle VersionError - stale IndexedDB from previous Firebase SDK
+        if (error.name === 'VersionError' || error.message?.includes('VersionError') || error.message?.includes('version')) {
+          console.warn('[FCM] IndexedDB VersionError detected. Clearing stale databases and retrying...');
+          await clearFirebaseIndexedDBs();
+
+          // Re-initialize messaging after clearing DBs
+          messaging = null;
+          const freshMessaging = getMessagingInstance();
+          if (!freshMessaging) return null;
+
+          try {
+            const retryToken = await getToken(freshMessaging, tokenOptions);
+            if (retryToken) {
+              console.log('[FCM] Token retrieved on retry:', retryToken.substring(0, 15) + '...');
+              return retryToken;
+            }
+          } catch (retryError) {
+            console.error('[FCM] Retry also failed:', retryError);
+          }
+        } else {
+          console.error('Error getting FCM token:', error);
+        }
       }
     } else {
       console.warn('Notification permission denied');
