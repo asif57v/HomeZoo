@@ -33,28 +33,43 @@ const getMessagingInstance = () => {
 };
 
 /**
- * Clears stale Firebase IndexedDB databases that cause VersionError
+ * Clears stale Firebase IndexedDB databases that cause VersionError.
+ * Unregisters service workers first to release DB locks, then forces page reload.
  */
-const clearFirebaseIndexedDBs = async () => {
+const clearFirebaseIndexedDBsAndReload = async () => {
+  console.warn('[FCM] Clearing stale Firebase databases and reloading page...');
+
+  // 1. Unregister all service workers to release IndexedDB locks
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) {
+      await reg.unregister();
+    }
+  }
+
+  // 2. Wait for SW to release handles
+  await new Promise(r => setTimeout(r, 500));
+
+  // 3. Delete stale IndexedDB databases
   const dbNames = [
     'firebase-messaging-database',
     'firebase-installations-database',
     'fcm_token_details_db',
     'firebase-heartbeat-database',
+    'firebase-installations-store',
   ];
   for (const name of dbNames) {
     try {
-      await new Promise((resolve, reject) => {
-        const req = indexedDB.deleteDatabase(name);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
-        req.onblocked = () => resolve(); // proceed anyway
-      });
-      console.log(`[FCM] Cleared stale IndexedDB: ${name}`);
+      indexedDB.deleteDatabase(name);
     } catch (e) {
-      // ignore - DB may not exist
+      // ignore
     }
   }
+
+  // 4. Mark that we've cleared DBs, then reload page so Firebase SDK starts fresh
+  sessionStorage.setItem('fcm_db_cleared', 'true');
+  await new Promise(r => setTimeout(r, 300));
+  window.location.reload();
 };
 
 export const requestNotificationPermission = async () => {
@@ -80,33 +95,30 @@ export const requestNotificationPermission = async () => {
         tokenOptions.serviceWorkerRegistration = swRegistration;
       }
 
-      // First attempt
       try {
         const token = await getToken(messagingInstance, tokenOptions);
         if (token) {
           console.log('[FCM] Token retrieved successfully:', token.substring(0, 15) + '...');
+          // Clear the recovery flag if it was set
+          sessionStorage.removeItem('fcm_db_cleared');
           return token;
         }
         console.warn('No FCM token received');
       } catch (error) {
         // Handle VersionError - stale IndexedDB from previous Firebase SDK
-        if (error.name === 'VersionError' || error.message?.includes('VersionError') || error.message?.includes('version')) {
-          console.warn('[FCM] IndexedDB VersionError detected. Clearing stale databases and retrying...');
-          await clearFirebaseIndexedDBs();
-
-          // Re-initialize messaging after clearing DBs
-          messaging = null;
-          const freshMessaging = getMessagingInstance();
-          if (!freshMessaging) return null;
-
-          try {
-            const retryToken = await getToken(freshMessaging, tokenOptions);
-            if (retryToken) {
-              console.log('[FCM] Token retrieved on retry:', retryToken.substring(0, 15) + '...');
-              return retryToken;
-            }
-          } catch (retryError) {
-            console.error('[FCM] Retry also failed:', retryError);
+        if (
+          error.name === 'VersionError' ||
+          error.message?.includes('VersionError') ||
+          error.message?.includes('version')
+        ) {
+          // Only try auto-recovery once per session to avoid infinite reload loops
+          if (!sessionStorage.getItem('fcm_db_cleared')) {
+            await clearFirebaseIndexedDBsAndReload();
+            // Page will reload, so we won't reach here
+            return null;
+          } else {
+            console.error('[FCM] VersionError persists after DB cleanup. Please clear site data manually.');
+            sessionStorage.removeItem('fcm_db_cleared');
           }
         } else {
           console.error('Error getting FCM token:', error);
