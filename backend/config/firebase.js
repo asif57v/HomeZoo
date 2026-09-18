@@ -37,9 +37,13 @@ export const initializeFirebase = () => {
     if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
       try {
         let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-        // Fix escaped newlines in environment variables (common in Render, Heroku, etc.)
+        // Fix quotes and escaped newlines from environment variables (Render, Heroku, .env)
         if (typeof privateKey === 'string') {
-          privateKey = privateKey.replace(/\\n/g, '\n');
+          privateKey = privateKey.trim();
+          if ((privateKey.startsWith('"') && privateKey.endsWith('"')) || (privateKey.startsWith("'") && privateKey.endsWith("'"))) {
+            privateKey = privateKey.slice(1, -1);
+          }
+          privateKey = privateKey.replace(/\\n/g, '\n').replace(/\\r/g, '');
         }
 
         const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'hoomzo';
@@ -47,7 +51,7 @@ export const initializeFirebase = () => {
         firebaseAdmin = admin.initializeApp({
           credential: admin.credential.cert({
             projectId,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL.trim(),
             privateKey,
           }),
           projectId
