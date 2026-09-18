@@ -369,6 +369,33 @@ function App() {
       console.log('Foreground Message received:', payload);
       const targetUrl = payload.data?.url;
 
+      // 1. Show native OS notification (Windows/Mac/Android push banner)
+      try {
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+          if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then((reg) => {
+              reg.showNotification(payload.notification?.title || 'HomeZoo', {
+                body: payload.notification?.body || '',
+                icon: '/icon-192x192.png',
+                badge: '/badge-72x72.png',
+                data: payload.data || {},
+                tag: payload.data?.tag || `notif_${Date.now()}`,
+              });
+            }).catch(() => {});
+          } else {
+            new Notification(payload.notification?.title || 'HomeZoo', {
+              body: payload.notification?.body || '',
+              icon: '/icon-192x192.png',
+              data: payload.data || {},
+              tag: payload.data?.tag || `notif_${Date.now()}`,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Native notification display skipped:', err);
+      }
+
+      // 2. Show in-app interactive toast
       toast((t) => (
         <div
           className="flex flex-col cursor-pointer p-1"
