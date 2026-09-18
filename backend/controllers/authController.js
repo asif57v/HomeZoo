@@ -18,10 +18,12 @@ const generateToken = (id, role) => {
 
 export const sendOtp = async (req, res) => {
   try {
-    const { phone, type, role = 'user' } = req.body; // type: 'login' or 'register'
+    const { phone, type, role = 'user' } = req.body || {}; // type: 'login' or 'register'
 
     if (!phone) {
-      return res.status(400).json({ message: 'Phone number is required' });
+      return res.status(400).json({
+        message: 'Phone number is required. Ensure request body is JSON (Content-Type: application/json)'
+      });
     }
 
     let user;
