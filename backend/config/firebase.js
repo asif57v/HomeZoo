@@ -10,40 +10,79 @@ let firebaseAdmin = null;
 
 export const initializeFirebase = () => {
   try {
-    // Path to service account key - assuming it's in the root backend folder
-    const serviceAccountPath = path.join(__dirname, '../serviceAccountKey.json');
-
-    // Check if service account file exists
-    if (!fs.existsSync(serviceAccountPath)) {
-      throw new Error(`serviceAccountKey.json file not found at ${serviceAccountPath}`);
+    if (admin.apps.length > 0) {
+      firebaseAdmin = admin.app();
+      return firebaseAdmin;
     }
 
-    // Read service account key
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    // Option 1: Load from FIREBASE_SERVICE_ACCOUNT JSON environment variable
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        const parsed = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string'
+          ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+          : process.env.FIREBASE_SERVICE_ACCOUNT;
 
-    // Initialize Firebase Admin
-    if (!admin.apps.length) {
+        firebaseAdmin = admin.initializeApp({
+          credential: admin.credential.cert(parsed),
+          projectId: parsed.project_id || process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'hoomzo'
+        });
+        console.log('✓ Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT environment variable');
+        return firebaseAdmin;
+      } catch (err) {
+        console.warn('⚠️ Failed to initialize from FIREBASE_SERVICE_ACCOUNT JSON:', err.message);
+      }
+    }
+
+    // Option 2: Load from individual environment variables (FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL)
+    if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+      try {
+        let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+        // Fix escaped newlines in environment variables (common in Render, Heroku, etc.)
+        if (typeof privateKey === 'string') {
+          privateKey = privateKey.replace(/\\n/g, '\n');
+        }
+
+        const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'hoomzo';
+
+        firebaseAdmin = admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey,
+          }),
+          projectId
+        });
+        console.log('✓ Firebase Admin initialized from FIREBASE_PRIVATE_KEY & FIREBASE_CLIENT_EMAIL environment variables');
+        return firebaseAdmin;
+      } catch (err) {
+        console.warn('⚠️ Failed to initialize from FIREBASE_PRIVATE_KEY environment variables:', err.message);
+      }
+    }
+
+    // Option 3: Load from serviceAccountKey.json file (local development)
+    const serviceAccountPath = path.join(__dirname, '../serviceAccountKey.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
       firebaseAdmin = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id
+        projectId: serviceAccount.project_id || 'hoomzo'
       });
-      console.log('✓ Firebase Admin initialized successfully');
-    } else {
-      firebaseAdmin = admin.app();
+      console.log('✓ Firebase Admin initialized from serviceAccountKey.json file');
+      return firebaseAdmin;
     }
 
-    return firebaseAdmin;
+    console.warn('⚠️ Firebase Admin initialization: No credentials found (FIREBASE_SERVICE_ACCOUNT, FIREBASE_PRIVATE_KEY/CLIENT_EMAIL, or serviceAccountKey.json)');
+    return null;
   } catch (error) {
     console.error('Firebase Admin initialization error:', error.message);
-    // Don't throw error, allow server to continue without Firebase
     return null;
   }
 };
 
 // Get Firebase Admin instance
 export const getFirebaseAdmin = () => {
-  if (!firebaseAdmin) {
-    initializeFirebase();
+  if (!firebaseAdmin || admin.apps.length === 0) {
+    return initializeFirebase();
   }
   return firebaseAdmin;
 };

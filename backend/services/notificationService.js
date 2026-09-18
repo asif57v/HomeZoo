@@ -235,6 +235,7 @@ class NotificationService {
       }
 
       let lastResult = null;
+      let lastError = null;
       let successCount = 0;
       let hasTokenCleaned = false;
 
@@ -252,9 +253,13 @@ class NotificationService {
               user.fcmTokens[entry.platform] = null;
               hasTokenCleaned = true;
             }
+            lastError = result.error || 'Token is invalid or unregistered';
+          } else {
+            lastError = result.error || 'Failed to send to device token';
           }
         } catch (err) {
           console.error(`[NotificationService] Exception sending to ${entry.platform} token:`, err);
+          lastError = err.message || 'Firebase dispatch error';
         }
       }
 
@@ -275,6 +280,7 @@ class NotificationService {
       return {
         success: successCount > 0,
         successCount,
+        error: successCount > 0 ? null : (lastError || 'Failed to send push notification to registered device(s)'),
         notificationId: savedNotification?._id,
       };
     } catch (error) {

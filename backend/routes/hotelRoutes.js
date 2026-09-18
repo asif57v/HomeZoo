@@ -22,12 +22,13 @@ router.get('/location/search', protect, authorizedRoles('partner', 'admin', 'sup
 router.get('/location/distance', protect, authorizedRoles('partner', 'admin', 'superadmin'), calculateDistance);
 
 // Notification Routes (Reusing userController logic as it handles 'partner' role check)
-import { getNotifications, markNotificationRead, deleteNotifications, markAllNotificationsRead } from '../controllers/userController.js';
+import { getNotifications, markNotificationRead, deleteNotifications, markAllNotificationsRead, sendTestNotification } from '../controllers/userController.js';
 
 router.get('/notifications', protect, authorizedRoles('partner', 'admin', 'superadmin'), getNotifications);
 router.put('/notifications/read-all', protect, authorizedRoles('partner', 'admin', 'superadmin'), markAllNotificationsRead);
 router.put('/notifications/:id/read', protect, authorizedRoles('partner', 'admin', 'superadmin'), markNotificationRead);
 router.delete('/notifications', protect, authorizedRoles('partner', 'admin', 'superadmin'), deleteNotifications);
+router.post('/test-notification', protect, authorizedRoles('partner', 'admin', 'superadmin'), sendTestNotification);
 
 // FCM Token Route - Partner Only
 router.put('/fcm-token', protect, authorizedRoles('partner'), updatePartnerFcmToken);
