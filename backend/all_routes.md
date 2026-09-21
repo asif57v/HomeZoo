@@ -201,3 +201,10 @@
 - **PUT** `/api/wallet/bank-details`
 - **DELETE** `/api/wallet/bank-details`
 
+## fcmRoutes.js (Base Path: `/api/v1/fcm-tokens` & `/api/fcm-tokens`)
+- **POST** `/api/v1/fcm-tokens/test` - Test FCM notification dispatch (supports platform: 'web'|'app', channel, token, tokens, userId)
+- **POST** `/api/v1/fcm-tokens` - Register / update FCM token
+- **PUT** `/api/v1/fcm-tokens` - Register / update FCM token
+- **GET** `/api/v1/fcm-tokens/status` - Check FCM service status & registered token counts
+- **GET** `/api/v1/fcm-tokens` - Summary of active FCM tokens
+
