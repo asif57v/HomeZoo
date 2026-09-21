@@ -147,6 +147,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import reelRoutes from './routes/reelRoutes.js';
 import hostelFeeRoutes from './routes/hostelFeeRoutes.js';
+import fcmRoutes from './routes/fcmRoutes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -168,6 +169,10 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/reels', reelRoutes);
 app.use('/api/hostel-fees', hostelFeeRoutes);
+app.use('/api/v1/fcm-tokens', fcmRoutes);
+app.use('/api/fcm-tokens', fcmRoutes);
+app.use('/api/v1/fcm', fcmRoutes);
+app.use('/api/fcm', fcmRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
