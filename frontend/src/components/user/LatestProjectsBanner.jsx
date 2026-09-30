@@ -59,16 +59,13 @@ const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
     if (!current) return null;
 
     return (
-        <div className="relative w-full overflow-hidden mb-6 group px-5 md:px-0">
-            <div className="flex items-center gap-2 mb-3">
-                <div className="bg-yellow-100 text-yellow-700 p-1 rounded-md animate-pulse">
-                    <Sparkles size={16} />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900 tracking-tight">
-                    Top Picks in {categoryName}
+        <div className="relative w-full overflow-hidden mt-3 mb-6 md:mt-4 md:mb-8 group px-3.5 md:px-0">
+            <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 tracking-tight">
+                    Top Picks
                 </h2>
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-100 uppercase tracking-wider flex items-center gap-1 ml-auto">
-                    <TrendingUp size={12} /> Recent Added
+                <span className="bg-emerald-50 text-emerald-700 text-[9.5px] md:text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-100 uppercase tracking-wider flex items-center gap-1 shrink-0">
+                    <TrendingUp size={11} /> Recent Added
                 </span>
             </div>
 

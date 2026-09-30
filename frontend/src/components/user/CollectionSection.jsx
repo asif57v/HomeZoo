@@ -50,7 +50,7 @@ const CollectionSection = ({ onFilter, activeFilters = {} }) => {
 
     return (
         <div className="py-2 mb-4">
-            <div className="px-5 md:px-0">
+            <div className="px-3.5 md:px-0">
                 <div className="flex items-center justify-between mb-3">
                     <div>
                         <h2 className="text-lg md:text-xl font-bold text-gray-900 leading-tight">Handpicked <span className="text-surface">Collections</span></h2>
@@ -67,7 +67,7 @@ const CollectionSection = ({ onFilter, activeFilters = {} }) => {
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto gap-3 pb-3 px-5 md:px-0 no-scrollbar md:grid md:grid-cols-5 md:overflow-visible overflow-y-visible">
+            <div className="flex overflow-x-auto gap-3 pb-3 px-3.5 md:px-0 no-scrollbar md:grid md:grid-cols-5 md:overflow-visible overflow-y-visible">
                 {COLLECTIONS.map((item, index) => {
                     const isSelected = isCollectionSelected(item.filters);
 

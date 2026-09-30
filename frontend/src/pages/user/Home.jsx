@@ -214,7 +214,7 @@ const Home = () => {
                     <div className="pt-0 flex-shrink-0 md:pt-1 md:min-h-0" />
 
                     {/* Filter Bar at bottom of hero */}
-                    <div className="pt-0 pb-2 md:pb-4">
+                    <div className="pt-1 pb-2 md:pb-4">
                         <PropertyTypeFilter
                             selectedType={selectedType.id}
                             selectedLabel={selectedType.label}
@@ -225,17 +225,17 @@ const Home = () => {
                 </div>
             </div>
 
-            {/* Exclusive Offers and Pay Hostel Fees Side-by-Side */}
-            <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-stretch md:pr-5">
-                <div className="flex-1 min-w-0">
-                    <ExclusiveOffers />
-                </div>
-                {(!selectedType.id || selectedType.label === 'All') && (
+            {/* Exclusive Offers and Pay Hostel Fees Side-by-Side (Only shown for 'All' tab) */}
+            {(!selectedType.id || selectedType.label === 'All') && (
+                <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-stretch md:pr-5">
+                    <div className="flex-1 min-w-0">
+                        <ExclusiveOffers />
+                    </div>
                     <div className="w-full md:w-[300px] shrink-0 px-3.5 md:px-0 mt-3 md:mt-2">
                         <PayHostelFeesSection />
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
             <div className="mt-2 max-w-7xl mx-auto">
                 {(!selectedType.id || selectedType.label === 'All') ? (
@@ -276,7 +276,7 @@ const Home = () => {
                     </div>
                 ) : (
                     // Show Filtered Grid when a specific category is selected
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-2 md:gap-3">
                         {/* 1. Latest Projects Banner for the category */}
                         <LatestProjectsBanner
                             categoryId={selectedType.id}

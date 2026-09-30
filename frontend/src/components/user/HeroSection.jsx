@@ -426,7 +426,7 @@ const HeroSection = ({ theme, selectedType }) => {
 
     return (
         <motion.section
-            className={`relative w-full px-3.5 pt-1 pb-2 flex flex-col gap-2 md:gap-3 md:px-5 md:pt-8 md:pb-4 bg-transparent transition-all duration-300`}
+            className={`relative w-full px-3.5 pt-1.5 pb-1.5 flex flex-col gap-2.5 md:gap-3 md:px-5 md:pt-8 md:pb-4 bg-transparent transition-all duration-300`}
         >
             {/* 1. Header Row (Hides on Scroll) */}
             <div className={`flex md:hidden items-center justify-between relative h-10 transition-all duration-300 ${isSticky ? 'opacity-0 h-0 overflow-hidden mb-0' : 'opacity-100 mb-0'}`}>
@@ -507,7 +507,7 @@ const HeroSection = ({ theme, selectedType }) => {
                 layout
                 className={`
                     w-full z-50
-                    relative mt-1 md:mt-4
+                    relative mt-2 md:mt-4 mb-1 md:mb-0
                 `}
             >
                 <motion.div

@@ -130,30 +130,30 @@ const ReelSection = ({ category }) => {
     if (reels.length === 0) return null;
 
     return (
-        <div className="py-6 border-b border-gray-100 bg-gray-50/30">
-            <div className="px-5 md:px-0 mb-4 flex items-center justify-between">
+        <div className="py-4 md:py-6 border-b border-gray-100 bg-gray-50/30">
+            <div className="px-5 md:px-0 mb-3.5 md:mb-4 flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 flex items-center gap-2">
                         <span className="bg-red-600 p-1 rounded-lg">
-                            <Play size={16} className="text-white fill-white" />
+                            <Play size={14} className="text-white fill-white" />
                         </span>
                         Reels
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1">Short video tours and updates</p>
+                    <p className="text-xs md:text-sm text-gray-500 mt-0.5">Short video tours and updates</p>
                 </div>
                 <button
                     onClick={() => navigate('/reels')}
-                    className="text-sm font-bold text-emerald-600 hover:text-emerald-700"
+                    className="text-xs md:text-sm font-bold text-emerald-600 hover:text-emerald-700"
                 >
                     View All
                 </button>
             </div>
 
-            <div className="flex overflow-x-auto gap-2 pb-2 px-5 no-scrollbar snap-x snap-mandatory">
+            <div className="flex overflow-x-auto gap-3 pb-2 px-5 md:px-0 no-scrollbar snap-x snap-mandatory">
                 {reels.map((reel) => (
                     <ReelItem key={reel._id} reel={reel} navigate={navigate} />
                 ))}
-                <div className="w-1 shrink-0" />
+                <div className="w-2 shrink-0" />
             </div>
         </div>
     );
