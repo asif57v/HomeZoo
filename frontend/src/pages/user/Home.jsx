@@ -120,11 +120,11 @@ const Home = () => {
 
     // Section Component
     const HomeSection = ({ title, typeId, subtitle }) => (
-        <div className="py-4 border-b border-gray-100 last:border-0 relative">
-            <div className="flex justify-between items-end px-5 md:px-0 mb-2">
+        <div className="py-2.5 md:py-4 border-b border-gray-100 last:border-0 relative">
+            <div className="flex justify-between items-end px-3.5 md:px-0 mb-1.5 md:mb-2">
                 <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
-                    {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+                    <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900">{title}</h2>
+                    {subtitle && <p className="text-xs md:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
                 </div>
                 <button
                     onClick={() => {
@@ -139,7 +139,7 @@ const Home = () => {
                         // dependent on standard behavior (here state update triggers re-render to grid view)
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className="text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
+                    className="text-xs md:text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
                 >
                     View All
                 </button>
@@ -151,16 +151,16 @@ const Home = () => {
     return (
         <main className="min-h-screen pb-24 transition-colors duration-700" style={{ backgroundColor: pageBg }}>
             {/* Hero: dark background only (no images), changes per category */}
-            <div className="relative overflow-visible min-h-[280px] md:min-h-[340px]">
+            <div className="relative overflow-visible min-h-0 md:min-h-[340px]">
                 <motion.div
-                    className="absolute inset-0 w-full h-full rounded-b-[2rem] md:rounded-b-none overflow-hidden"
+                    className="absolute inset-0 w-full h-full rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
                     animate={{ background: activeTheme.darkBg || THEME_MAP.default.darkBg }}
                     transition={{ duration: 0.6, ease: 'easeInOut' }}
                 />
                 
                 {/* Image Layer for specific themes like Plot */}
                 <motion.div
-                    className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[2rem] md:rounded-b-none overflow-hidden"
+                    className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
                     style={{ 
                         backgroundPosition: 'center bottom', 
                         backgroundSize: 'cover',
@@ -180,13 +180,13 @@ const Home = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 1.1 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10 rounded-b-[2rem] md:rounded-b-none"
+                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10 rounded-b-[1.5rem] md:rounded-b-none"
                         >
                             {/* Left Corner */}
                             <img 
                                 src={activeTheme.cornerImage} 
                                 alt="" 
-                                className="w-[300px] md:w-[450px] object-cover opacity-100 -ml-16 md:-ml-24 transform -translate-y-8"
+                                className="w-[240px] md:w-[450px] object-cover opacity-100 -ml-16 md:-ml-24 transform -translate-y-8"
                                 style={{ 
                                     WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
                                     maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
@@ -196,7 +196,7 @@ const Home = () => {
                             <img 
                                 src={activeTheme.cornerImage2} 
                                 alt="" 
-                                className="w-[300px] md:w-[450px] object-cover opacity-100 -mr-16 md:-mr-24 transform -translate-y-8"
+                                className="w-[240px] md:w-[450px] object-cover opacity-100 -mr-16 md:-mr-24 transform -translate-y-8"
                                 style={{ 
                                     WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
                                     maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
@@ -207,14 +207,14 @@ const Home = () => {
                 </AnimatePresence>
 
                 {/* Content on top */}
-                <div className="relative z-40 flex flex-col min-h-[280px] md:min-h-[340px]">
+                <div className="relative z-40 flex flex-col min-h-0 md:min-h-[340px]">
                     <HeroSection theme={activeTheme} selectedType={selectedType} />
 
                     {/* Small gap between search bar and category (mobile); minimal on desktop */}
                     <div className="pt-0 flex-shrink-0 md:pt-1 md:min-h-0" />
 
                     {/* Filter Bar at bottom of hero */}
-                    <div className="pt-1 pb-4">
+                    <div className="pt-0 pb-2 md:pb-4">
                         <PropertyTypeFilter
                             selectedType={selectedType.id}
                             selectedLabel={selectedType.label}
@@ -231,7 +231,7 @@ const Home = () => {
                     <ExclusiveOffers />
                 </div>
                 {(!selectedType.id || selectedType.label === 'All') && (
-                    <div className="w-full md:w-[300px] shrink-0 px-5 md:px-0 mt-4 md:mt-2">
+                    <div className="w-full md:w-[300px] shrink-0 px-3.5 md:px-0 mt-3 md:mt-2">
                         <PayHostelFeesSection />
                     </div>
                 )}

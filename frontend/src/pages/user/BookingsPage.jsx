@@ -68,23 +68,23 @@ const BookingsPage = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header with Scrollable Tabs */}
-            <div className="sticky top-0 bg-surface text-white px-5 pt-10 pb-6 rounded-b-3xl shadow-lg shadow-surface/20 z-10">
-                <div className="flex justify-between items-center mb-6">
+            <div className="sticky top-0 bg-surface text-white px-4 pt-3.5 pb-3 md:px-8 md:pt-8 md:pb-6 rounded-b-2xl md:rounded-b-3xl shadow-md shadow-surface/15 z-10">
+                <div className="flex justify-between items-center mb-2.5 md:mb-6">
                     <div>
-                        <h1 className="text-2xl font-black mb-1">My Bookings</h1>
-                        <p className="text-xs text-white/80 font-medium tracking-wide">Manage your stays and trips</p>
+                        <h1 className="text-xl md:text-2xl font-black mb-0.5 md:mb-1">My Bookings</h1>
+                        <p className="text-[11px] md:text-xs text-white/80 font-medium tracking-wide">Manage your stays and trips</p>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="bg-black/20 p-1 rounded-2xl flex items-center justify-between backdrop-blur-sm overflow-x-auto no-scrollbar">
+                <div className="bg-black/20 p-1 rounded-xl md:rounded-2xl flex items-center justify-between gap-1 backdrop-blur-xs overflow-x-auto no-scrollbar">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
-                                ? 'bg-white text-surface shadow-sm scale-[0.98]'
-                                : 'text-white/70 hover:bg-white/10'
+                            className={`flex-1 min-w-[65px] flex items-center justify-center gap-1 py-1.5 md:py-2.5 rounded-lg md:rounded-xl text-[10.5px] md:text-[11px] font-bold transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+                                ? 'bg-white text-surface shadow-xs scale-[0.98]'
+                                : 'text-white/75 hover:bg-white/10'
                                 }`}
                         >
                             {tab.label}
@@ -94,7 +94,7 @@ const BookingsPage = () => {
             </div>
 
             {/* Content */}
-            <div className="px-5 py-6 pb-32">
+            <div className="px-3.5 py-3.5 md:px-8 md:py-6 pb-28">
                 <AnimatePresence mode="wait">
                     {loading ? (
                         <div className="flex justify-center items-center py-20">

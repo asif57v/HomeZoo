@@ -95,7 +95,7 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
       className="relative w-full bg-transparent border-none"
     >
       {/* Web: centered & larger; Mobile: scrollable as before */}
-      <div className="flex gap-4 overflow-x-auto px-6 py-4 md:py-1.5 no-scrollbar relative max-w-7xl mx-auto items-center justify-start sm:justify-center md:justify-center md:flex-wrap md:gap-8 md:overflow-visible">
+      <div className="flex gap-2.5 md:gap-8 overflow-x-auto px-3.5 py-1.5 md:py-1.5 no-scrollbar relative max-w-7xl mx-auto items-center justify-start sm:justify-center md:justify-center md:flex-wrap md:overflow-visible">
         {allTypes.map((type) => {
           const Icon = type.icon;
           // Handle selection: null for "All", exact match, or if IDs overlap (for grouped categories)
@@ -117,31 +117,31 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
             <button
               key={type.id || 'all'}
               onClick={() => onSelectType(type.id, type.label)}
-              className="flex flex-col items-center gap-1.5 md:gap-2 w-[85px] md:w-[100px] outline-none group shrink-0"
+              className="flex flex-col items-center gap-1 md:gap-2 w-[62px] sm:w-[72px] md:w-[100px] outline-none group shrink-0"
             >
               <div className="relative">
                 <div
                   className={`
-                    w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 mx-auto
+                    w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 mx-auto
                     ${
                       isSelected
-                        ? 'bg-white shadow-[0_8px_20px_rgba(0,0,0,0.25)] scale-105 ring-2 ring-white/60'
-                        : 'bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 shadow-md hover:scale-105 active:scale-95'
+                        ? 'bg-white shadow-[0_6px_16px_rgba(0,0,0,0.25)] scale-105 ring-1.5 ring-white/70'
+                        : 'bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 shadow-xs hover:scale-105 active:scale-95'
                     }
                   `}
                 >
                   <Icon
-                    className="w-5 h-5 md:w-6 md:h-6 transition-all duration-300"
+                    className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
                     style={{ color: isSelected ? accentColor : '#ffffff' }}
-                    strokeWidth={isSelected ? 2.5 : 2}
+                    strokeWidth={isSelected ? 2.3 : 1.8}
                   />
                 </div>
               </div>
 
               <span
                 className={`
-                  text-[11px] md:text-xs tracking-wide transition-colors whitespace-nowrap text-center w-full mt-1
-                  ${isSelected ? 'font-extrabold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]' : 'font-semibold text-white/85 group-hover:text-white'}
+                  text-[10px] md:text-xs tracking-tight transition-colors whitespace-nowrap text-center w-full mt-0.5
+                  ${isSelected ? 'font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]' : 'font-medium text-white/90 group-hover:text-white'}
                 `}
               >
                 {type.label}

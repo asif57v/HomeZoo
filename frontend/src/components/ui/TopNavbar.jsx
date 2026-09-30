@@ -11,15 +11,18 @@ const TopNavbar = () => {
     const userName = user.name || 'User';
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Disable body scroll when sidebar is open
+    // Disable body scroll and pause Lenis when sidebar is open
     useEffect(() => {
         if (isSidebarOpen) {
+            window.lenis?.stop();
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = '';
+            window.lenis?.start();
         }
         return () => {
             document.body.style.overflow = '';
+            window.lenis?.start();
         };
     }, [isSidebarOpen]);
 
@@ -135,7 +138,7 @@ const TopNavbar = () => {
                             transition={{ type: 'tween', ease: 'circOut', duration: 0.4 }}
                             className="relative flex h-[100dvh] w-[85%] max-w-[300px] flex-col bg-white shadow-2xl z-[51]"
                         >
-                            <div className="flex-1 overflow-y-auto pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+                            <div className="flex-1 overflow-y-auto pb-4" data-lenis-prevent="true" data-lenis-prevent-touch="true" style={{ WebkitOverflowScrolling: 'touch' }}>
                                 {/* Sidebar Header */}
                                 <div className="flex items-center justify-between p-5 pb-4 border-b border-gray-100">
                                     <div className="flex flex-col items-start leading-none">

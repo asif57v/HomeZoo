@@ -29,15 +29,15 @@ const ExclusiveOffers = () => {
 
     if (loading) {
         return (
-            <div className="py-2 pl-5 mt-2">
-                <div className="h-7 w-48 bg-gray-200/60 rounded animate-pulse mb-4"></div>
-                <div className="flex gap-4 overflow-x-auto no-scrollbar">
+            <div className="py-1.5 pl-3.5 md:pl-5 mt-1 md:mt-2">
+                <div className="h-6 w-40 bg-gray-200/60 rounded animate-pulse mb-3"></div>
+                <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="min-w-[280px] sm:min-w-[320px] h-[88px] bg-white border border-gray-200 rounded-2xl animate-pulse p-4 flex items-center gap-4">
-                            <div className="w-16 h-14 bg-gray-100 rounded-xl shrink-0"></div>
+                        <div key={i} className="min-w-[240px] sm:min-w-[320px] h-[76px] md:h-[88px] bg-white border border-gray-200 rounded-xl md:rounded-2xl animate-pulse p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                            <div className="w-14 h-12 bg-gray-100 rounded-lg shrink-0"></div>
                             <div className="flex-1 space-y-2">
-                                <div className="h-4 w-3/4 bg-gray-100 rounded"></div>
-                                <div className="h-3 w-1/2 bg-gray-100 rounded"></div>
+                                <div className="h-3.5 w-3/4 bg-gray-100 rounded"></div>
+                                <div className="h-2.5 w-1/2 bg-gray-100 rounded"></div>
                             </div>
                         </div>
                     ))}
@@ -51,15 +51,15 @@ const ExclusiveOffers = () => {
     }
 
     return (
-        <section className="py-2 pl-5 mt-2">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 tracking-tight flex items-center gap-2">
+        <section className="py-1.5 pl-3.5 md:pl-5 mt-1 md:mt-2">
+            <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 mb-2 md:mb-4 tracking-tight flex items-center gap-2">
                 Exclusive offers for you
-                <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                <span className="bg-emerald-100 text-emerald-700 text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">
                     NEW
                 </span>
             </h2>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 pr-5 snap-x no-scrollbar">
+            <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 md:pb-4 pr-3.5 md:pr-5 snap-x no-scrollbar">
                 {offers.map((offer) => (
                     <motion.div
                         key={offer._id || offer.id}
@@ -73,19 +73,19 @@ const ExclusiveOffers = () => {
                             navigate('/listings');
                         }}
                         className="
-                            min-w-[260px] sm:min-w-[300px] md:min-w-[340px] 
+                            min-w-[240px] sm:min-w-[300px] md:min-w-[340px] 
                             bg-white 
                             border border-gray-200 
-                            rounded-2xl md:rounded-[1.25rem] 
-                            p-4 md:p-5 
-                            flex items-center gap-4 md:gap-5 
+                            rounded-xl md:rounded-[1.25rem] 
+                            p-3 md:p-5 
+                            flex items-center gap-3 md:gap-5 
                             cursor-pointer 
-                            shadow-sm hover:shadow-md transition-all duration-200 
+                            shadow-xs hover:shadow-md transition-all duration-200 
                             shrink-0 snap-start
                         "
                     >
                         {/* Left side Image/Logo Box */}
-                        <div className="w-16 h-14 sm:w-20 sm:h-16 rounded-xl bg-gray-50/80 border border-gray-100 p-1.5 flex items-center justify-center shrink-0 overflow-hidden">
+                        <div className="w-14 h-12 sm:w-20 sm:h-16 rounded-lg md:rounded-xl bg-gray-50/80 border border-gray-100 p-1 flex items-center justify-center shrink-0 overflow-hidden">
                             <img
                                 src={offer.image}
                                 alt={offer.title}
@@ -98,17 +98,17 @@ const ExclusiveOffers = () => {
 
                         {/* Right side Title and Details */}
                         <div className="flex flex-col justify-center min-w-0 flex-1">
-                            <h3 className="text-base sm:text-lg md:text-[20px] font-bold text-gray-900 leading-tight truncate">
+                            <h3 className="text-sm sm:text-base md:text-[20px] font-bold text-gray-900 leading-tight truncate">
                                 {offer.title}
                             </h3>
                             {offer.subtitle && (
-                                <p className="text-xs sm:text-sm text-gray-500 font-medium truncate mt-0.5">
+                                <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 font-medium truncate mt-0.5">
                                     {offer.subtitle}
                                 </p>
                             )}
                             {offer.code && (
-                                <div className="mt-1.5 flex items-center gap-1.5">
-                                    <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 border border-blue-100/80 px-2 py-0.5 rounded-md">
+                                <div className="mt-1 flex items-center gap-1.5">
+                                    <span className="text-[10px] md:text-[11px] font-semibold text-blue-600 bg-blue-50 border border-blue-100/80 px-2 py-0.5 rounded-md">
                                         Use Code: <span className="font-bold tracking-wider">{offer.code}</span>
                                     </span>
                                 </div>

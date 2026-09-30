@@ -520,9 +520,9 @@ const HomeBottomSections = () => {
 
 
             {/* =========================================================
-                SECTION 3: 📱 DOWNLOAD OUR APP
+                SECTION 3: 📱 DOWNLOAD OUR APP (Hidden on Mobile)
             ========================================================= */}
-            <section className="w-full pt-4 pb-6">
+            <section className="hidden md:block w-full pt-4 pb-6">
                 <div className="relative rounded-3xl sm:rounded-[36px] bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-10 md:p-12 lg:p-14 overflow-hidden shadow-2xl border border-slate-800/80">
                     
                     {/* Subtle Glow Mesh */}

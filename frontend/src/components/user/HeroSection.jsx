@@ -426,27 +426,28 @@ const HeroSection = ({ theme, selectedType }) => {
 
     return (
         <motion.section
-            className={`relative w-full px-5 pt-4 pb-4 flex flex-col gap-4 md:gap-3 md:pt-8 md:pb-4 bg-transparent transition-all duration-300`}
+            className={`relative w-full px-3.5 pt-1 pb-2 flex flex-col gap-2 md:gap-3 md:px-5 md:pt-8 md:pb-4 bg-transparent transition-all duration-300`}
         >
             {/* 1. Header Row (Hides on Scroll) */}
-            <div className={`flex md:hidden items-center justify-between relative h-16 transition-all duration-300 ${isSticky ? 'opacity-0 h-0 overflow-hidden mb-0' : 'opacity-100 mb-0'}`}>
+            <div className={`flex md:hidden items-center justify-between relative h-10 transition-all duration-300 ${isSticky ? 'opacity-0 h-0 overflow-hidden mb-0' : 'opacity-100 mb-0'}`}>
                 {/* Menu Button */}
                 <button
                     onClick={() => setIsMenuOpen(true)}
-                    className="p-2.5 rounded-xl bg-emerald-100/20 hover:bg-emerald-100/35 backdrop-blur-md transition-all duration-300 border border-emerald-100/30 shadow-lg shadow-emerald-900/10 active:scale-90"
+                    className="p-2 rounded-lg bg-emerald-100/20 hover:bg-emerald-100/35 backdrop-blur-md transition-all duration-300 border border-emerald-100/30 shadow-md shadow-emerald-900/10 active:scale-90"
+                    aria-label="Open Menu"
                 >
-                    <Menu size={18} className="text-emerald-50" />
+                    <Menu size={16} className="text-emerald-50" />
                 </button>
 
                 {/* Logo */}
-                <div className="flex flex-col items-start leading-none ml-3">
-                    <span className="text-2xl font-black tracking-tight text-white flex items-center gap-0 drop-shadow-md">
+                <div className="flex flex-col items-start leading-none ml-2.5">
+                    <span className="text-xl md:text-2xl font-black tracking-tight text-white flex items-center gap-0 drop-shadow-md">
                         HOOM<span style={{ color: accentColor }} className="drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]">ZO</span>
                     </span>
                     <motion.div
-                        className="h-[3px] w-8 rounded-full"
+                        className="h-[2.5px] w-6 md:h-[3px] md:w-8 rounded-full"
                         style={{ backgroundColor: accentColor }}
-                        animate={{ width: [32, 24, 32] }}
+                        animate={{ width: [24, 18, 24] }}
                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     />
                 </div>
@@ -456,14 +457,14 @@ const HeroSection = ({ theme, selectedType }) => {
                 {/* Wallet Balance Display */}
                 <button
                     onClick={() => navigate('/wallet')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-400/20 to-emerald-500/10 backdrop-blur-md border border-emerald-300/25 shadow-lg shadow-emerald-900/10 active:scale-95 transition-all duration-300 hover:from-emerald-400/30 hover:to-emerald-500/20"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-400/20 to-emerald-500/10 backdrop-blur-md border border-emerald-300/25 shadow-md shadow-emerald-900/10 active:scale-95 transition-all duration-300 hover:from-emerald-400/30 hover:to-emerald-500/20"
                 >
-                    <div className="w-6 h-6 bg-gradient-to-br from-emerald-300 to-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/30">
-                        <Wallet size={12} className="text-white" />
+                    <div className="w-5 h-5 bg-gradient-to-br from-emerald-300 to-emerald-500 rounded-md flex items-center justify-center shadow-xs shadow-emerald-500/30">
+                        <Wallet size={11} className="text-white" />
                     </div>
                     <div className="flex flex-col items-start leading-none">
-                        <span className="text-[8px] font-bold text-amber-200/80 uppercase tracking-wider">Wallet</span>
-                        <span className="text-[11px] font-extrabold text-white">
+                        <span className="text-[7.5px] font-bold text-amber-200/90 uppercase tracking-wider">Wallet</span>
+                        <span className="text-[10px] font-extrabold text-white">
                             {new Intl.NumberFormat('en-IN', {
                                 style: 'currency',
                                 currency: 'INR',
@@ -506,7 +507,7 @@ const HeroSection = ({ theme, selectedType }) => {
                 layout
                 className={`
                     w-full z-50
-                    relative mt-2 md:mt-4
+                    relative mt-1 md:mt-4
                 `}
             >
                 <motion.div
@@ -515,15 +516,15 @@ const HeroSection = ({ theme, selectedType }) => {
                     onClick={() => setIsSearchFocused(true)}
                     className={`
                         w-full mx-auto max-w-4xl
-                        h-14 md:h-16 ${isSearchFocused ? 'rounded-t-2xl' : 'rounded-full'} shadow-2xl shadow-black/20 border border-white/20 bg-white/95 backdrop-blur-xl
+                        h-11 md:h-16 ${isSearchFocused ? 'rounded-t-xl md:rounded-t-2xl' : 'rounded-xl md:rounded-full'} shadow-lg shadow-black/15 border border-white/25 bg-white/95 backdrop-blur-xl
 
                         flex items-center 
-                        pr-2 pl-2 md:pl-4
-                        gap-2 md:gap-3
+                        pr-1.5 pl-2 md:pr-2 md:pl-4
+                        gap-1.5 md:gap-3
                         relative
                         overflow-visible
                         cursor-pointer
-                        transition-all duration-300
+                        transition-all duration-200
                     `}
                 >
                     {/* Location Dropdown (Desktop only) */}
@@ -538,8 +539,8 @@ const HeroSection = ({ theme, selectedType }) => {
                         </svg>
                     </div>
 
-                    <div className="pl-2 md:pl-0 flex items-center h-full">
-                        <Search size={20} style={{ color: accentColor }} className="z-10" />
+                    <div className="pl-1 md:pl-0 flex items-center h-full">
+                        <Search size={16} style={{ color: accentColor }} className="md:w-5 md:h-5 z-10" />
                     </div>
 
                     <div className="flex-1 h-full flex items-center relative z-20">
@@ -556,7 +557,7 @@ const HeroSection = ({ theme, selectedType }) => {
                                     handleSearchClick();
                                 }
                             }}
-                            className="w-full h-full bg-transparent outline-none font-medium text-sm md:text-base text-gray-800 pr-6"
+                            className="w-full h-full bg-transparent outline-none font-medium text-xs md:text-base text-gray-800 pr-5"
                         />
 
                         {!searchQuery && (
@@ -564,13 +565,13 @@ const HeroSection = ({ theme, selectedType }) => {
                                 <AnimatePresence mode="wait">
                                     <motion.span
                                         key={placeholderIndex}
-                                        initial={{ y: 15, opacity: 0 }}
+                                        initial={{ y: 12, opacity: 0 }}
                                         animate={{ y: 0, opacity: 1 }}
-                                        exit={{ y: -15, opacity: 0 }}
-                                        transition={{ duration: 0.4, ease: "easeOut" }}
-                                        className="text-gray-400 font-normal text-sm md:text-base w-full truncate"
+                                        exit={{ y: -12, opacity: 0 }}
+                                        transition={{ duration: 0.35, ease: "easeOut" }}
+                                        className="text-gray-400 font-normal text-xs md:text-base w-full truncate"
                                     >
-                                        {selectedType?.label === 'Plot' ? "Search by locality, landmark, project or builder..." : placeholders[placeholderIndex]}
+                                        {selectedType?.label === 'Plot' ? "Search locality, project or builder..." : placeholders[placeholderIndex]}
                                     </motion.span>
                                 </AnimatePresence>
                             </div>
@@ -582,9 +583,9 @@ const HeroSection = ({ theme, selectedType }) => {
                                     e.stopPropagation();
                                     setSearchQuery('');
                                 }}
-                                className="absolute right-1 text-gray-400 hover:text-gray-600 z-30 p-1"
+                                className="absolute right-1 text-gray-400 hover:text-gray-600 z-30 p-0.5"
                             >
-                                <X size={16} />
+                                <X size={14} />
                             </button>
                         )}
                     </div>
@@ -603,13 +604,14 @@ const HeroSection = ({ theme, selectedType }) => {
 
                     {/* Filter Icon for Mobile */}
                     <button 
-                        className="md:hidden p-2 rounded-full bg-gray-50/50 hover:bg-gray-100 transition-colors z-10 mr-1"
+                        className="md:hidden p-1.5 rounded-lg bg-gray-100/70 hover:bg-gray-200/70 transition-colors z-10"
                         onClick={(e) => {
                             e.stopPropagation();
                             handleSearchClick();
                         }}
+                        aria-label="Filter"
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="4" y1="6" x2="20" y2="6"></line>
                             <line x1="4" y1="12" x2="20" y2="12"></line>
                             <line x1="4" y1="18" x2="12" y2="18"></line>
