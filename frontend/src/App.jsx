@@ -132,9 +132,11 @@ const Layout = ({ children }) => {
     maintenanceMessage: ''
   });
 
-  // Disable Lenis on Admin routes only (as requested)
-  const isCmsRoute = location.pathname.startsWith('/admin');
-  useLenis(isCmsRoute);
+  // Enable Lenis smooth scrolling for user-facing pages only (not admin or partner)
+  const isPartnerRoute = location.pathname.startsWith('/hotel') && !/^\/hotel\/[0-9a-fA-F]{24}/.test(location.pathname);
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const disableLenis = isPartnerRoute || isAdminRoute;
+  useLenis(disableLenis);
 
   React.useEffect(() => {
     let isMounted = true;

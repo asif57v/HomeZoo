@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -6,16 +6,31 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 export const useLenis = (disabled = false) => {
+    const lenisRef = useRef(null);
+
     useEffect(() => {
-        if (disabled) return;
+        if (disabled) {
+            // Clean up any existing instance when disabled
+            if (lenisRef.current) {
+                lenisRef.current.destroy();
+                lenisRef.current = null;
+                window.lenis = null;
+            }
+            return;
+        }
 
         const lenis = new Lenis({
             duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smooth: true,
-            lerp: 0.08,
-            touchMultiplier: 2, // Improve mobile touch feel
+            lerp: 0.1,
+            smoothWheel: true,
+            smoothTouch: false, // Let native touch scroll handle — feels more natural on mobile
+            touchMultiplier: 1.5,
+            infinite: false,
+            autoResize: true,
         });
+
+        lenisRef.current = lenis;
 
         // Sync ScrollTrigger with Lenis
         lenis.on('scroll', ScrollTrigger.update);
@@ -26,14 +41,25 @@ export const useLenis = (disabled = false) => {
         };
 
         gsap.ticker.add(update);
-
         gsap.ticker.lagSmoothing(0);
 
+        // Expose globally for stop/start control (modals, sidebars, etc.)
         window.lenis = lenis;
 
+        // Handle resize / orientation changes
+        const handleResize = () => {
+            lenis.resize();
+            ScrollTrigger.refresh();
+        };
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
+
         return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('orientationchange', handleResize);
             lenis.destroy();
             gsap.ticker.remove(update);
+            lenisRef.current = null;
             window.lenis = null;
         };
     }, [disabled]);
