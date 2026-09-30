@@ -135,7 +135,10 @@ const BottomNavbar = () => {
     };
 
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] print:hidden pb-safe select-none">
+        <nav
+            className="md:hidden fixed bottom-0 left-0 right-0 z-[100] print:hidden select-none bg-white/95 backdrop-blur-xl"
+            style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 10px)' }}
+        >
             <div className="bg-white/95 backdrop-blur-xl rounded-t-[22px] shadow-[0_-4px_24px_rgba(0,0,0,0.07)] border-t border-slate-100/90 px-1 h-[62px] grid grid-cols-5 items-center relative">
                 {navItems.map((item) => {
                     const IconComponent = item.icon;
