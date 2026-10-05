@@ -268,7 +268,7 @@ const CategoryModal = ({ category, onClose, onSuccess }) => {
             {/* Image Upload */}
             <div>
               <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
-                Card / Hero Image
+                Category Image (shown on Popular tiles & Featured cards)
               </label>
               <div className="flex items-center gap-4">
                 {imagePreview ? (
@@ -295,7 +295,7 @@ const CategoryModal = ({ category, onClose, onSuccess }) => {
                     onChange={handleImageChange}
                     className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
-                  <p className="text-[11px] text-gray-400 mt-1">Recommended: 800x600 for category cards</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Recommended: 800x600 landscape, subject centered. Popular = small image tile, Featured = card with tagline.</p>
                 </div>
               </div>
             </div>

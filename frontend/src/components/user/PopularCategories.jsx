@@ -3,18 +3,21 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 
-const PopularCategories = ({ categories = [], loading = false, onSelectCategory }) => {
+const PopularCategories = ({
+  categories = [],
+  loading = false,
+  onSelectCategory,
+  title = 'Popular Categories'
+}) => {
   const navigate = useNavigate();
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
-          {[1, 2, 3, 4, 5, 6].map((n) => (
-            <div
-              key={n}
-              className="h-10 w-28 bg-gray-200/70 rounded-full animate-pulse shrink-0"
-            />
+      <div className="w-full max-w-7xl mx-auto px-4 py-3">
+        <div className="h-6 w-44 bg-gray-200/70 rounded-md animate-pulse mb-3" />
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-28 w-36 bg-gray-200/70 rounded-2xl animate-pulse shrink-0" />
           ))}
         </div>
       </div>
@@ -34,32 +37,46 @@ const PopularCategories = ({ categories = [], loading = false, onSelectCategory 
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 pt-3 pb-2">
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+    <section className="w-full max-w-7xl mx-auto px-4 pt-3 pb-1">
+      <div className="flex items-center justify-between mb-2.5">
+        <h2 className="text-base sm:text-lg md:text-xl font-black text-gray-900 tracking-tight">{title}</h2>
+        <button
+          type="button"
+          onClick={() => navigate('/search')}
+          className="text-xs sm:text-sm font-bold text-teal-600 hover:text-teal-700"
+        >
+          View All
+        </button>
+      </div>
+
+      <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
         {categories.map((cat, index) => {
-          const IconComponent = LucideIcons[cat.icon] || LucideIcons.Building2;
+          const Icon = LucideIcons[cat.icon] || LucideIcons.Building2;
+          const img = cat.image || cat.bgImage;
 
           return (
             <motion.button
               key={cat._id || index}
-              whileTap={{ scale: 0.95 }}
+              type="button"
+              whileTap={{ scale: 0.96 }}
               onClick={() => handleCategoryClick(cat)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-50 border border-gray-100/90 rounded-full shadow-xs hover:shadow-sm transition-all shrink-0 group text-left"
+              className="relative w-36 h-28 sm:w-44 sm:h-32 rounded-2xl overflow-hidden shrink-0 text-left shadow-sm"
+              style={{ backgroundColor: cat.color || '#0f766e' }}
             >
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 shadow-xs transition-transform group-hover:scale-110"
-                style={{ backgroundColor: cat.color || '#0284c7' }}
-              >
-                <IconComponent size={13} />
-              </div>
-              <span className="text-xs font-bold text-gray-800 tracking-tight whitespace-nowrap">
+              {img ? (
+                <img
+                  src={img}
+                  alt={cat.displayName || cat.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <Icon size={40} className="absolute top-3 right-3 text-white/40" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <span className="absolute bottom-2.5 left-3 right-3 text-white text-sm font-bold drop-shadow truncate">
                 {cat.displayName || cat.name}
               </span>
-              {cat.badge && (
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-blue-50 text-blue-600 rounded-full">
-                  {cat.badge}
-                </span>
-              )}
             </motion.button>
           );
         })}
