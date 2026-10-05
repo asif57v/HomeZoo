@@ -214,18 +214,12 @@ const adminService = {
   },
 
   createCategory: async (data) => {
-    const isFormData = data instanceof FormData;
-    const response = await axiosInstance.post('/categories', data, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await axiosInstance.post('/categories', data);
     return response.data;
   },
 
   updateCategory: async (id, data) => {
-    const isFormData = data instanceof FormData;
-    const response = await axiosInstance.put(`/categories/${id}`, data, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await axiosInstance.put(`/categories/${id}`, data);
     return response.data;
   },
 
@@ -271,18 +265,12 @@ const adminService = {
   },
 
   createBanner: async (data) => {
-    const isFormData = data instanceof FormData;
-    const response = await axiosInstance.post('/banners', data, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await axiosInstance.post('/banners', data);
     return response.data;
   },
 
   updateBanner: async (id, data) => {
-    const isFormData = data instanceof FormData;
-    const response = await axiosInstance.put(`/banners/${id}`, data, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await axiosInstance.put(`/banners/${id}`, data);
     return response.data;
   },
 
@@ -308,18 +296,12 @@ const adminService = {
   },
 
   createOffer: async (data) => {
-    const isFormData = data instanceof FormData;
-    const response = await axiosInstance.post('/offers', data, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await axiosInstance.post('/offers', data);
     return response.data;
   },
 
   updateOffer: async (id, data) => {
-    const isFormData = data instanceof FormData;
-    const response = await axiosInstance.put(`/offers/${id}`, data, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await axiosInstance.put(`/offers/${id}`, data);
     return response.data;
   },
 

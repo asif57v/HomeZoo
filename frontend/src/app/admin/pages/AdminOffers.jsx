@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminService from '../../../services/adminService';
+import { compressImage } from '../../../utils/imageCompressor';
 
 const POPULAR_CITIES = ['Indore', 'Bhopal', 'Mumbai', 'Pune', 'Delhi', 'Bengaluru', 'Goa', 'Ujjain'];
 
@@ -82,15 +83,16 @@ const AdminOffers = () => {
     fetchOffers();
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
+      const compressed = await compressImage(file, 1600, 1600, 0.82);
+      setImageFile(compressed);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressed);
     }
   };
 
