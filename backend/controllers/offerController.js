@@ -1,5 +1,6 @@
 import Offer from '../models/Offer.js';
 import Booking from '../models/Booking.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 /**
  * @desc    Get active offers for users
@@ -8,18 +9,30 @@ import Booking from '../models/Booking.js';
  */
 export const getActiveOffers = async (req, res) => {
   try {
-    const offers = await Offer.find({
+    const { city } = req.query;
+    const now = new Date();
+
+    const filter = {
       isActive: true,
-      startDate: { $lte: new Date() },
+      startDate: { $lte: now },
       $or: [
         { endDate: { $exists: false } },
-        { endDate: { $gte: new Date() } }
+        { endDate: null },
+        { endDate: { $gte: now } }
       ]
-    }).sort({ createdAt: -1 });
+    };
+
+    // City filtering
+    if (city) {
+      filter.$and = [
+        { $or: [{ cities: { $size: 0 } }, { cities: city }] }
+      ];
+    }
+
+    let offers = await Offer.find(filter).sort({ createdAt: -1 });
 
     // Seed default if empty
     if (offers.length === 0) {
-      // ... same seed logic ...
       const seedOffers = [
         {
           title: "New User Special",
@@ -32,7 +45,8 @@ export const getActiveOffers = async (req, res) => {
           image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80",
           bg: "bg-[#004F4D]",
           btnText: "Apply Now",
-          userLimit: 1
+          userLimit: 1,
+          showOnHome: true
         },
         {
           title: "Winter Wonderland",
@@ -46,7 +60,8 @@ export const getActiveOffers = async (req, res) => {
           image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&q=80",
           bg: "bg-[#1A1A1A]",
           btnText: "Grab Deal",
-          userLimit: 2
+          userLimit: 2,
+          showOnHome: true
         }
       ];
 
@@ -86,13 +101,13 @@ export const getActiveOffers = async (req, res) => {
 };
 
 /**
- * @desc    Validate an offer code
+ * @desc    Validate an offer code (enhanced with city, category, firstBookingOnly)
  * @route   POST /api/offers/validate
  * @access  Private
  */
 export const validateOffer = async (req, res) => {
   try {
-    const { code, bookingAmount } = req.body;
+    const { code, bookingAmount, categoryId, city } = req.body;
 
     if (!code) return res.status(400).json({ message: "Coupon code is required" });
 
@@ -132,6 +147,32 @@ export const validateOffer = async (req, res) => {
       return res.status(400).json({ message: `You have reached the usage limit for this coupon (${offer.userLimit || 1} time(s))` });
     }
 
+    // 5. City Check
+    if (city && offer.cities && offer.cities.length > 0) {
+      if (!offer.cities.includes(city)) {
+        return res.status(400).json({ message: `This coupon is not valid in ${city}` });
+      }
+    }
+
+    // 6. Category Check
+    if (categoryId && offer.applicableCategories && offer.applicableCategories.length > 0) {
+      const catMatch = offer.applicableCategories.some(c => c.toString() === categoryId);
+      if (!catMatch) {
+        return res.status(400).json({ message: "This coupon is not applicable for this category" });
+      }
+    }
+
+    // 7. First Booking Only Check
+    if (offer.firstBookingOnly) {
+      const hasBooked = await Booking.countDocuments({
+        userId: req.user._id,
+        bookingStatus: { $nin: ['cancelled', 'rejected'] }
+      });
+      if (hasBooked > 0) {
+        return res.status(400).json({ message: "This coupon is only for first-time bookings" });
+      }
+    }
+
     // Calculate Discount
     let discount = 0;
     if (offer.discountType === 'percentage') {
@@ -142,6 +183,8 @@ export const validateOffer = async (req, res) => {
     } else {
       discount = offer.discountValue;
     }
+
+    // NOTE: usageCount is NOT incremented here - only after successful payment
 
     res.json({
       success: true,
@@ -164,9 +207,22 @@ export const createOffer = async (req, res) => {
   try {
     const offerData = { ...req.body };
 
-    // If a file was uploaded via multer/cloudinary
+    // Parse JSON arrays if sent as strings (from FormData)
+    if (typeof offerData.cities === 'string') {
+      try { offerData.cities = JSON.parse(offerData.cities); } catch (e) { offerData.cities = []; }
+    }
+    if (typeof offerData.applicableCategories === 'string') {
+      try { offerData.applicableCategories = JSON.parse(offerData.applicableCategories); } catch (e) { offerData.applicableCategories = []; }
+    }
+
+    // Handle boolean fields from FormData
+    if (offerData.showOnHome !== undefined) offerData.showOnHome = offerData.showOnHome === true || offerData.showOnHome === 'true';
+    if (offerData.firstBookingOnly !== undefined) offerData.firstBookingOnly = offerData.firstBookingOnly === true || offerData.firstBookingOnly === 'true';
+
+    // If a file was uploaded via multer, upload to Cloudinary
     if (req.file) {
-      offerData.image = req.file.path;
+      const result = await uploadToCloudinary(req.file.path, 'offers');
+      offerData.image = result.url;
     }
 
     const offer = new Offer(offerData);
@@ -179,12 +235,53 @@ export const createOffer = async (req, res) => {
 };
 
 /**
- * @desc    Get all offers for Admin
+ * @desc    Get all offers for Admin (with pagination + search)
  */
 export const getAllOffers = async (req, res) => {
   try {
-    const offers = await Offer.find().sort({ createdAt: -1 });
-    res.json(offers);
+    const { page = 1, limit = 20, search = '', status = '' } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const filter = {};
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { code: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const now = new Date();
+    if (status === 'active') {
+      filter.isActive = true;
+    } else if (status === 'inactive') {
+      filter.isActive = false;
+    } else if (status === 'live') {
+      filter.isActive = true;
+      filter.startDate = { $lte: now };
+      filter.$or = [{ endDate: { $exists: false } }, { endDate: null }, { endDate: { $gte: now } }];
+    } else if (status === 'scheduled') {
+      filter.isActive = true;
+      filter.startDate = { $gt: now };
+    } else if (status === 'expired') {
+      filter.endDate = { $lt: now, $ne: null };
+    }
+
+    const [offers, total] = await Promise.all([
+      Offer.find(filter).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      Offer.countDocuments(filter)
+    ]);
+
+    res.json({
+      offers,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching offers' });
   }
@@ -196,11 +293,22 @@ export const getAllOffers = async (req, res) => {
 export const updateOffer = async (req, res) => {
   try {
     const offerData = { ...req.body };
+
+    if (typeof offerData.cities === 'string') {
+      try { offerData.cities = JSON.parse(offerData.cities); } catch (e) { offerData.cities = []; }
+    }
+    if (typeof offerData.applicableCategories === 'string') {
+      try { offerData.applicableCategories = JSON.parse(offerData.applicableCategories); } catch (e) { offerData.applicableCategories = []; }
+    }
+    if (offerData.showOnHome !== undefined) offerData.showOnHome = offerData.showOnHome === true || offerData.showOnHome === 'true';
+    if (offerData.firstBookingOnly !== undefined) offerData.firstBookingOnly = offerData.firstBookingOnly === true || offerData.firstBookingOnly === 'true';
+
     if (req.file) {
-      offerData.image = req.file.path;
+      const result = await uploadToCloudinary(req.file.path, 'offers');
+      offerData.image = result.url;
     }
 
-    const offer = await Offer.findByIdAndUpdate(req.params.id, offerData, { new: true });
+    const offer = await Offer.findByIdAndUpdate(req.params.id, offerData, { new: true, runValidators: true });
     if (!offer) return res.status(404).json({ message: "Offer not found" });
 
     res.json(offer);
@@ -219,5 +327,23 @@ export const deleteOffer = async (req, res) => {
     res.json({ message: "Offer deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting offer' });
+  }
+};
+
+/**
+ * @desc    Toggle offer active status (Admin)
+ * @route   PATCH /api/offers/:id/toggle-active
+ * @access  Admin
+ */
+export const toggleOfferActive = async (req, res) => {
+  try {
+    const offer = await Offer.findById(req.params.id);
+    if (!offer) return res.status(404).json({ message: 'Offer not found' });
+
+    offer.isActive = !offer.isActive;
+    await offer.save();
+    res.json(offer);
+  } catch (error) {
+    res.status(500).json({ message: 'Error toggling offer status' });
   }
 };

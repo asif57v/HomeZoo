@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroSection from '../../components/user/HeroSection';
+import PopularCategories from '../../components/user/PopularCategories';
+import BannerCarousel from '../../components/user/BannerCarousel';
 import ExclusiveOffers from '../../components/user/ExclusiveOffers';
+import FeaturedCategories from '../../components/user/FeaturedCategories';
 import PropertyTypeFilter from '../../components/user/PropertyTypeFilter';
 import PropertyFeed from '../../components/user/PropertyFeed';
 import CollectionSection from '../../components/user/CollectionSection';
@@ -10,299 +13,405 @@ import LatestProjectsBanner from '../../components/user/LatestProjectsBanner';
 import PayHostelFeesSection from '../../components/user/PayHostelFeesSection';
 import HomeBottomSections from '../../components/user/HomeBottomSections';
 import { categoryService } from '../../services/categoryService';
+import homeService from '../../services/homeService';
 
 // Category Theme Map - Professional palettes inspired by Housing.com
 const THEME_MAP = {
-    Hotel: {
-        darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
-        pageBg: '#F8FAFC',
-        accent: '#005CA8',
-        cornerImage: '/pg_hero_art.png',
-        cornerImage2: '/pg_hero_art_2.png'
-    },
-    'PG/Co-Living': {
-        darkBg: 'linear-gradient(135deg, #881337 0%, #9F1239 100%)', // Rose
-        pageBg: '#FFF1F2',
-        accent: '#E11D48',
-        cornerImage: '/pg_hero_art.png',
-        cornerImage2: '/pg_hero_art_2.png'
-    },
-    Rent: {
-        darkBg: 'linear-gradient(135deg, #4C1D95 0%, #5B21B6 100%)', // Violet
-        pageBg: '#F5F3FF',
-        accent: '#8B5CF6',
-        cornerImage: '/rent_hero_art.png',
-        cornerImage2: '/rent_hero_art_2.png'
-    },
-    Buy: {
-        darkBg: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)', // Blue
-        pageBg: '#EFF6FF',
-        accent: '#3B82F6',
-        cornerImage: '/buy_hero_art.png',
-        cornerImage2: '/buy_hero_art_2.png'
-    },
-    Plot: {
-        darkBg: 'linear-gradient(135deg, #A84900 0%, #D97706 100%)', // Base gradient
-        bgImage: '/plot_hero_bg.png', // Image layer
-        cornerImage: '/plot_hero_art.png',
-        cornerImage2: '/plot_hero_art_2.png',
-        pageBg: '#FFFBEB',
-        accent: '#F59E0B'
-    },
-    default: {
-        darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
-        pageBg: '#F8FAFC',
-        accent: '#005CA8',
-        cornerImage: '/buy_hero_art.png',
-        cornerImage2: '/buy_hero_art_2.png'
-    }
+  Hotel: {
+    darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
+    pageBg: '#F8FAFC',
+    accent: '#005CA8',
+    cornerImage: '/pg_hero_art.png',
+    cornerImage2: '/pg_hero_art_2.png'
+  },
+  'PG/Co-Living': {
+    darkBg: 'linear-gradient(135deg, #881337 0%, #9F1239 100%)', // Rose
+    pageBg: '#FFF1F2',
+    accent: '#E11D48',
+    cornerImage: '/pg_hero_art.png',
+    cornerImage2: '/pg_hero_art_2.png'
+  },
+  Rent: {
+    darkBg: 'linear-gradient(135deg, #4C1D95 0%, #5B21B6 100%)', // Violet
+    pageBg: '#F5F3FF',
+    accent: '#8B5CF6',
+    cornerImage: '/rent_hero_art.png',
+    cornerImage2: '/rent_hero_art_2.png'
+  },
+  Buy: {
+    darkBg: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)', // Blue
+    pageBg: '#EFF6FF',
+    accent: '#3B82F6',
+    cornerImage: '/buy_hero_art.png',
+    cornerImage2: '/buy_hero_art_2.png'
+  },
+  Plot: {
+    darkBg: 'linear-gradient(135deg, #A84900 0%, #D97706 100%)', // Base gradient
+    bgImage: '/plot_hero_bg.png', // Image layer
+    cornerImage: '/plot_hero_art.png',
+    cornerImage2: '/plot_hero_art_2.png',
+    pageBg: '#FFFBEB',
+    accent: '#F59E0B'
+  },
+  default: {
+    darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
+    pageBg: '#F8FAFC',
+    accent: '#005CA8',
+    cornerImage: '/buy_hero_art.png',
+    cornerImage2: '/buy_hero_art_2.png'
+  }
 };
 
 const Home = () => {
-    const [selectedType, setSelectedType] = useState({ id: null, label: 'All' });
-    const [pgFilters, setPgFilters] = useState({ gender: undefined, occupancy: undefined, foodIncluded: undefined });
-    const [sectionIds, setSectionIds] = useState({ pg: null, rent: null, buy: null, plot: null });
-    const [categoriesData, setCategoriesData] = useState([]);
+  const [selectedType, setSelectedType] = useState({ id: null, label: 'All' });
+  const [pgFilters, setPgFilters] = useState({ gender: undefined, occupancy: undefined, foodIncluded: undefined });
+  const [sectionIds, setSectionIds] = useState({ pg: null, rent: null, buy: null, plot: null });
+  const [categoriesData, setCategoriesData] = useState([]);
 
-    // Fetch Category IDs for the homepage sections
-    useEffect(() => {
-        const fetchIds = async () => {
-            try {
-                const categories = await categoryService.getActiveCategories();
-                setCategoriesData(categories);
-                const findCategoryIds = (names) => {
-                    const searchNames = Array.isArray(names) ? names : [names];
-                    const found = categories.filter(c =>
-                        searchNames.some(n =>
-                            (c.displayName || '').toLowerCase() === n.toLowerCase() ||
-                            (c.name || '').toLowerCase() === n.toLowerCase()
-                        )
-                    );
-                    return found.map(c => c._id).length > 0 ? found.map(c => c._id).join(',') : null;
-                };
+  // Unified Home Screen Data
+  const [homeData, setHomeData] = useState({
+    popularCategories: [],
+    featuredCategories: [],
+    banners: { HOME_TOP: [], HOME_MIDDLE: [], CATEGORY_PAGE: [] },
+    offers: []
+  });
+  const [homeLoading, setHomeLoading] = useState(true);
 
-                setSectionIds({
-                    pg: findCategoryIds(['hostel', 'pg', 'pg/co-living', 'co-living', 'pg/co-livinig']),
-                    rent: findCategoryIds('Rent'),
-                    buy: findCategoryIds('Buy'),
-                    plot: findCategoryIds(['Plot', 'Plots'])
-                });
-            } catch (err) {
-                console.error("Failed to fetch section IDs", err);
-            }
-        };
-        fetchIds();
-    }, []);
+  // Extract city from localStorage or default to Indore
+  const getSelectedCity = () => {
+    const rawLocation = localStorage.getItem('user_location') || 'Indore';
+    const parts = rawLocation.split(',');
+    return parts.length > 1 ? parts[parts.length - 1].trim() : rawLocation.trim();
+  };
 
-    const activeTheme = useMemo(() => {
-        if (!selectedType.label || selectedType.label === 'All' || !selectedType.id) return THEME_MAP.default;
-        const baseTheme = THEME_MAP[selectedType.label] || THEME_MAP.default;
-        
-        // Handle case where selectedType.id might be multiple comma-separated IDs
-        const selectedIds = String(selectedType.id).split(',');
-        const selectedCategoryData = categoriesData.find(c => selectedIds.includes(String(c._id)));
-        
-        return {
-            ...baseTheme,
-            bgImage: selectedCategoryData?.bgImage || baseTheme.bgImage,
-            cornerImage: baseTheme.cornerImage,
-            cornerImage2: baseTheme.cornerImage2
-        };
-    }, [selectedType, categoriesData]);
+  const [currentCity, setCurrentCity] = useState(getSelectedCity());
 
-    const handleTypeSelect = (id, label) => {
-        setSelectedType({ id, label });
-        // Reset PG filters when switching tabs
-        setPgFilters({ gender: undefined, occupancy: undefined, foodIncluded: undefined });
+  // Listen to storage/location changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const city = getSelectedCity();
+      if (city !== currentCity) {
+        setCurrentCity(city);
+      }
     };
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(handleStorageChange, 2000);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [currentCity]);
 
-    const pageBg = activeTheme.pageBg || '#f8fafc';
+  // Fetch Unified Home Data
+  useEffect(() => {
+    const fetchHome = async () => {
+      try {
+        setHomeLoading(true);
+        const data = await homeService.getHomeData(currentCity);
+        if (data) {
+          setHomeData({
+            popularCategories: data.popularCategories || [],
+            featuredCategories: data.featuredCategories || [],
+            banners: data.banners || { HOME_TOP: [], HOME_MIDDLE: [], CATEGORY_PAGE: [] },
+            offers: data.offers || []
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch home data:', err);
+      } finally {
+        setHomeLoading(false);
+      }
+    };
+    fetchHome();
+  }, [currentCity]);
 
-    // Section Component
-    const HomeSection = ({ title, typeId, subtitle }) => (
-        <div className="py-2.5 md:py-4 border-b border-gray-100 last:border-0 relative">
-            <div className="flex justify-between items-end px-3.5 md:px-0 mb-1.5 md:mb-2">
-                <div>
-                    <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900">{title}</h2>
-                    {subtitle && <p className="text-xs md:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
-                </div>
-                <button
-                    onClick={() => {
-                        const labelMap = {
-                            [sectionIds.pg]: 'PG/Co-Living',
-                            [sectionIds.rent]: 'Rent',
-                            [sectionIds.buy]: 'Buy',
-                            [sectionIds.plot]: 'Plot'
-                        };
-                        handleTypeSelect(typeId, labelMap[typeId] || 'All');
-                        // Scroll to top or handle navigation if needed, 
-                        // dependent on standard behavior (here state update triggers re-render to grid view)
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-xs md:text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
-                >
-                    View All
-                </button>
-            </div>
-            <PropertyFeed selectedType={typeId} viewMode="carousel" limit={8} />
+  // Fetch Category IDs for the homepage sections
+  useEffect(() => {
+    const fetchIds = async () => {
+      try {
+        const categories = await categoryService.getActiveCategories();
+        setCategoriesData(categories);
+        const findCategoryIds = (names) => {
+          const searchNames = Array.isArray(names) ? names : [names];
+          const found = categories.filter((c) =>
+            searchNames.some(
+              (n) =>
+                (c.displayName || '').toLowerCase() === n.toLowerCase() ||
+                (c.name || '').toLowerCase() === n.toLowerCase()
+            )
+          );
+          return found.map((c) => c._id).length > 0 ? found.map((c) => c._id).join(',') : null;
+        };
+
+        setSectionIds({
+          pg: findCategoryIds(['hostel', 'pg', 'pg/co-living', 'co-living', 'pg/co-livinig']),
+          rent: findCategoryIds('Rent'),
+          buy: findCategoryIds('Buy'),
+          plot: findCategoryIds(['Plot', 'Plots'])
+        });
+      } catch (err) {
+        console.error('Failed to fetch section IDs', err);
+      }
+    };
+    fetchIds();
+  }, []);
+
+  const activeTheme = useMemo(() => {
+    if (!selectedType.label || selectedType.label === 'All' || !selectedType.id) return THEME_MAP.default;
+    const baseTheme = THEME_MAP[selectedType.label] || THEME_MAP.default;
+
+    // Handle case where selectedType.id might be multiple comma-separated IDs
+    const selectedIds = String(selectedType.id).split(',');
+    const selectedCategoryData = categoriesData.find((c) => selectedIds.includes(String(c._id)));
+
+    return {
+      ...baseTheme,
+      bgImage: selectedCategoryData?.bgImage || baseTheme.bgImage,
+      cornerImage: baseTheme.cornerImage,
+      cornerImage2: baseTheme.cornerImage2
+    };
+  }, [selectedType, categoriesData]);
+
+  const handleTypeSelect = (id, label) => {
+    setSelectedType({ id, label });
+    // Reset PG filters when switching tabs
+    setPgFilters({ gender: undefined, occupancy: undefined, foodIncluded: undefined });
+  };
+
+  const handleCategorySelectFromBannerOrChip = (categoryId, categoryName) => {
+    handleTypeSelect(categoryId, categoryName);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const pageBg = activeTheme.pageBg || '#f8fafc';
+
+  // Section Component
+  const HomeSection = ({ title, typeId, subtitle }) => (
+    <div className="py-2.5 md:py-4 border-b border-gray-100 last:border-0 relative">
+      <div className="flex justify-between items-end px-3.5 md:px-0 mb-1.5 md:mb-2">
+        <div>
+          <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900">{title}</h2>
+          {subtitle && <p className="text-xs md:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
-    );
+        <button
+          onClick={() => {
+            const labelMap = {
+              [sectionIds.pg]: 'PG/Co-Living',
+              [sectionIds.rent]: 'Rent',
+              [sectionIds.buy]: 'Buy',
+              [sectionIds.plot]: 'Plot'
+            };
+            handleTypeSelect(typeId, labelMap[typeId] || 'All');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="text-xs md:text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
+        >
+          View All
+        </button>
+      </div>
+      <PropertyFeed selectedType={typeId} viewMode="carousel" limit={8} />
+    </div>
+  );
 
-    return (
-        <main className="min-h-screen pb-24 transition-colors duration-700" style={{ backgroundColor: pageBg }}>
-            {/* Hero: dark background only (no images), changes per category */}
-            <div className="relative overflow-visible min-h-0 md:min-h-[340px]">
-                <motion.div
-                    className="absolute inset-0 w-full h-full rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
-                    animate={{ background: activeTheme.darkBg || THEME_MAP.default.darkBg }}
-                    transition={{ duration: 0.6, ease: 'easeInOut' }}
-                />
-                
-                {/* Image Layer for specific themes like Plot */}
-                <motion.div
-                    className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
-                    style={{ 
-                        backgroundPosition: 'center bottom', 
-                        backgroundSize: 'cover',
-                        backgroundImage: activeTheme.bgImage ? `url(${activeTheme.bgImage})` : 'none'
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: activeTheme.bgImage ? 1 : 0 }}
-                    transition={{ duration: 0.6, ease: 'easeInOut' }}
-                />
+  return (
+    <main className="min-h-screen pb-24 transition-colors duration-700" style={{ backgroundColor: pageBg }}>
+      {/* Hero: dark background only (no images), changes per category */}
+      <div className="relative overflow-visible min-h-0 md:min-h-[340px]">
+        <motion.div
+          className="absolute inset-0 w-full h-full rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
+          animate={{ background: activeTheme.darkBg || THEME_MAP.default.darkBg }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
+        />
 
-                {/* Floating Corner Images */}
-                <AnimatePresence mode="wait">
-                    {activeTheme.cornerImage && (
-                        <motion.div
-                            key={activeTheme.cornerImage}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.1 }}
-                            transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10 rounded-b-[1.5rem] md:rounded-b-none"
-                        >
-                            {/* Left Corner */}
-                            <img 
-                                src={activeTheme.cornerImage} 
-                                alt="" 
-                                className="w-[240px] md:w-[450px] object-cover opacity-100 -ml-16 md:-ml-24 transform -translate-y-8"
-                                style={{ 
-                                    WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
-                                    maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
-                                }} 
-                            />
-                            {/* Right Corner (Distinct Image, no mirroring) */}
-                            <img 
-                                src={activeTheme.cornerImage2} 
-                                alt="" 
-                                className="w-[240px] md:w-[450px] object-cover opacity-100 -mr-16 md:-mr-24 transform -translate-y-8"
-                                style={{ 
-                                    WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
-                                    maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
-                                }} 
-                            />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+        {/* Image Layer for specific themes like Plot */}
+        <motion.div
+          className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
+          style={{
+            backgroundPosition: 'center bottom',
+            backgroundSize: 'cover',
+            backgroundImage: activeTheme.bgImage ? `url(${activeTheme.bgImage})` : 'none'
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: activeTheme.bgImage ? 1 : 0 }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
+        />
 
-                {/* Content on top */}
-                <div className="relative z-40 flex flex-col min-h-0 md:min-h-[340px]">
-                    <HeroSection theme={activeTheme} selectedType={selectedType} />
+        {/* Floating Corner Images */}
+        <AnimatePresence mode="wait">
+          {activeTheme.cornerImage && (
+            <motion.div
+              key={activeTheme.cornerImage}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+              className="absolute inset-0 pointer-events-none flex justify-between items-center overflow-hidden z-10 rounded-b-[1.5rem] md:rounded-b-none"
+            >
+              {/* Left Corner */}
+              <img
+                src={activeTheme.cornerImage}
+                alt=""
+                className="w-[240px] md:w-[450px] object-cover opacity-100 -ml-16 md:-ml-24 transform -translate-y-8"
+                style={{
+                  WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
+                  maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
+                }}
+              />
+              {/* Right Corner (Distinct Image, no mirroring) */}
+              <img
+                src={activeTheme.cornerImage2}
+                alt=""
+                className="w-[240px] md:w-[450px] object-cover opacity-100 -mr-16 md:-mr-24 transform -translate-y-8"
+                style={{
+                  WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)',
+                  maskImage: 'radial-gradient(circle at center, black 30%, transparent 70%)'
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-                    {/* Small gap between search bar and category (mobile); minimal on desktop */}
-                    <div className="pt-0 flex-shrink-0 md:pt-1 md:min-h-0" />
+        {/* Content on top */}
+        <div className="relative z-40 flex flex-col min-h-0 md:min-h-[340px]">
+          <HeroSection theme={activeTheme} selectedType={selectedType} />
 
-                    {/* Filter Bar at bottom of hero */}
-                    <div className="pt-1 pb-2 md:pb-4">
-                        <PropertyTypeFilter
-                            selectedType={selectedType.id}
-                            selectedLabel={selectedType.label}
-                            onSelectType={handleTypeSelect}
-                            theme={activeTheme}
-                        />
-                    </div>
-                </div>
+          {/* Small gap between search bar and category */}
+          <div className="pt-0 flex-shrink-0 md:pt-1 md:min-h-0" />
+
+          {/* Filter Bar at bottom of hero */}
+          <div className="pt-1 pb-2 md:pb-4">
+            <PropertyTypeFilter
+              selectedType={selectedType.id}
+              selectedLabel={selectedType.label}
+              onSelectType={handleTypeSelect}
+              theme={activeTheme}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Home Sections when "All" tab is active */}
+      {(!selectedType.id || selectedType.label === 'All') ? (
+        <div className="flex flex-col gap-2">
+          {/* 1. Popular Categories (Chips / Small icons on top) */}
+          <PopularCategories
+            categories={homeData.popularCategories}
+            loading={homeLoading}
+            onSelectCategory={handleCategorySelectFromBannerOrChip}
+          />
+
+          {/* 2. Top Banner Carousel (HOME_TOP) */}
+          <BannerCarousel
+            banners={homeData.banners?.HOME_TOP}
+            loading={homeLoading}
+            placement="HOME_TOP"
+          />
+
+          {/* 3. Exclusive Offers + Pay Hostel Fees Side-by-Side */}
+          <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-stretch md:pr-5">
+            <div className="flex-1 min-w-0">
+              <ExclusiveOffers
+                offers={homeData.offers}
+                loading={homeLoading}
+                city={currentCity}
+              />
             </div>
+            <div className="w-full md:w-[300px] shrink-0 px-3.5 md:px-0 mt-3 md:mt-2">
+              <PayHostelFeesSection />
+            </div>
+          </div>
 
-            {/* Exclusive Offers and Pay Hostel Fees Side-by-Side (Only shown for 'All' tab) */}
-            {(!selectedType.id || selectedType.label === 'All') && (
-                <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-stretch md:pr-5">
-                    <div className="flex-1 min-w-0">
-                        <ExclusiveOffers />
-                    </div>
-                    <div className="w-full md:w-[300px] shrink-0 px-3.5 md:px-0 mt-3 md:mt-2">
-                        <PayHostelFeesSection />
-                    </div>
-                </div>
+          {/* 4. Featured Categories (Rich Image Cards) */}
+          <FeaturedCategories
+            categories={homeData.featuredCategories}
+            loading={homeLoading}
+            onSelectCategory={handleCategorySelectFromBannerOrChip}
+          />
+
+          {/* 5. Existing Section 1: Find Your Perfect Stay (PG/Hostels) */}
+          <div className="mt-2 max-w-7xl mx-auto w-full px-3.5 md:px-0">
+            {sectionIds.pg && (
+              <HomeSection
+                title="Find Your Perfect Stay"
+                subtitle="Top rated PGs and Hostels near you"
+                typeId={sectionIds.pg}
+              />
             )}
+          </div>
 
-            <div className="mt-2 max-w-7xl mx-auto">
-                {(!selectedType.id || selectedType.label === 'All') ? (
-                    // Show Categorized Sections when "All" is selected
-                    <div className="flex flex-col gap-2">
-                        {sectionIds.pg && (
-                            <HomeSection
-                                title="Find Your Perfect Stay"
-                                subtitle="Top rated PGs and Hostels near you"
-                                typeId={sectionIds.pg}
-                            />
-                        )}
+          {/* 6. Middle Banner Carousel (HOME_MIDDLE) */}
+          <BannerCarousel
+            banners={homeData.banners?.HOME_MIDDLE}
+            loading={homeLoading}
+            placement="HOME_MIDDLE"
+          />
 
-                        {/* YouTube style Reels Section */}
-                        <ReelSection category={selectedType.label} />
+          {/* 7. YouTube Style Reel Section */}
+          <div className="max-w-7xl mx-auto w-full">
+            <ReelSection category={selectedType.label} />
+          </div>
 
-                        {sectionIds.rent && (
-                            <HomeSection
-                                title="Properties for Rent"
-                                subtitle="Apartments, Homes, and Villas for Rent"
-                                typeId={sectionIds.rent}
-                            />
-                        )}
-                        {sectionIds.buy && (
-                            <HomeSection
-                                title="Dream Homes for Sale"
-                                subtitle="Buy your perfect home today"
-                                typeId={sectionIds.buy}
-                            />
-                        )}
-                        {sectionIds.plot && (
-                            <HomeSection
-                                title="Premium Plots & Land"
-                                subtitle="Invest in the best locations"
-                                typeId={sectionIds.plot}
-                            />
-                        )}
-                    </div>
-                ) : (
-                    // Show Filtered Grid when a specific category is selected
-                    <div className="flex flex-col gap-2 md:gap-3">
-                        {/* 1. Latest Projects Banner for the category */}
-                        <LatestProjectsBanner
-                            categoryId={selectedType.id}
-                            categoryName={selectedType.label}
-                            theme={activeTheme}
-                        />
+          {/* 8. Categorized Property Sections */}
+          <div className="max-w-7xl mx-auto w-full px-3.5 md:px-0 flex flex-col gap-2">
+            {sectionIds.rent && (
+              <HomeSection
+                title="Properties for Rent"
+                subtitle="Apartments, Homes, and Villas for Rent"
+                typeId={sectionIds.rent}
+              />
+            )}
+            {sectionIds.buy && (
+              <HomeSection
+                title="Dream Homes for Sale"
+                subtitle="Buy your perfect home today"
+                typeId={sectionIds.buy}
+              />
+            )}
+            {sectionIds.plot && (
+              <HomeSection
+                title="Premium Plots & Land"
+                subtitle="Invest in the best locations"
+                typeId={sectionIds.plot}
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+        // Show Filtered Grid when a specific category is selected
+        <div className="mt-2 max-w-7xl mx-auto flex flex-col gap-2 md:gap-3">
+          {/* Category Banner if configured for this placement */}
+          {homeData.banners?.CATEGORY_PAGE?.length > 0 && (
+            <BannerCarousel
+              banners={homeData.banners.CATEGORY_PAGE}
+              placement="CATEGORY_PAGE"
+            />
+          )}
 
-                        {selectedType.label === 'PG/Co-Living' && (
-                            <CollectionSection onFilter={(filters) => setPgFilters(filters)} activeFilters={pgFilters} />
-                        )}
+          {/* 1. Latest Projects Banner for the category */}
+          <LatestProjectsBanner
+            categoryId={selectedType.id}
+            categoryName={selectedType.label}
+            theme={activeTheme}
+          />
 
-                        {/* 2. Reels for specific Category */}
-                        <ReelSection category={selectedType.label} />
+          {selectedType.label === 'PG/Co-Living' && (
+            <CollectionSection onFilter={(filters) => setPgFilters(filters)} activeFilters={pgFilters} />
+          )}
 
-                        {/* 3. Main Property Feed */}
-                        <PropertyFeed selectedType={selectedType.id} viewMode="grid" extraFilters={pgFilters} />
-                    </div>
-                )}
+          {/* 2. Reels for specific Category */}
+          <ReelSection category={selectedType.label} />
 
-                {/* Newly Redesigned Bottom Sections (Behind Premium Plots & Land) */}
-                <div className="px-5 md:px-0">
-                    <HomeBottomSections />
-                </div>
-            </div>
-        </main>
-    );
+          {/* 3. Main Property Feed */}
+          <PropertyFeed selectedType={selectedType.id} viewMode="grid" extraFilters={pgFilters} />
+        </div>
+      )}
+
+      {/* Bottom Sections (Reviews, FAQ, Downloads, etc.) */}
+      <div className="mt-6 max-w-7xl mx-auto px-5 md:px-0">
+        <HomeBottomSections />
+      </div>
+    </main>
+  );
 };
 
 export default Home;

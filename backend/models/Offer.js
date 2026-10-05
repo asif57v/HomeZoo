@@ -73,11 +73,45 @@ const offerSchema = new mongoose.Schema({
     type: Number, // times a single user can use it
     default: 1
   },
+
+  // --- New fields for admin-controlled home screen ---
+
+  // City targeting (empty array = all cities)
+  cities: {
+    type: [String],
+    default: []
+  },
+
+  // Category targeting (refs to PropertyCategory, empty = all)
+  applicableCategories: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PropertyCategory'
+  }],
+
+  // Only for users who haven't booked before
+  firstBookingOnly: {
+    type: Boolean,
+    default: false
+  },
+
+  // Show this offer on the home screen
+  showOnHome: {
+    type: Boolean,
+    default: true
+  },
+
   isActive: {
     type: Boolean,
     default: true
   }
 }, { timestamps: true });
 
+// Indexes for performance
+offerSchema.index({ code: 1 });
+offerSchema.index({ isActive: 1 });
+offerSchema.index({ isActive: 1, startDate: 1, endDate: 1 });
+offerSchema.index({ isActive: 1, showOnHome: 1 });
+
 const Offer = mongoose.model('Offer', offerSchema);
 export default Offer;
+

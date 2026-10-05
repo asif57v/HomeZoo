@@ -61,6 +61,7 @@ const AdminReviews = React.lazy(() => import('./app/admin/pages/AdminReviews'));
 const AdminFinance = React.lazy(() => import('./pages/admin/FinanceAndPayoutsPage'));
 const AdminSettings = React.lazy(() => import('./app/admin/pages/AdminSettings'));
 const AdminOffers = React.lazy(() => import('./app/admin/pages/AdminOffers'));
+const AdminBanners = React.lazy(() => import('./app/admin/pages/AdminBanners'));
 const AdminProtectedRoute = React.lazy(() => import('./app/admin/AdminProtectedRoute'));
 const AdminProperties = React.lazy(() => import('./app/admin/pages/AdminProperties'));
 const AdminLegalPages = React.lazy(() => import('./app/admin/pages/AdminLegalPages'));
@@ -515,6 +516,7 @@ function App() {
                 <Route path="properties" element={<AdminProperties />} />
                 <Route path="properties/:id" element={<AdminHotelDetail />} />
                 <Route path="offers" element={<AdminOffers />} />
+                <Route path="banners" element={<AdminBanners />} />
                 <Route path="notifications" element={<AdminNotifications />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="categories" element={<AdminCategories />} />

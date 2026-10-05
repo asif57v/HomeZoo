@@ -208,18 +208,24 @@ const adminService = {
   },
 
   // Category Management
-  getAllCategories: async () => {
-    const response = await axiosInstance.get('/categories/all');
+  getAllCategories: async (params) => {
+    const response = await axiosInstance.get('/categories/all', { params });
     return response.data;
   },
 
   createCategory: async (data) => {
-    const response = await axiosInstance.post('/categories', data);
+    const isFormData = data instanceof FormData;
+    const response = await axiosInstance.post('/categories', data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
     return response.data;
   },
 
   updateCategory: async (id, data) => {
-    const response = await axiosInstance.put(`/categories/${id}`, data);
+    const isFormData = data instanceof FormData;
+    const response = await axiosInstance.put(`/categories/${id}`, data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
     return response.data;
   },
 
@@ -228,8 +234,102 @@ const adminService = {
     return response.data;
   },
 
+  toggleCategoryActive: async (id) => {
+    const response = await axiosInstance.patch(`/categories/${id}/toggle-active`);
+    return response.data;
+  },
+
+  toggleCategoryPopular: async (id) => {
+    const response = await axiosInstance.patch(`/categories/${id}/toggle-popular`);
+    return response.data;
+  },
+
+  toggleCategoryFeatured: async (id) => {
+    const response = await axiosInstance.patch(`/categories/${id}/toggle-featured`);
+    return response.data;
+  },
+
   reorderCategories: async (categories) => {
     const response = await axiosInstance.put('/categories/reorder', { categories });
+    return response.data;
+  },
+
+  reorderPopularCategories: async (categories) => {
+    const response = await axiosInstance.put('/categories/reorder-popular', { categories });
+    return response.data;
+  },
+
+  reorderFeaturedCategories: async (categories) => {
+    const response = await axiosInstance.put('/categories/reorder-featured', { categories });
+    return response.data;
+  },
+
+  // Banner Management
+  getAllBanners: async (params) => {
+    const response = await axiosInstance.get('/banners/all', { params });
+    return response.data;
+  },
+
+  createBanner: async (data) => {
+    const isFormData = data instanceof FormData;
+    const response = await axiosInstance.post('/banners', data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
+    return response.data;
+  },
+
+  updateBanner: async (id, data) => {
+    const isFormData = data instanceof FormData;
+    const response = await axiosInstance.put(`/banners/${id}`, data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
+    return response.data;
+  },
+
+  deleteBanner: async (id) => {
+    const response = await axiosInstance.delete(`/banners/${id}`);
+    return response.data;
+  },
+
+  toggleBannerActive: async (id) => {
+    const response = await axiosInstance.patch(`/banners/${id}/toggle-active`);
+    return response.data;
+  },
+
+  reorderBanners: async (banners) => {
+    const response = await axiosInstance.put('/banners/reorder', { banners });
+    return response.data;
+  },
+
+  // Offer Management
+  getAllOffers: async (params) => {
+    const response = await axiosInstance.get('/offers/all', { params });
+    return response.data;
+  },
+
+  createOffer: async (data) => {
+    const isFormData = data instanceof FormData;
+    const response = await axiosInstance.post('/offers', data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
+    return response.data;
+  },
+
+  updateOffer: async (id, data) => {
+    const isFormData = data instanceof FormData;
+    const response = await axiosInstance.put(`/offers/${id}`, data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
+    return response.data;
+  },
+
+  deleteOffer: async (id) => {
+    const response = await axiosInstance.delete(`/offers/${id}`);
+    return response.data;
+  },
+
+  toggleOfferActive: async (id) => {
+    const response = await axiosInstance.patch(`/offers/${id}/toggle-active`);
     return response.data;
   },
   getReelAnalysis: async () => {

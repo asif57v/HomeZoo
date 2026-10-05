@@ -24,11 +24,19 @@ const propertyCategorySchema = new mongoose.Schema({
         type: String,
         default: 'Building2'  // Lucide icon name
     },
+    image: {
+        type: String,
+        default: ''  // Image URL for featured category cards
+    },
     color: {
         type: String,
         default: '#004F4D'
     },
     badge: String,  // "BUSINESS & LEISURE", "VACATION", etc.
+    tagline: {
+        type: String,
+        default: ''  // Short tagline for featured category cards
+    },
     bgImage: {
         type: String,
         default: ''
@@ -38,6 +46,26 @@ const propertyCategorySchema = new mongoose.Schema({
     order: {
         type: Number,
         default: 999  // Static tabs will be 0-6
+    },
+
+    // Popular Categories (small icon chips/grid on home screen)
+    isPopular: {
+        type: Boolean,
+        default: false
+    },
+    popularOrder: {
+        type: Number,
+        default: 999
+    },
+
+    // Featured Categories (larger image cards on home screen)
+    isFeatured: {
+        type: Boolean,
+        default: false
+    },
+    featuredOrder: {
+        type: Number,
+        default: 999
     },
 
     // Status
@@ -58,5 +86,11 @@ const propertyCategorySchema = new mongoose.Schema({
         features: [String]
     }
 }, { timestamps: true });
+
+// Indexes for performance
+propertyCategorySchema.index({ slug: 1 });
+propertyCategorySchema.index({ isActive: 1 });
+propertyCategorySchema.index({ isActive: 1, isPopular: 1, popularOrder: 1 });
+propertyCategorySchema.index({ isActive: 1, isFeatured: 1, featuredOrder: 1 });
 
 export default mongoose.model('PropertyCategory', propertyCategorySchema);

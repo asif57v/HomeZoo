@@ -148,7 +148,11 @@ import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import reelRoutes from './routes/reelRoutes.js';
 import hostelFeeRoutes from './routes/hostelFeeRoutes.js';
 import fcmRoutes from './routes/fcmRoutes.js';
+import homeRoutes from './routes/homeRoutes.js';
+import bannerRoutes from './routes/bannerRoutes.js';
 
+app.use('/api/home', homeRoutes);
+app.use('/api/banners', bannerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
