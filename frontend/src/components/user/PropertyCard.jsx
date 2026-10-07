@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 
-const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved }) => {
+const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved, compact = false }) => {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(initialIsSaved || false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -142,7 +142,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved 
       className={`group bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 hover:-translate-y-1 ${className}`}
     >
       {/* Image Container - Reduced height for compact look */}
-      <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
+      <div className={`relative ${compact ? 'h-[104px]' : 'h-40'} w-full bg-gray-100 overflow-hidden`}>
         <img
           src={imageSrc}
           alt={displayName}
@@ -172,12 +172,6 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved 
           </div>
 
           {/* Subscription/Premium Tag */}
-          {(item.rankingWeight > 0 || item.isFeatured) && (
-            <span className="bg-[#FFD700] text-black px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-wider shadow-md border border-white/20 flex items-center gap-1 animate-pulse-slow">
-              <Star size={10} className="fill-black" />
-              PREMIUM Listing
-            </span>
-          )}
         </div>
 
         {/* Top Right: Wishlist & Rating */}
@@ -200,12 +194,19 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved 
       </div>
 
       {/* Content Section - Compact & Optimized */}
-      <div className="p-2.5 flex flex-col gap-1">
+      <div className={`${compact ? 'p-2 gap-0.5' : 'p-2.5 gap-1'} flex flex-col`}>
         {/* Title & Info */}
         <div>
-          <h3 className="font-bold text-sm text-gray-900 line-clamp-1 group-hover:text-emerald-700 transition-colors">
-            {displayName}
-          </h3>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className={`font-bold ${compact ? 'text-[13px]' : 'text-sm'} text-gray-900 line-clamp-1 group-hover:text-emerald-700 transition-colors`}>
+              {displayName}
+            </h3>
+            {(badgeTypeKey === 'PG' || badgeTypeKey === 'Hostel') && (item.pgDetails?.gender || item.pgType) && (
+              <span className="shrink-0 bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded text-[9px] font-bold border border-rose-100 italic">
+                {item.pgDetails?.gender || item.pgType}
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-1 text-gray-500 text-[10px] mt-0.5">
             <MapPin size={9} className="shrink-0 text-gray-400" />
@@ -235,9 +236,10 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved 
             )}
 
             {/* PG/Gender */}
-            {(badgeTypeKey === 'PG' || badgeTypeKey === 'Hostel') && (item.pgDetails?.gender || item.pgType) && (
-              <span className="bg-rose-50 text-rose-700 px-1 py-0.5 rounded text-[9px] font-bold border border-rose-100 italic">
-                {item.pgDetails?.gender || item.pgType}
+            {(item.rankingWeight > 0 || item.isFeatured) && (
+              <span className="bg-[#FFD700] text-black px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
+                <Star size={10} className="fill-black" />
+                PREMIUM Listing
               </span>
             )}
 
@@ -251,11 +253,11 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved 
         </div>
 
         {/* Price & Actions Row - Integrated */}
-        <div className="mt-1.5 pt-2 border-t border-gray-50 flex items-center justify-between">
+        <div className={`${compact ? 'mt-1 pt-1.5' : 'mt-1.5 pt-2'} border-t border-gray-50 flex items-center justify-between`}>
           <div className="flex flex-col">
             <div className="flex items-baseline gap-0.5">
               <IndianRupee size={13} className="text-gray-900" strokeWidth={2.5} />
-              <span className="text-base font-bold text-gray-900 tracking-tight">
+              <span className={`${compact ? 'text-sm' : 'text-base'} font-bold text-gray-900 tracking-tight`}>
                 {formattedPrice}
               </span>
               {displayPrice && (
@@ -274,7 +276,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved 
 
           <div className="flex items-center gap-2">
             {/* Call button removed as per user request */}
-            <button className="text-[10px] font-bold text-white bg-emerald-600 px-3 py-1.5 rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm">
+            <button className={`${compact ? 'px-2.5 py-1' : 'px-3 py-1.5'} text-[10px] font-bold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm`}>
               View
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
             </button>

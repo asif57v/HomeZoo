@@ -90,7 +90,8 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
           <PropertyCard
             key={property._id}
             data={property}
-            className="min-w-[75vw] md:min-w-[270px] snap-center shrink-0"
+            compact
+            className="min-w-[58vw] max-w-[230px] md:min-w-[270px] md:max-w-none snap-center shrink-0"
             isSaved={savedHotelIds.includes(property._id)}
           />
         ))}

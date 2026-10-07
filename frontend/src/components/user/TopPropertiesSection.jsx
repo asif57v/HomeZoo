@@ -79,7 +79,8 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
           <PropertyCard
             key={property._id}
             data={property}
-            className="min-w-[75vw] md:min-w-[270px] snap-start shrink-0"
+            compact
+            className="min-w-[58vw] max-w-[230px] md:min-w-[270px] md:max-w-none snap-start shrink-0"
             isSaved={savedHotelIds.includes(property._id)}
           />
         ))}
