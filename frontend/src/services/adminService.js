@@ -258,6 +258,17 @@ const adminService = {
     return response.data;
   },
 
+  // Home page sections (Top Properties, Featured Categories heading)
+  getHomeSettings: async () => {
+    const response = await axiosInstance.get('/home/settings');
+    return response.data;
+  },
+
+  updateHomeSettings: async (data) => {
+    const response = await axiosInstance.put('/home/settings', data);
+    return response.data;
+  },
+
   // Banner Management
   getAllBanners: async (params) => {
     const response = await axiosInstance.get('/banners/all', { params });

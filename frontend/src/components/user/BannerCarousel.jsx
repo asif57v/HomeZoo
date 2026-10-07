@@ -98,14 +98,27 @@ const BannerCarousel = ({
 
   const currentBanner = banners[currentIndex] || banners[0];
   const isMiddle = placement === 'HOME_MIDDLE';
+  // Section heading is set by admin on the banner; use the first banner that has one
+  const headingBanner = banners.find((b) => b.sectionHeading && b.sectionHeading.trim());
+  const topSpacing = placement === 'HOME_TOP' ? 'pt-4 sm:pt-5 md:pt-6' : 'pt-2 sm:pt-3';
   const containerHeight = isMiddle ? 'h-36 sm:h-44 md:h-48' : 'h-44 sm:h-56 md:h-64';
 
   return (
     <section
-      className={`w-full max-w-7xl mx-auto px-4 py-2 sm:py-3 ${className}`}
+      className={`w-full max-w-7xl mx-auto px-4 pb-2 sm:pb-3 ${topSpacing} ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
+      {headingBanner && (
+        <div className="mb-2 md:mb-3">
+          <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 tracking-tight">
+            {headingBanner.sectionHeading}
+          </h2>
+          {headingBanner.sectionSubtitle && (
+            <p className="text-xs md:text-sm text-gray-500 mt-0.5">{headingBanner.sectionSubtitle}</p>
+          )}
+        </div>
+      )}
       <div
         className={`relative w-full ${containerHeight} rounded-2xl md:rounded-3xl overflow-hidden shadow-xs border border-gray-100/80 bg-gray-900 select-none group cursor-pointer`}
         onTouchStart={handleTouchStart}

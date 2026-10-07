@@ -14,6 +14,20 @@ const bannerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+
+  // Optional section heading shown above the banner on the user Home page
+  sectionHeading: {
+    type: String,
+    default: '',
+    trim: true,
+    maxlength: 80
+  },
+  sectionSubtitle: {
+    type: String,
+    default: '',
+    trim: true,
+    maxlength: 140
+  },
   placement: {
     type: String,
     enum: ['HOME_TOP', 'HOME_MIDDLE', 'CATEGORY_PAGE'],

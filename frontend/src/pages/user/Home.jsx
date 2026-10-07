@@ -7,6 +7,7 @@ import ExclusiveOffers from '../../components/user/ExclusiveOffers';
 import FeaturedCategories from '../../components/user/FeaturedCategories';
 import PropertyTypeFilter from '../../components/user/PropertyTypeFilter';
 import PropertyFeed from '../../components/user/PropertyFeed';
+import TopPropertiesSection from '../../components/user/TopPropertiesSection';
 import CollectionSection from '../../components/user/CollectionSection';
 import ReelSection from '../../components/user/ReelSection';
 import LatestProjectsBanner from '../../components/user/LatestProjectsBanner';
@@ -73,7 +74,8 @@ const Home = () => {
     popularCategories: [],
     featuredCategories: [],
     banners: { HOME_TOP: [], HOME_MIDDLE: [], CATEGORY_PAGE: [] },
-    offers: []
+    offers: [],
+    sections: { topProperties: null, featuredCategories: null }
   });
   const [homeLoading, setHomeLoading] = useState(true);
 
@@ -113,7 +115,8 @@ const Home = () => {
             popularCategories: data.popularCategories || [],
             featuredCategories: data.featuredCategories || [],
             banners: data.banners || { HOME_TOP: [], HOME_MIDDLE: [], CATEGORY_PAGE: [] },
-            offers: data.offers || []
+            offers: data.offers || [],
+            sections: data.sections || { topProperties: null, featuredCategories: null }
           });
         }
       } catch (err) {
@@ -321,11 +324,16 @@ const Home = () => {
             </div>
           </div>
 
-          {/* 4. Featured Categories (Rich Image Cards) */}
+          {/* 4. Top Properties (admin curated) */}
+          <TopPropertiesSection config={homeData.sections?.topProperties} loading={homeLoading} />
+
+          {/* 5. Featured Categories (Rich Image Cards) */}
           <FeaturedCategories
             categories={homeData.featuredCategories}
             loading={homeLoading}
             onSelectCategory={handleCategorySelectFromBannerOrChip}
+            title={homeData.sections?.featuredCategories?.title || 'Featured Categories'}
+            subtitle={homeData.sections?.featuredCategories?.subtitle}
           />
 
           {/* 5. Existing Section 1: Find Your Perfect Stay (PG/Hostels) */}

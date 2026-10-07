@@ -2,6 +2,7 @@ import PropertyCategory from '../models/PropertyCategory.js';
 import Banner from '../models/Banner.js';
 import Offer from '../models/Offer.js';
 import Booking from '../models/Booking.js';
+import { getHomeSettingsDoc } from '../models/HomeSettings.js';
 
 /**
  * @desc    Get all home screen data in one call
@@ -106,11 +107,28 @@ export const getHomeData = async (req, res) => {
       offers = filteredOffers;
     }
 
+    // 5. Admin-controlled section settings
+    const settings = await getHomeSettingsDoc();
+    const sections = {
+      topProperties: {
+        enabled: settings.topProperties.enabled,
+        title: settings.topProperties.title,
+        subtitle: settings.topProperties.subtitle,
+        propertyIds: settings.topProperties.enabled ? settings.topProperties.propertyIds : []
+      },
+      featuredCategories: {
+        enabled: settings.featuredCategories.enabled,
+        title: settings.featuredCategories.title,
+        subtitle: settings.featuredCategories.subtitle
+      }
+    };
+
     res.json({
       popularCategories,
-      featuredCategories,
+      featuredCategories: sections.featuredCategories.enabled ? featuredCategories : [],
       banners,
-      offers
+      offers,
+      sections
     });
   } catch (error) {
     console.error('Get Home Data Error:', error);

@@ -646,6 +646,10 @@ export const getPublicProperties = async (req, res) => {
       const landList = landType.split(',').map(l => new RegExp(`^${l.trim()}$`, 'i'));
       matchConditions['plotDetails.landType'] = { $in: landList };
     }
+    if (req.query.ids) {
+      const idList = String(req.query.ids).split(',').map(i => i.trim()).filter(i => mongoose.Types.ObjectId.isValid(i));
+      matchConditions._id = { $in: idList.map(i => new mongoose.Types.ObjectId(i)) };
+    }
 
     if (req.query.foodIncluded === 'true') {
       matchConditions['$or'] = matchConditions['$or'] || [];

@@ -43,6 +43,8 @@ const AdminBanners = () => {
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
+    sectionHeading: '',
+    sectionSubtitle: '',
     placement: 'HOME_TOP',
     linkType: 'NONE',
     linkValue: '',
@@ -108,6 +110,8 @@ const AdminBanners = () => {
     setFormData({
       title: banner.title || '',
       subtitle: banner.subtitle || '',
+      sectionHeading: banner.sectionHeading || '',
+      sectionSubtitle: banner.sectionSubtitle || '',
       placement: banner.placement || 'HOME_TOP',
       linkType: banner.linkType || 'NONE',
       linkValue: banner.linkValue || '',
@@ -260,7 +264,7 @@ const AdminBanners = () => {
             onClick={() => {
               setIsEditing(false);
               setFormData({
-                title: '', subtitle: '', placement: 'HOME_TOP', linkType: 'NONE',
+                title: '', subtitle: '', sectionHeading: '', sectionSubtitle: '', placement: 'HOME_TOP', linkType: 'NONE',
                 linkValue: '', cities: [], startDate: new Date().toISOString().split('T')[0],
                 endDate: '', priority: 0, isActive: true
               });
@@ -599,6 +603,30 @@ const AdminBanners = () => {
                       onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
                       className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="e.g. Handpicked verified PG & Villa stays for students"
+                    />
+                  </div>
+
+                  {/* Section heading shown above the banner on the Home page */}
+                  <div className="p-3 bg-blue-50/50 rounded-xl space-y-3 border border-blue-100">
+                    <div>
+                      <label className="block font-bold text-gray-700 uppercase tracking-wider">Section Heading (Optional)</label>
+                      <p className="text-[10px] text-gray-400">Shown above the banner on the Home page, like "Pay Hostel Fees". Leave empty to hide.</p>
+                    </div>
+                    <input
+                      type="text"
+                      maxLength={80}
+                      value={formData.sectionHeading}
+                      onChange={(e) => setFormData({ ...formData, sectionHeading: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      placeholder="e.g. 🎉 Festive Offers"
+                    />
+                    <input
+                      type="text"
+                      maxLength={140}
+                      value={formData.sectionSubtitle}
+                      onChange={(e) => setFormData({ ...formData, sectionSubtitle: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      placeholder="Heading subtitle (optional)"
                     />
                   </div>
 

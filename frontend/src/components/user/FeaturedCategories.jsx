@@ -10,7 +10,8 @@ const FeaturedCategories = ({
   categories = [],
   loading = false,
   onSelectCategory,
-  title = 'Featured Categories'
+  title = 'Featured Categories',
+  subtitle = ''
 }) => {
   const navigate = useNavigate();
 
@@ -42,7 +43,10 @@ const FeaturedCategories = ({
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-3">
       <div className="flex items-center justify-between mb-2.5">
-        <h2 className="text-base sm:text-lg md:text-xl font-black text-gray-900 tracking-tight">{title}</h2>
+        <div>
+          <h2 className="text-base sm:text-lg md:text-xl font-black text-gray-900 tracking-tight">{title}</h2>
+          {subtitle && <p className="text-xs md:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        </div>
         <button
           type="button"
           onClick={() => navigate('/search')}

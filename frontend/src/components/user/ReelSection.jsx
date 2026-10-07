@@ -149,7 +149,7 @@ const ReelSection = ({ category }) => {
                 </button>
             </div>
 
-            <div className="flex overflow-x-auto gap-3 pb-2 px-5 md:px-0 no-scrollbar snap-x snap-mandatory">
+            <div className="flex overflow-x-auto gap-3 pb-2 pl-5 pr-5 md:px-0 scroll-pl-5 no-scrollbar snap-x snap-mandatory">
                 {reels.map((reel) => (
                     <ReelItem key={reel._id} reel={reel} navigate={navigate} />
                 ))}
