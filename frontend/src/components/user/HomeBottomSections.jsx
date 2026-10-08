@@ -211,13 +211,13 @@ const HomeBottomSections = () => {
     ];
 
     return (
-        <div className="w-full text-slate-800 antialiased space-y-20 sm:space-y-28 md:space-y-32 my-20 md:my-28">
+        <div className="w-full text-slate-800 antialiased space-y-8 sm:space-y-16 md:space-y-32 mt-4 mb-8 sm:my-16 md:my-28">
             
             {/* =========================================================
                 SECTION 1: ⭐ TOP RATED HOMEZO PARTNERS
             ========================================================= */}
             <section className="w-full">
-                <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10 md:mb-14">
+                <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-4 sm:mb-10 md:mb-14">
                     <div>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-extrabold tracking-wide uppercase mb-3 border border-amber-200/60 shadow-xs">
                             <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
@@ -439,8 +439,8 @@ const HomeBottomSections = () => {
             {/* =========================================================
                 SECTION 2: 📰 NEWS & UPDATES
             ========================================================= */}
-            <section className="w-full border-t border-slate-100 pt-16 md:pt-20">
-                <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10 md:mb-14">
+            <section className="w-full md:border-t md:border-slate-100 md:pt-20">
+                <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-4 sm:mb-10 md:mb-14">
                     <div>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold tracking-wide uppercase mb-3 border border-indigo-200/60 shadow-xs">
                             <TrendingUp className="w-3.5 h-3.5 text-indigo-600" />

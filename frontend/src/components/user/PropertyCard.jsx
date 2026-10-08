@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Star, IndianRupee, Heart, BadgeCheck } from 'lucide-react';
+import { MapPin, Star, IndianRupee, Heart, BadgeCheck, BedDouble, Sofa, Users, UtensilsCrossed, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 
-const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved, compact = false }) => {
+/**
+ * variant:
+ *  - 'default'    boxed card (search, saved, listing pages)
+ *  - 'horizontal' borderless row: image left, details right (home list sections)
+ *  - 'photo'      borderless, photo-first card with text below (home carousels)
+ *  - 'featured'   large image with text overlaid (home hero carousel)
+ *  - 'stay'       PG/hostel card: gender, sharing, meals, starting rent (home "Find your perfect stay")
+ */
+const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved, compact = false, variant = 'default' }) => {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(initialIsSaved || false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -136,10 +144,302 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
       ? ''
       : '/night';
 
+  const locationText = `${address?.city || item.city || 'Indore'}, ${address?.state || item.state || 'Madhya Pradesh'}`;
+  const isPremium = item.rankingWeight > 0 || item.isFeatured;
+  const badgeLabel = badgeTypeKey === 'Rent' ? 'For Rent' : badgeTypeKey === 'Buy' ? 'For Sale' : typeLabel;
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+  };
+
+  if (variant === 'featured') {
+    return (
+      <div
+        onClick={() => navigate(`/hotel/${_id}`)}
+        className={`group relative h-48 md:h-72 rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer bg-gray-200 ${className}`}
+      >
+        <img
+          src={imageSrc}
+          alt={displayName}
+          loading="lazy"
+          onError={handleImageError}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+
+        <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+          {isPremium ? (
+            <span className="flex items-center gap-1 bg-[#FFD700] text-black px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider">
+              <Star size={9} className="fill-black" /> Premium
+            </span>
+          ) : badgeLabel ? (
+            <span className="bg-white/20 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[10px] font-bold">
+              {badgeLabel}
+            </span>
+          ) : <span />}
+          <button
+            onClick={handleToggleSave}
+            aria-label="Save property"
+            className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Heart size={16} className={isSaved ? 'fill-red-500 text-red-500' : 'text-white'} />
+          </button>
+        </div>
+
+        <div className="absolute bottom-0 inset-x-0 p-3 md:p-4 text-white">
+          <div className="flex items-center gap-1.5 text-[11px] text-white/80">
+            <MapPin size={11} className="shrink-0" />
+            <span className="truncate">{locationText}</span>
+            <span className="ml-auto flex items-center gap-0.5 font-bold text-white">
+              <Star size={11} className="fill-amber-400 text-amber-400" /> {displayRating}
+            </span>
+          </div>
+          <h3 className="mt-0.5 text-[15px] md:text-xl font-extrabold leading-tight line-clamp-1 flex items-center gap-1.5">
+            <span className="truncate">{displayName}</span>
+            {item.hasVerifiedTag && <BadgeCheck size={16} className="shrink-0 fill-blue-500 text-white" />}
+          </h3>
+          <div className="mt-1.5 flex items-baseline gap-0.5">
+            <IndianRupee size={14} className="self-center" strokeWidth={2.5} />
+            <span className="text-base font-extrabold">{formattedPrice}</span>
+            {displayPrice && <span className="text-[11px] text-white/70 ml-0.5">{priceSuffix}</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'stay') {
+    const gender = item.pgDetails?.gender || item.pgType;
+    const GENDER_STYLES = {
+      Boys: 'bg-sky-500',
+      Girls: 'bg-pink-500',
+      'Co-ed': 'bg-violet-500'
+    };
+    const occupancy = item.pgDetails?.occupancy;
+    const food = item.pgDetails?.foodIncluded || {};
+    const mealCount = ['breakfast', 'lunch', 'dinner'].filter((m) => food[m]).length;
+    const mealsLabel = mealCount === 3 ? 'All meals' : mealCount > 0 ? `${mealCount} meal${mealCount > 1 ? 's' : ''}/day` : null;
+    const chips = [
+      occupancy && { Icon: BedDouble, label: occupancy === 'Other' ? 'Sharing' : `${occupancy} sharing` },
+      mealsLabel && { Icon: UtensilsCrossed, label: mealsLabel }
+    ].filter(Boolean);
+
+    return (
+      <div
+        onClick={() => navigate(`/hotel/${_id}`)}
+        className={`group bg-white rounded-2xl overflow-hidden cursor-pointer ring-1 ring-gray-100 shadow-[0_6px_20px_rgba(15,23,42,0.06)] active:scale-[0.98] transition-transform ${className}`}
+      >
+        <div className="relative h-32 md:h-40 overflow-hidden bg-gray-100">
+          <img
+            src={imageSrc}
+            alt={displayName}
+            loading="lazy"
+            onError={handleImageError}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+
+          {gender && (
+            <span className={`absolute top-2 left-2 ${GENDER_STYLES[gender] || 'bg-gray-800'} text-white text-[10px] font-bold px-2 py-0.5 rounded-full`}>
+              {gender}
+            </span>
+          )}
+          <button
+            onClick={handleToggleSave}
+            aria-label="Save property"
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Heart size={14} className={isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'} />
+          </button>
+          <span className="absolute bottom-2 left-2 flex items-center gap-0.5 bg-white/95 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+            <Star size={10} className="fill-amber-400 text-amber-400" /> {displayRating}
+            {reviewCount > 0 && <span className="text-gray-400 font-medium">({reviewCount})</span>}
+          </span>
+          {isPremium && (
+            <span className="absolute bottom-2 right-2 flex items-center gap-0.5 bg-[#FFD700] text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md">
+              <Star size={8} className="fill-black" /> Premium
+            </span>
+          )}
+        </div>
+
+        <div className="p-2.5 md:p-3">
+          <h3 className="text-[13px] md:text-[15px] font-bold text-gray-900 truncate flex items-center gap-1">
+            <span className="truncate">{displayName}</span>
+            {item.hasVerifiedTag && <BadgeCheck size={14} className="shrink-0 fill-blue-500 text-white" />}
+          </h3>
+          <p className="flex items-center gap-0.5 text-[11px] text-gray-500 truncate mt-0.5">
+            <MapPin size={10} className="shrink-0 text-gray-400" />
+            <span className="truncate">{locationText}</span>
+          </p>
+
+          {chips.length > 0 && (
+            <div className="flex items-center gap-1.5 mt-2 overflow-hidden">
+              {chips.map(({ Icon, label }) => (
+                <span key={label} className="shrink-0 flex items-center gap-1 bg-gray-50 text-gray-700 text-[10px] font-semibold px-2 py-1 rounded-lg">
+                  <Icon size={11} className="text-emerald-600" />
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-2 pt-2 border-t border-dashed border-gray-200 flex items-end justify-between gap-2">
+            <div className="min-w-0">
+              {displayPrice && <p className="text-[9px] uppercase tracking-wide font-semibold text-gray-400 leading-none">Starts from</p>}
+              <div className="flex items-baseline gap-0.5 text-gray-900 mt-0.5">
+                <IndianRupee size={12} className="self-center" strokeWidth={2.5} />
+                <span className="text-sm md:text-base font-extrabold">{formattedPrice}</span>
+                {displayPrice && <span className="text-[10px] text-gray-500 ml-0.5">/month</span>}
+              </div>
+            </div>
+            <span className="shrink-0 w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center group-hover:bg-emerald-700 transition-colors">
+              <ChevronRight size={16} />
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'photo') {
+    return (
+      <div onClick={() => navigate(`/hotel/${_id}`)} className={`group cursor-pointer ${className}`}>
+        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100">
+          <img
+            src={imageSrc}
+            alt={displayName}
+            loading="lazy"
+            onError={handleImageError}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          {isPremium && (
+            <span className="absolute top-2.5 left-2.5 flex items-center gap-1 bg-[#FFD700] text-black px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider">
+              <Star size={8} className="fill-black" /> Premium
+            </span>
+          )}
+          <button
+            onClick={handleToggleSave}
+            aria-label="Save property"
+            className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Heart
+              size={20}
+              className={`drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isSaved ? 'fill-red-500 text-red-500' : 'fill-black/25 text-white'}`}
+            />
+          </button>
+        </div>
+
+        <div className="pt-2 px-0.5">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-[13px] md:text-[15px] font-bold text-gray-900 truncate flex items-center gap-1">
+              <span className="truncate">{displayName}</span>
+              {item.hasVerifiedTag && <BadgeCheck size={14} className="shrink-0 fill-blue-500 text-white" />}
+            </h3>
+            <span className="shrink-0 flex items-center gap-0.5 text-[11px] font-semibold text-gray-800">
+              <Star size={11} className="fill-gray-900 text-gray-900" /> {displayRating}
+            </span>
+          </div>
+          <p className="text-[11px] md:text-xs text-gray-500 truncate mt-0.5">{locationText}</p>
+          <div className="mt-1 flex items-baseline gap-0.5 text-gray-900">
+            <IndianRupee size={12} className="self-center" strokeWidth={2.5} />
+            <span className="text-[13px] md:text-sm font-extrabold">{formattedPrice}</span>
+            {displayPrice && <span className="text-[10px] text-gray-500 ml-0.5">{priceSuffix}</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'horizontal') {
+    const bhk = item.rentDetails?.type || item.rentDetails?.bhkType || item.bhkType || item.bhk || item.roomType;
+    const furnishing = item.rentDetails?.furnishing || item.furnishing;
+    const tenant = item.rentDetails?.tenantPreference;
+    const specs = [
+      bhk && { Icon: BedDouble, label: bhk },
+      furnishing && { Icon: Sofa, label: furnishing },
+      tenant && { Icon: Users, label: tenant }
+    ].filter(Boolean);
+
+    return (
+      <div
+        onClick={() => navigate(`/hotel/${_id}`)}
+        className={`group relative flex items-center gap-2.5 py-2 md:gap-3 md:py-3 cursor-pointer ${className}`}
+      >
+        {/* Image */}
+        <div className="relative w-28 h-24 md:w-36 md:h-28 rounded-2xl overflow-hidden shrink-0 bg-gray-100">
+          <img
+            src={imageSrc}
+            alt={displayName}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+            onError={handleImageError}
+          />
+          {badgeLabel && (
+            <span className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+              {badgeLabel}
+            </span>
+          )}
+        </div>
+
+        {/* Details */}
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-[13px] md:text-base font-bold text-gray-900 leading-tight line-clamp-1 flex items-center gap-1 group-hover:text-emerald-700 transition-colors">
+              <span className="truncate">{displayName}</span>
+              {item.hasVerifiedTag && <BadgeCheck size={14} className="shrink-0 fill-blue-500 text-white" />}
+            </h3>
+            <button
+              onClick={handleToggleSave}
+              className="shrink-0 -mt-0.5 active:scale-90 transition-transform"
+              aria-label="Save property"
+            >
+              <Heart size={18} className={isSaved ? 'fill-red-500 text-red-500' : 'text-gray-500'} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1 text-gray-500 text-[11px]">
+            <MapPin size={10} className="shrink-0 text-gray-400" />
+            <span className="truncate">{locationText}</span>
+            <span className="ml-auto shrink-0 flex items-center gap-0.5 font-semibold text-gray-800">
+              <Star size={10} className="fill-amber-400 text-amber-400" /> {displayRating}
+            </span>
+          </div>
+
+          {(specs.length > 0 || isPremium) && (
+            <div className="flex items-center gap-x-2.5 gap-y-1 flex-wrap text-[10px] md:text-[11px] text-gray-600">
+              {specs.map(({ Icon, label }) => (
+                <span key={label} className="flex items-center gap-1">
+                  <Icon size={12} className="text-gray-500" />
+                  {label}
+                </span>
+              ))}
+              {isPremium && (
+                <span className="flex items-center gap-0.5 bg-[#FFD700] text-black px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                  <Star size={8} className="fill-black" />
+                  Premium
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-baseline gap-0.5 mt-0.5">
+            <IndianRupee size={13} className="text-emerald-700 self-center" strokeWidth={2.5} />
+            <span className="text-sm md:text-base font-extrabold text-emerald-700 tracking-tight">
+              {formattedPrice}
+            </span>
+            {displayPrice && (
+              <span className="text-[10px] text-gray-500 font-medium ml-0.5">{priceSuffix}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={() => navigate(`/hotel/${_id}`)}
-      className={`group bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 hover:-translate-y-1 ${className}`}
+      className={`group bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-200 hover:-translate-y-1 ${className}`}
     >
       {/* Image Container - Reduced height for compact look */}
       <div className={`relative ${compact ? 'h-[104px]' : 'h-40'} w-full bg-gray-100 overflow-hidden`}>

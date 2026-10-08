@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Loader2 } from 'lucide-react';
 import { reelService } from '../../services/reelService';
+import { Band, SectionHeader } from './home/HomeLayout';
 
-const ReelItem = ({ reel, navigate }) => {
+const ReelItem = ({ reel, navigate, banded }) => {
     const videoRef = useRef(null);
     const [isIntersecting, setIsIntersecting] = useState(false);
 
@@ -36,10 +37,10 @@ const ReelItem = ({ reel, navigate }) => {
     return (
         <div
             onClick={() => navigate(`/reels?reel=${reel._id}`)}
-            className="group flex-shrink-0 w-[125px] md:w-[150px] cursor-pointer snap-start"
+            className={`group flex-shrink-0 ${banded ? 'w-[132px] md:w-[160px]' : 'w-[125px] md:w-[150px]'} cursor-pointer snap-start`}
         >
             {/* Thumbnail/Video Card */}
-            <div className="relative aspect-[9/16] rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition-shadow bg-gray-200">
+            <div className={`relative aspect-[9/16] overflow-hidden transition-shadow ${banded ? 'rounded-2xl bg-white shadow-[0_4px_14px_rgba(15,23,42,0.08)]' : 'rounded-lg shadow-sm group-hover:shadow-md bg-gray-200'}`}>
                 {/* Auto-playing Video */}
                 <video
                     ref={videoRef}
@@ -73,11 +74,11 @@ const ReelItem = ({ reel, navigate }) => {
 
             {/* Info Below Card */}
             <div className="mt-2.5 px-0.5">
-                <h3 className="text-gray-900 text-[11px] md:text-xs font-bold line-clamp-2 leading-[1.3] group-hover:text-emerald-700 transition-colors">
+                <h3 className={`text-[11px] md:text-xs font-bold line-clamp-2 leading-[1.3] transition-colors text-gray-900 group-hover:text-emerald-700`}>
                     {reel.caption || 'Property Tour'}
                 </h3>
                 <div className="flex items-center justify-between mt-1">
-                    <span className="text-[9px] md:text-[10px] text-gray-400 font-medium">
+                    <span className={`text-[9px] md:text-[10px] font-medium text-gray-500`}>
                         {reel.viewsCount || 0} views • #{reel.category?.toLowerCase() || 'general'}
                     </span>
                     <button className="text-gray-400 hover:text-gray-600">
@@ -89,7 +90,7 @@ const ReelItem = ({ reel, navigate }) => {
     );
 };
 
-const ReelSection = ({ category }) => {
+const ReelSection = ({ category, banded = false }) => {
     const navigate = useNavigate();
     const [reels, setReels] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -120,6 +121,17 @@ const ReelSection = ({ category }) => {
     }, [category]);
 
     if (loading) {
+        if (banded) {
+            return (
+                <div className="w-full bg-gradient-to-b from-rose-50 to-orange-50/40 py-4 md:py-12 rounded-[1.75rem] md:rounded-none">
+                    <div className="max-w-7xl mx-auto flex gap-2 md:gap-4 overflow-hidden px-4 md:px-0">
+                        {[1, 2, 3, 4].map((n) => (
+                            <div key={n} className="w-[132px] md:w-[160px] aspect-[9/16] shrink-0 rounded-2xl bg-white/80 animate-pulse" />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
         return (
             <div className="py-8 flex justify-center items-center">
                 <Loader2 className="animate-spin text-surface" size={24} />
@@ -129,9 +141,33 @@ const ReelSection = ({ category }) => {
 
     if (reels.length === 0) return null;
 
+    if (banded) {
+        return (
+            <Band tone="blush" spacing="loose" rounded>
+                <SectionHeader
+                    size="md"
+                    icon={
+                        <span className="inline-flex bg-red-600 p-1.5 rounded-xl">
+                            <Play size={14} className="text-white fill-white" />
+                        </span>
+                    }
+                    title="Reels"
+                    subtitle="Short video tours and updates"
+                    onAction={() => navigate('/reels')}
+                />
+                <div className="flex overflow-x-auto gap-2 md:gap-4 pb-1 px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 no-scrollbar snap-x snap-mandatory">
+                    {reels.map((reel) => (
+                        <ReelItem key={reel._id} reel={reel} navigate={navigate} banded />
+                    ))}
+                    <div className="w-1 shrink-0" />
+                </div>
+            </Band>
+        );
+    }
+
     return (
-        <div className="py-4 md:py-6 border-b border-gray-100 bg-gray-50/30">
-            <div className="px-5 md:px-0 mb-3.5 md:mb-4 flex items-center justify-between">
+        <div className="py-2.5 md:py-4 border-b border-gray-100 bg-gray-50/30">
+            <div className="px-3.5 md:px-0 mb-1.5 md:mb-2 flex items-center justify-between">
                 <div>
                     <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 flex items-center gap-2">
                         <span className="bg-red-600 p-1 rounded-lg">
@@ -149,7 +185,7 @@ const ReelSection = ({ category }) => {
                 </button>
             </div>
 
-            <div className="flex overflow-x-auto gap-3 pb-2 pl-5 pr-5 md:px-0 scroll-pl-5 no-scrollbar snap-x snap-mandatory">
+            <div className="flex overflow-x-auto gap-4 pb-2 pl-3.5 pr-3.5 md:px-0 scroll-pl-3.5 no-scrollbar snap-x snap-mandatory">
                 {reels.map((reel) => (
                     <ReelItem key={reel._id} reel={reel} navigate={navigate} />
                 ))}

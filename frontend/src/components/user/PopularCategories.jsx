@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
+import { SectionHeader } from './home/HomeLayout';
 
 const PopularCategories = ({
   categories = [],
@@ -13,11 +14,14 @@ const PopularCategories = ({
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-3">
-        <div className="h-6 w-44 bg-gray-200/70 rounded-md animate-pulse mb-3" />
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="h-28 w-36 bg-gray-200/70 rounded-2xl animate-pulse shrink-0" />
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-0 pt-4 pb-2">
+        <div className="h-5 w-40 bg-gray-200/70 rounded-md animate-pulse mb-3" />
+        <div className="flex items-start gap-4 overflow-x-auto no-scrollbar">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div key={n} className="flex flex-col items-center gap-1.5 shrink-0">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-200/70 rounded-full animate-pulse" />
+              <div className="h-2.5 w-12 bg-gray-200/70 rounded animate-pulse" />
+            </div>
           ))}
         </div>
       </div>
@@ -37,45 +41,45 @@ const PopularCategories = ({
   };
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 pt-3 pb-1">
-      <div className="flex items-center justify-between mb-2.5">
-        <h2 className="text-base sm:text-lg md:text-xl font-black text-gray-900 tracking-tight">{title}</h2>
-        <button
-          type="button"
-          onClick={() => navigate('/search')}
-          className="text-xs sm:text-sm font-bold text-teal-600 hover:text-teal-700"
-        >
-          View All
-        </button>
-      </div>
+    <section className="w-full max-w-7xl mx-auto pt-4 pb-2 md:pt-6">
+      <SectionHeader size="sm" title={title} onAction={() => navigate('/search')} className="mb-2.5!" />
 
-      <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+      <div className="flex items-start gap-2.5 md:gap-6 overflow-x-auto no-scrollbar px-4 md:px-0 pb-1">
         {categories.map((cat, index) => {
           const Icon = LucideIcons[cat.icon] || LucideIcons.Building2;
           const img = cat.image || cat.bgImage;
+          const label = cat.displayName || cat.name;
 
           return (
             <motion.button
               key={cat._id || index}
               type="button"
-              whileTap={{ scale: 0.96 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => handleCategoryClick(cat)}
-              className="relative w-36 h-28 sm:w-44 sm:h-32 rounded-2xl overflow-hidden shrink-0 text-left shadow-sm"
-              style={{ backgroundColor: cat.color || '#0f766e' }}
+              className="group flex flex-col items-center gap-1.5 shrink-0 w-[68px] md:w-20"
             >
-              {img ? (
-                <img
-                  src={img}
-                  alt={cat.displayName || cat.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <Icon size={40} className="absolute top-3 right-3 text-white/40" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <span className="absolute bottom-2.5 left-3 right-3 text-white text-sm font-bold drop-shadow truncate">
-                {cat.displayName || cat.name}
+              {/* Gradient ring, story-style */}
+              <span className="p-[2.5px] rounded-full bg-gradient-to-tr from-emerald-500 via-teal-400 to-amber-300">
+                <span className="block p-[2px] rounded-full bg-white">
+                  <span
+                    className="relative w-14 h-14 md:w-[70px] md:h-[70px] rounded-full overflow-hidden flex items-center justify-center"
+                    style={{ backgroundColor: cat.color || '#0f766e' }}
+                  >
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={label}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Icon size={24} className="text-white" />
+                    )}
+                  </span>
+                </span>
+              </span>
+              <span className="w-full text-center text-[11px] md:text-xs font-semibold text-gray-700 leading-tight line-clamp-2">
+                {label}
               </span>
             </motion.button>
           );

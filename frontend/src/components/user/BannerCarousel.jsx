@@ -33,7 +33,7 @@ const BannerCarousel = ({
   if (loading) {
     const heightClass = placement === 'HOME_MIDDLE' ? 'h-36 sm:h-44' : 'h-44 sm:h-56 md:h-64';
     return (
-      <div className={`w-full max-w-7xl mx-auto px-4 py-3 ${className}`}>
+      <div className={`w-full max-w-7xl mx-auto px-3.5 md:px-0 py-2.5 md:py-3 ${className}`}>
         <div className={`w-full ${heightClass} bg-gray-200/80 rounded-2xl md:rounded-3xl animate-pulse`} />
       </div>
     );
@@ -105,7 +105,7 @@ const BannerCarousel = ({
 
   return (
     <section
-      className={`w-full max-w-7xl mx-auto px-4 pb-2 sm:pb-3 ${topSpacing} ${className}`}
+      className={`w-full max-w-7xl mx-auto px-3.5 md:px-0 pb-2 sm:pb-3 ${topSpacing} ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >

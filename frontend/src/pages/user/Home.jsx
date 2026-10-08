@@ -13,6 +13,8 @@ import ReelSection from '../../components/user/ReelSection';
 import LatestProjectsBanner from '../../components/user/LatestProjectsBanner';
 import PayHostelFeesSection from '../../components/user/PayHostelFeesSection';
 import HomeBottomSections from '../../components/user/HomeBottomSections';
+import ExplorePropertiesSection from '../../components/user/home/ExplorePropertiesSection';
+import { Band, SectionHeader } from '../../components/user/home/HomeLayout';
 import { categoryService } from '../../services/categoryService';
 import homeService from '../../services/homeService';
 
@@ -56,7 +58,7 @@ const THEME_MAP = {
   },
   default: {
     darkBg: 'linear-gradient(135deg, #002240 0%, #005CA8 100%)', // Brand Blue
-    pageBg: '#F8FAFC',
+    pageBg: '#FFFFFF', // white base so tinted/dark section bands read as separators
     accent: '#005CA8',
     cornerImage: '/buy_hero_art.png',
     cornerImage2: '/buy_hero_art_2.png'
@@ -188,33 +190,17 @@ const Home = () => {
 
   const pageBg = activeTheme.pageBg || '#f8fafc';
 
-  // Section Component
-  const HomeSection = ({ title, typeId, subtitle }) => (
-    <div className="py-2.5 md:py-4 border-b border-gray-100 last:border-0 relative">
-      <div className="flex justify-between items-end px-3.5 md:px-0 mb-1.5 md:mb-2">
-        <div>
-          <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900">{title}</h2>
-          {subtitle && <p className="text-xs md:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
-        </div>
-        <button
-          onClick={() => {
-            const labelMap = {
-              [sectionIds.pg]: 'PG/Co-Living',
-              [sectionIds.rent]: 'Rent',
-              [sectionIds.buy]: 'Buy',
-              [sectionIds.plot]: 'Plot'
-            };
-            handleTypeSelect(typeId, labelMap[typeId] || 'All');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className="text-xs md:text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
-        >
-          View All
-        </button>
-      </div>
-      <PropertyFeed selectedType={typeId} viewMode="carousel" limit={8} />
-    </div>
-  );
+  // Switch the page to a category tab (used by section "see all" actions)
+  const openCategory = (typeId, label) => {
+    handleTypeSelect(typeId, label);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const exploreTabs = [
+    { key: 'rent', label: 'Rent', title: 'rentals', emoji: '🔑', typeId: sectionIds.rent, filterLabel: 'Rent' },
+    { key: 'buy', label: 'Buy', title: 'homes for sale', emoji: '🏠', typeId: sectionIds.buy, filterLabel: 'Buy' },
+    { key: 'plot', label: 'Plots', title: 'plots & land', emoji: '🌳', typeId: sectionIds.plot, filterLabel: 'Plot' }
+  ];
 
   return (
     <main className="min-h-screen pb-24 transition-colors duration-700" style={{ backgroundColor: pageBg }}>
@@ -295,8 +281,10 @@ const Home = () => {
 
       {/* Main Home Sections when "All" tab is active */}
       {(!selectedType.id || selectedType.label === 'All') ? (
-        <div className="flex flex-col gap-2">
-          {/* 1. Popular Categories (Chips / Small icons on top) */}
+        // Each section owns a full-width background band; alternating tones
+        // (white / tint / cream / dark) separate sections instead of borders.
+        <div className="flex flex-col">
+          {/* 1. Popular Categories — round story-style icons */}
           <PopularCategories
             categories={homeData.popularCategories}
             loading={homeLoading}
@@ -310,24 +298,26 @@ const Home = () => {
             placement="HOME_TOP"
           />
 
-          {/* 3. Exclusive Offers + Pay Hostel Fees Side-by-Side */}
-          <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-stretch md:pr-5">
-            <div className="flex-1 min-w-0">
-              <ExclusiveOffers
-                offers={homeData.offers}
-                loading={homeLoading}
-                city={currentCity}
-              />
+          {/* 3. Offers + Pay Hostel Fees on a tinted band */}
+          <Band tone="tint" spacing="normal" rounded className="mt-1">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-8">
+              <div className="flex-1 min-w-0">
+                <ExclusiveOffers
+                  offers={homeData.offers}
+                  loading={homeLoading}
+                  city={currentCity}
+                />
+              </div>
+              <div className="w-full md:w-[320px] shrink-0 px-4 md:px-0">
+                <PayHostelFeesSection />
+              </div>
             </div>
-            <div className="w-full md:w-[300px] shrink-0 px-3.5 md:px-0 mt-3 md:mt-2">
-              <PayHostelFeesSection />
-            </div>
-          </div>
+          </Band>
 
-          {/* 4. Top Properties (admin curated) */}
+          {/* 4. Top Properties — large image-overlay cards */}
           <TopPropertiesSection config={homeData.sections?.topProperties} loading={homeLoading} />
 
-          {/* 5. Featured Categories (Rich Image Cards) */}
+          {/* 5. Featured Categories — bento grid on a cream band */}
           <FeaturedCategories
             categories={homeData.featuredCategories}
             loading={homeLoading}
@@ -336,53 +326,31 @@ const Home = () => {
             subtitle={homeData.sections?.featuredCategories?.subtitle}
           />
 
-          {/* 5. Existing Section 1: Find Your Perfect Stay (PG/Hostels) */}
-          <div className="mt-2 max-w-7xl mx-auto w-full px-3.5 md:px-0">
-            {sectionIds.pg && (
-              <HomeSection
-                title="Find Your Perfect Stay"
-                subtitle="Top rated PGs and Hostels near you"
-                typeId={sectionIds.pg}
+          {/* 6. PG / Hostels — borderless photo-first carousel */}
+          {sectionIds.pg && (
+            <Band tone="white" spacing="normal">
+              <SectionHeader
+                icon="🛏️"
+                title="Find your perfect stay"
+                subtitle="Top rated PGs and hostels near you"
+                onAction={() => openCategory(sectionIds.pg, 'PG/Co-Living')}
               />
-            )}
-          </div>
+              <PropertyFeed selectedType={sectionIds.pg} viewMode="stay-carousel" limit={8} />
+            </Band>
+          )}
 
-          {/* 6. Middle Banner Carousel (HOME_MIDDLE) */}
+          {/* 7. Middle Banner Carousel (HOME_MIDDLE) */}
           <BannerCarousel
             banners={homeData.banners?.HOME_MIDDLE}
             loading={homeLoading}
             placement="HOME_MIDDLE"
           />
 
-          {/* 7. YouTube Style Reel Section */}
-          <div className="max-w-7xl mx-auto w-full">
-            <ReelSection category={selectedType.label} />
-          </div>
+          {/* 8. Reels — soft blush band */}
+          <ReelSection category={selectedType.label} banded />
 
-          {/* 8. Categorized Property Sections */}
-          <div className="max-w-7xl mx-auto w-full px-3.5 md:px-0 flex flex-col gap-2">
-            {sectionIds.rent && (
-              <HomeSection
-                title="Properties for Rent"
-                subtitle="Apartments, Homes, and Villas for Rent"
-                typeId={sectionIds.rent}
-              />
-            )}
-            {sectionIds.buy && (
-              <HomeSection
-                title="Dream Homes for Sale"
-                subtitle="Buy your perfect home today"
-                typeId={sectionIds.buy}
-              />
-            )}
-            {sectionIds.plot && (
-              <HomeSection
-                title="Premium Plots & Land"
-                subtitle="Invest in the best locations"
-                typeId={sectionIds.plot}
-              />
-            )}
-          </div>
+          {/* 9. Rent / Buy / Plots — one tabbed list section */}
+          <ExplorePropertiesSection tabs={exploreTabs} onViewAll={openCategory} />
         </div>
       ) : (
         // Show Filtered Grid when a specific category is selected
@@ -414,10 +382,12 @@ const Home = () => {
         </div>
       )}
 
-      {/* Bottom Sections (Reviews, FAQ, Downloads, etc.) */}
-      <div className="mt-6 max-w-7xl mx-auto px-5 md:px-0">
-        <HomeBottomSections />
-      </div>
+      {/* Bottom Sections (Partners, News, App download) — only on the "All" tab */}
+      {(!selectedType.id || selectedType.label === 'All') && (
+        <div className="mt-2 md:mt-6 max-w-7xl mx-auto px-3.5 md:px-0">
+          <HomeBottomSections />
+        </div>
+      )}
     </main>
   );
 };

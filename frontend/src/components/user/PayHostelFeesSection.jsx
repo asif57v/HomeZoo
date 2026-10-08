@@ -201,11 +201,11 @@ const PayHostelFeesSection = () => {
   };
 
   return (
-    <section className="py-1.5 mt-1 md:mt-2 relative">
+    <section className="relative">
       <div className="w-full">
-        
+
         {/* Header Section */}
-        <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 mb-2 md:mb-4 tracking-tight flex items-center gap-2">
+        <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-4 tracking-tight flex items-center gap-2">
           💳 Pay Hostel Fees
         </h2>
 
@@ -219,29 +219,29 @@ const PayHostelFeesSection = () => {
                 onClick={() => handleOpenPayModal(method)}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-white border border-gray-200 rounded-xl md:rounded-[1.25rem] p-3 md:p-5 flex items-center gap-3 md:gap-5 cursor-pointer shadow-xs hover:shadow-md transition-all duration-200 group"
+                className="w-full bg-white rounded-2xl md:rounded-[1.25rem] px-3 py-2.5 md:p-5 flex items-center gap-2.5 md:gap-5 cursor-pointer hover:bg-white/70 transition-all duration-200 group"
               >
                 {/* Left side Image/Logo Box */}
-                <div className="w-14 h-12 sm:w-20 sm:h-16 shrink-0 flex items-center justify-center">
-                  <div className="scale-75 sm:scale-100 origin-center transition-transform group-hover:scale-105">
+                <div className="w-10 h-10 sm:w-20 sm:h-16 shrink-0 flex items-center justify-center">
+                  <div className="scale-[0.55] sm:scale-100 origin-center transition-transform group-hover:scale-[0.6] sm:group-hover:scale-105">
                     <Icon />
                   </div>
                 </div>
 
-                {/* Right side Title and Details */}
-                <div className="flex flex-col justify-center min-w-0 flex-1">
-                  <h3 className="text-sm sm:text-base md:text-[20px] font-bold text-gray-900 leading-tight truncate">
+                {/* Title and Details */}
+                <div className="flex flex-col justify-center min-w-0 flex-1 gap-0.5">
+                  <h3 className="text-[13px] sm:text-base md:text-[20px] font-bold text-gray-900 leading-tight truncate">
                     {method.name}
                   </h3>
-                  <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 font-medium truncate mt-0.5">
+                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 font-medium leading-snug line-clamp-2">
                     {method.description}
                   </p>
-                  <div className="mt-1 flex items-center">
-                    <span className="text-[10px] md:text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-100/80 px-2 py-0.5 rounded-md flex items-center gap-1 group-hover:bg-purple-100 transition-colors">
-                      Pay Now <ChevronRight size={11} />
-                    </span>
-                  </div>
                 </div>
+
+                {/* Pay Now action */}
+                <span className="shrink-0 text-[10px] md:text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-100/80 px-2.5 py-1 rounded-full flex items-center gap-0.5 group-hover:bg-purple-100 transition-colors">
+                  Pay Now <ChevronRight size={11} />
+                </span>
               </motion.div>
             );
           })}

@@ -12,6 +12,10 @@ import { initializeFirebase } from './config/firebase.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import morgan from 'morgan';
+import dns from 'dns';
+
+// Use public DNS for SRV lookups (mongodb+srv) — local router DNS often refuses them
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 // Initialize Firebase
 initializeFirebase();

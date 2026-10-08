@@ -49,13 +49,13 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
 
   if (loading) {
     return (
-      <div className="py-2 pl-3.5 md:pl-5 mt-1">
+      <div className="px-4 md:px-0">
         <div className="h-6 w-44 bg-gray-200/70 rounded-md animate-pulse mb-3" />
         <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="min-w-[260px] sm:min-w-[320px] h-20 md:h-24 bg-white border border-gray-100 rounded-2xl animate-pulse p-3.5 flex items-center gap-3.5"
+              className="min-w-[260px] sm:min-w-[320px] h-20 md:h-24 bg-white rounded-2xl animate-pulse p-3.5 flex items-center gap-3.5"
             >
               <div className="w-16 h-14 bg-gray-100 rounded-xl shrink-0" />
               <div className="flex-1 space-y-2">
@@ -74,18 +74,15 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
   }
 
   return (
-    <section className="py-2 pl-3.5 md:pl-5 mt-1">
-      <div className="flex items-center justify-between pr-3.5 md:pr-5 mb-2.5">
-        <h2 className="text-base sm:text-lg md:text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-          <Sparkles size={16} className="text-blue-600" />
-          Exclusive Offers & Coupons
-          <span className="bg-blue-100 text-blue-700 text-[9px] md:text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-            DEALS
-          </span>
+    <section>
+      <div className="flex items-center justify-between px-4 md:px-0 mb-2 md:mb-4">
+        <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <Sparkles size={18} className="text-emerald-600" />
+          Offers for you
         </h2>
       </div>
 
-      <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 pr-3.5 md:pr-5 snap-x no-scrollbar">
+      <div className="flex gap-2.5 md:gap-4 overflow-x-auto pb-1 px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 snap-x no-scrollbar">
         {offers.map((offer) => (
           <motion.div
             key={offer._id || offer.id}
@@ -93,19 +90,18 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/search')}
             className="
-              min-w-[260px] sm:min-w-[300px] md:min-w-[340px] 
-              bg-white 
-              border border-gray-100 
-              rounded-2xl 
-              p-3.5 md:p-4 
-              flex items-center gap-3.5 md:gap-4 
-              cursor-pointer 
-              shadow-xs hover:shadow-md transition-all duration-200 
+              min-w-[260px] sm:min-w-[300px] md:min-w-[340px]
+              bg-white
+              rounded-2xl
+              p-3 md:p-4
+              flex items-center gap-3.5 md:gap-4
+              cursor-pointer
+              transition-all duration-200
               shrink-0 snap-start group
             "
           >
             {/* Left side Image/Logo Box */}
-            <div className="w-16 h-14 sm:w-20 sm:h-16 rounded-xl bg-gray-50 border border-gray-100 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+            <div className="w-16 h-14 sm:w-20 sm:h-16 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 overflow-hidden">
               <img
                 src={offer.image}
                 alt={offer.title}

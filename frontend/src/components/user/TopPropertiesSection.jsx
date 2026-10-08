@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { propertyService, userService } from '../../services/apiService';
 import PropertyCard from './PropertyCard';
+import { Band, SectionHeader } from './home/HomeLayout';
 
 /**
  * Admin-curated "Top Properties" section.
@@ -54,11 +55,11 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
   if (configLoading || loading) {
     if (!configLoading && !idsKey) return null;
     return (
-      <section className="max-w-7xl mx-auto w-full px-3.5 md:px-0 py-2.5">
-        <div className="h-6 w-40 bg-gray-200/70 rounded-md animate-pulse mb-3" />
-        <div className="flex gap-4 overflow-hidden">
+      <section className="max-w-7xl mx-auto w-full px-4 md:px-0 py-3 md:py-8">
+        <div className="h-7 w-48 bg-gray-200/70 rounded-md animate-pulse mb-4" />
+        <div className="flex gap-2.5 md:gap-4 overflow-hidden">
           {[1, 2].map((i) => (
-            <div key={i} className="min-w-[75vw] md:min-w-[270px] h-56 bg-gray-200/70 rounded-2xl animate-pulse" />
+            <div key={i} className="min-w-[64vw] md:min-w-85 h-48 md:h-72 bg-gray-200/70 rounded-3xl animate-pulse" />
           ))}
         </div>
       </section>
@@ -68,25 +69,27 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
   if (!config?.enabled || properties.length === 0) return null;
 
   return (
-    <section className="max-w-7xl mx-auto w-full py-2.5 md:py-4">
-      <div className="px-3.5 md:px-0 mb-1.5 md:mb-2">
-        <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900">{config.title || 'Top Properties'}</h2>
-        {config.subtitle && <p className="text-xs md:text-sm text-gray-500 mt-0.5">{config.subtitle}</p>}
-      </div>
+    <Band tone="white" spacing="normal">
+      <SectionHeader
+        size="lg"
+        icon="🔥"
+        title={config.title || 'Top Properties'}
+        subtitle={config.subtitle}
+      />
 
-      <div className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory py-2 pl-3.5 pr-3.5 md:px-0 scroll-pl-3.5 pb-1">
+      <div className="flex overflow-x-auto gap-2.5 md:gap-5 no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pb-1">
         {properties.map((property) => (
           <PropertyCard
             key={property._id}
             data={property}
-            compact
-            className="min-w-[58vw] max-w-[230px] md:min-w-[270px] md:max-w-none snap-start shrink-0"
+            variant="featured"
+            className="w-[64vw] min-w-[64vw] max-w-xs md:w-85 md:min-w-85 snap-start shrink-0"
             isSaved={savedHotelIds.includes(property._id)}
           />
         ))}
-        <div className="w-2 shrink-0" />
+        <div className="w-1 shrink-0" />
       </div>
-    </section>
+    </Band>
   );
 };
 
