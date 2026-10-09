@@ -6,6 +6,7 @@ import { MapPin, Search, Filter, Star, IndianRupee, Navigation, X } from 'lucide
 import { toast } from 'react-hot-toast';
 import PropertyCard from '../../components/user/PropertyCard';
 import PropertyTypeFilter from '../../components/user/PropertyTypeFilter';
+import { fetchIndianPlaces, rankLocations } from '../../utils/placeSuggestions';
 const SearchPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -188,7 +189,7 @@ const SearchPage = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Dynamic Autocomplete suggestions when user types
+    // Dynamic autocomplete: India-only places (see utils/placeSuggestions)
     useEffect(() => {
         const query = filters.search?.trim();
         if (!query || query.length < 2) {
@@ -196,71 +197,33 @@ const SearchPage = () => {
             return;
         }
 
+        let cancelled = false;
         const timer = setTimeout(async () => {
-            try {
-                // Photon OpenStreetMap Autocomplete
-                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en`);
-                const data = await res.json();
-                if (data && data.features && data.features.length > 0) {
-                    const fetched = data.features.map(f => {
-                        const props = f.properties;
-                        const name = props.name || '';
-                        const city = props.city || props.county || props.district || props.state || '';
-                        if (name && city && !name.toLowerCase().includes(city.toLowerCase())) {
-                            return `${name}, ${city}`;
-                        }
-                        return name || city;
-                    }).filter(Boolean);
+            const places = await fetchIndianPlaces(query);
+            if (!cancelled) setApiSuggestions(places);
+        }, 250);
 
-                    if (fetched.length > 0) {
-                        setApiSuggestions(fetched);
-                        return;
-                    }
-                }
-            } catch (err) {
-                console.warn("Photon autocomplete error", err);
-            }
-
-            // Fallback to Google Geocoding API
-            const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
-            if (apiKey) {
-                try {
-                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}&components=country:in`);
-                    const data = await res.json();
-                    if (data.status === 'OK' && data.results) {
-                        const fetched = data.results.slice(0, 5).map(item => item.formatted_address);
-                        setApiSuggestions(fetched);
-                    }
-                } catch (err) {
-                    console.warn("Geocoding suggestions error", err);
-                }
-            }
-        }, 200);
-
-        return () => clearTimeout(timer);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
     }, [filters.search]);
 
+    // Places from the listings already loaded come first: they are guaranteed to have results
     const getFilteredSuggestions = () => {
-        const query = (filters.search || '').toLowerCase().trim();
-        
-        // Filter static popular locations
-        const localFiltered = MASTER_SEARCH_LOCATIONS.filter(loc => 
-            !query || loc.toLowerCase().includes(query)
-        );
+        const listings = properties
+            .map((p) => {
+                const city = p.city || p.address?.city || '';
+                const area = p.address?.area || p.address?.street || '';
+                return [area, city].filter(Boolean).join(', ');
+            })
+            .filter(Boolean);
 
-        // Filter property locations from current loaded properties
-        const propertyLocations = properties.map(p => {
-            const city = p.city || p.address?.city || '';
-            const area = p.address?.area || p.address?.street || '';
-            return [area, city].filter(Boolean).join(', ');
-        }).filter(Boolean);
-
-        const propertyFiltered = propertyLocations.filter(loc => 
-            query && loc.toLowerCase().includes(query)
-        );
-
-        const combined = Array.from(new Set([...apiSuggestions, ...localFiltered, ...propertyFiltered]));
-        return combined.slice(0, 8);
+        return rankLocations(filters.search, {
+            listings,
+            curated: MASTER_SEARCH_LOCATIONS,
+            live: apiSuggestions,
+        });
     };
 
     const [location, setLocation] = useState(null); // { lat, lng }
@@ -653,6 +616,7 @@ const SearchPage = () => {
                     {/* Horizontal Dynamic Tabs */}
                     <div className="mt-1 md:mt-0 -mx-4 border-t border-gray-50/50">
                         <PropertyTypeFilter
+                            variant="light"
                             selectedType={Array.isArray(filters.type) ? filters.type[0] : filters.type}
                             onSelectType={(type) => {
                                 const newType = type === 'All' ? 'all' : type;

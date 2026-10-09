@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Star, IndianRupee, Heart, BadgeCheck, BedDouble, Sofa, Users, UtensilsCrossed, ChevronRight } from 'lucide-react';
+import { MapPin, Star, IndianRupee, Heart, BadgeCheck, BedDouble, Sofa, Users, UtensilsCrossed, ChevronRight, Ruler, Compass, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/apiService';
 import toast from 'react-hot-toast';
+
+// Indian-style short price for sale/plot cards: 1,00,000 -> "1 Lac", 12,500,000 -> "1.25 Cr"
+const formatCompactPrice = (n) => {
+  if (n >= 1e7) return `${+(n / 1e7).toFixed(2)} Cr`;
+  if (n >= 1e5) return `${+(n / 1e5).toFixed(2)} Lac`;
+  return n.toLocaleString('en-IN');
+};
 
 /**
  * variant:
@@ -10,6 +17,9 @@ import toast from 'react-hot-toast';
  *  - 'horizontal' borderless row: image left, details right (home list sections)
  *  - 'photo'      borderless, photo-first card with text below (home carousels)
  *  - 'featured'   large image with text overlaid (home hero carousel)
+ *  - 'tile'       rent: compact 3:4 catalog tile, details overlaid on the photo (home "Properties for rent")
+ *  - 'sale'       poster card: tall photo with a glass info panel (home "Dream homes for sale")
+ *  - 'plot'       white card with an area / price stat strip (home "Premium plots & land")
  *  - 'stay'       PG/hostel card: gender, sharing, meals, starting rent (home "Find your perfect stay")
  */
 const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved, compact = false, variant = 'default' }) => {
@@ -295,6 +305,207 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
             <span className="shrink-0 w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center group-hover:bg-emerald-700 transition-colors">
               <ChevronRight size={16} />
             </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'tile') {
+    const r = item.rentDetails || {};
+    const bhk = r.type || r.bhkType || item.bhkType || item.bhk || item.roomType || 'For Rent';
+
+    return (
+      <div
+        onClick={() => navigate(`/hotel/${_id}`)}
+        className={`group relative aspect-3/4 rounded-2xl overflow-hidden cursor-pointer bg-gray-200 shadow-[0_6px_16px_rgba(15,23,42,0.14)] active:scale-[0.97] transition-transform ${className}`}
+      >
+        <img
+          src={imageSrc}
+          alt={displayName}
+          loading="lazy"
+          onError={handleImageError}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/25 to-transparent" />
+
+        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+          {isPremium ? (
+            <span className="flex items-center gap-0.5 bg-[#FFD700] text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md">
+              <Star size={8} className="fill-black" /> Premium
+            </span>
+          ) : <span />}
+          <button
+            onClick={handleToggleSave}
+            aria-label="Save property"
+            className="w-7 h-7 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Heart size={14} className={isSaved ? 'fill-red-500 text-red-500' : 'text-white'} />
+          </button>
+        </div>
+
+        <div className="absolute bottom-0 inset-x-0 p-2.5 text-white">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="flex items-center gap-1 bg-violet-600 text-[9px] font-bold px-1.5 py-0.5 rounded-md truncate">
+              <BedDouble size={9} /> {bhk}
+            </span>
+            <span className="shrink-0 flex items-center gap-0.5 text-[10px] font-bold">
+              <Star size={9} className="fill-amber-400 text-amber-400" /> {displayRating}
+            </span>
+          </div>
+          {displayPrice ? (
+            <div className="flex items-baseline gap-0.5">
+              <IndianRupee size={12} className="self-center" strokeWidth={2.5} />
+              <span className="text-[15px] font-extrabold leading-tight">{formattedPrice}</span>
+              <span className="text-[10px] text-white/70 ml-0.5">/mo</span>
+            </div>
+          ) : (
+            <span className="text-[12px] font-bold leading-tight">Price on request</span>
+          )}
+          <h3 className="text-[12px] font-semibold truncate flex items-center gap-1 mt-0.5">
+            <span className="truncate">{displayName}</span>
+            {item.hasVerifiedTag && <BadgeCheck size={12} className="shrink-0 fill-blue-500 text-white" />}
+          </h3>
+          <p className="text-[10px] text-white/70 truncate">{locationText}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'sale') {
+    const b = item.buyDetails || {};
+    const area = b.area?.superBuiltUp || b.area?.carpet;
+    const specs = [
+      b.type,
+      area && `${Number(area).toLocaleString('en-IN')} ${b.area?.unit || 'sqft'}`,
+      b.facing && `${b.facing} facing`
+    ].filter(Boolean);
+
+    return (
+      <div
+        onClick={() => navigate(`/hotel/${_id}`)}
+        className={`group relative aspect-4/5 rounded-3xl overflow-hidden cursor-pointer bg-gray-200 shadow-[0_10px_28px_rgba(15,23,42,0.18)] active:scale-[0.98] transition-transform ${className}`}
+      >
+        <img
+          src={imageSrc}
+          alt={displayName}
+          loading="lazy"
+          onError={handleImageError}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-black/35 via-transparent to-black/30" />
+
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-start justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">For Sale</span>
+            {isPremium && (
+              <span className="flex items-center gap-0.5 bg-[#FFD700] text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-1 rounded-full">
+                <Star size={8} className="fill-black" /> Premium
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleToggleSave}
+            aria-label="Save property"
+            className="w-8 h-8 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Heart size={16} className={isSaved ? 'fill-red-500 text-red-500' : 'text-white'} />
+          </button>
+        </div>
+
+        {/* Glass info panel */}
+        <div className="absolute bottom-2.5 inset-x-2.5 rounded-2xl bg-white/15 backdrop-blur-lg border border-white/25 p-2.5 text-white">
+          <div className="flex items-center justify-between gap-2">
+            {displayPrice ? (
+              <span className="flex items-baseline gap-0.5">
+                <IndianRupee size={14} className="self-center" strokeWidth={2.5} />
+                <span className="text-lg font-extrabold leading-none">{formatCompactPrice(displayPrice)}</span>
+              </span>
+            ) : (
+              <span className="text-sm font-bold leading-none">Price on request</span>
+            )}
+            <span className="shrink-0 flex items-center gap-0.5 text-[11px] font-bold">
+              <Star size={11} className="fill-amber-400 text-amber-400" /> {displayRating}
+            </span>
+          </div>
+          <h3 className="text-[13px] font-bold truncate flex items-center gap-1 mt-1.5">
+            <span className="truncate">{displayName}</span>
+            {item.hasVerifiedTag && <BadgeCheck size={13} className="shrink-0 fill-blue-500 text-white" />}
+          </h3>
+          <p className="flex items-center gap-0.5 text-[10px] text-white/80 truncate">
+            <MapPin size={9} className="shrink-0" />
+            <span className="truncate">{locationText}</span>
+          </p>
+          {specs.length > 0 && (
+            <p className="text-[10px] text-white/90 font-medium truncate mt-1">{specs.join('  ·  ')}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'plot') {
+    const p = item.plotDetails || {};
+    const areaText = p.plotArea ? `${Number(p.plotArea).toLocaleString('en-IN')} ${p.unit || 'sqyrd'}` : '—';
+    const tag = p.landType || (p.facing && `${p.facing} facing`);
+
+    return (
+      <div
+        onClick={() => navigate(`/hotel/${_id}`)}
+        className={`group bg-white rounded-2xl overflow-hidden cursor-pointer ring-1 ring-amber-200 shadow-[0_4px_14px_rgba(180,83,9,0.10)] active:scale-[0.98] transition-transform ${className}`}
+      >
+        <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
+          <img
+            src={imageSrc}
+            alt={displayName}
+            loading="lazy"
+            onError={handleImageError}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          {isPremium && (
+            <span className="absolute top-2 left-2 flex items-center gap-0.5 bg-[#FFD700] text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md">
+              <Star size={8} className="fill-black" /> Premium
+            </span>
+          )}
+          <button
+            onClick={handleToggleSave}
+            aria-label="Save property"
+            className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Heart size={14} className={isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'} />
+          </button>
+          {tag && (
+            <span className="absolute bottom-2 left-2 bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-md">
+              {tag}
+            </span>
+          )}
+          <span className="absolute bottom-2 right-2 flex items-center gap-0.5 bg-black/45 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+            <Star size={9} className="fill-amber-400 text-amber-400" /> {displayRating}
+          </span>
+        </div>
+
+        <div className="p-2.5">
+          <h3 className="text-[13px] font-bold text-gray-900 truncate flex items-center gap-1">
+            <span className="truncate">{displayName}</span>
+            {item.hasVerifiedTag && <BadgeCheck size={13} className="shrink-0 fill-blue-500 text-white" />}
+          </h3>
+          <p className="flex items-center gap-0.5 text-[10px] text-gray-500 truncate mt-0.5">
+            <MapPin size={9} className="shrink-0 text-gray-400" />
+            <span className="truncate">{locationText}</span>
+          </p>
+
+          {/* Area / Price strip */}
+          <div className="mt-2 grid grid-cols-2 divide-x divide-amber-200 rounded-xl bg-amber-50 py-1.5 text-center">
+            <div className="px-1 min-w-0">
+              <p className="text-[8px] uppercase tracking-wider font-bold text-amber-700/70">Area</p>
+              <p className="text-[11px] font-extrabold text-gray-900 leading-tight truncate">{areaText}</p>
+            </div>
+            <div className="px-1 min-w-0">
+              <p className="text-[8px] uppercase tracking-wider font-bold text-amber-700/70">Price</p>
+              <p className="text-[11px] font-extrabold text-gray-900 leading-tight truncate">
+                {displayPrice ? `₹${formatCompactPrice(displayPrice)}` : 'On request'}
+              </p>
+            </div>
           </div>
         </div>
       </div>

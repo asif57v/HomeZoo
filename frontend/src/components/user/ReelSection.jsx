@@ -123,7 +123,7 @@ const ReelSection = ({ category, banded = false }) => {
     if (loading) {
         if (banded) {
             return (
-                <div className="w-full bg-gradient-to-b from-rose-50 to-orange-50/40 py-4 md:py-12 rounded-[1.75rem] md:rounded-none">
+                <div className="w-full bg-gradient-to-b from-rose-50 to-orange-50/40 py-7 md:py-12 rounded-[1.75rem] md:rounded-none">
                     <div className="max-w-7xl mx-auto flex gap-2 md:gap-4 overflow-hidden px-4 md:px-0">
                         {[1, 2, 3, 4].map((n) => (
                             <div key={n} className="w-[132px] md:w-[160px] aspect-[9/16] shrink-0 rounded-2xl bg-white/80 animate-pulse" />
@@ -155,7 +155,7 @@ const ReelSection = ({ category, banded = false }) => {
                     subtitle="Short video tours and updates"
                     onAction={() => navigate('/reels')}
                 />
-                <div className="flex overflow-x-auto gap-2 md:gap-4 pb-1 px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 no-scrollbar snap-x snap-mandatory">
+                <div className="flex overflow-x-auto gap-3 md:gap-4 pt-1 pb-2 px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 no-scrollbar snap-x snap-mandatory">
                     {reels.map((reel) => (
                         <ReelItem key={reel._id} reel={reel} navigate={navigate} banded />
                     ))}

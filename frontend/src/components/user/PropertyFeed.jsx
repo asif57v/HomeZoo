@@ -3,6 +3,13 @@ import { propertyService, userService } from '../../services/apiService';
 import PropertyCard from './PropertyCard';
 import { Loader2 } from 'lucide-react';
 
+// Home section carousels: each uses its own card design and size
+const TILE_CONFIG = {
+  'rent-grid': { variant: 'tile', width: 'w-[38vw] min-w-[38vw] max-w-44 md:w-44 md:min-w-44', ratio: 'aspect-3/4' },
+  'sale-grid': { variant: 'sale', width: 'w-[66vw] min-w-[66vw] max-w-72 md:w-72 md:min-w-72', ratio: 'aspect-4/5' },
+  'plot-grid': { variant: 'plot', width: 'w-[52vw] min-w-[52vw] max-w-56 md:w-56 md:min-w-56', ratio: 'aspect-4/5' }
+};
+
 const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, extraFilters = {} }) => {
   const [properties, setProperties] = useState([]);
   const [savedHotelIds, setSavedHotelIds] = useState([]);
@@ -90,6 +97,16 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
         </div>
       );
     }
+    if (TILE_CONFIG[viewMode]) {
+      const { width, ratio } = TILE_CONFIG[viewMode];
+      return (
+        <div className="flex gap-2.5 md:gap-4 overflow-hidden px-4 md:px-0 pt-1 pb-3">
+          {[1, 2, 3, 4].map(n => (
+            <div key={n} className={`${width} ${ratio} shrink-0 rounded-2xl bg-gray-200/80 animate-pulse`} />
+          ))}
+        </div>
+      );
+    }
     if (viewMode === 'photo-carousel') {
       return (
         <div className="flex gap-2.5 md:gap-5 overflow-hidden px-4 md:px-0">
@@ -144,9 +161,28 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
     );
   }
 
+  // Rent / Sale / Plots: sideways carousels, each with its own card design
+  if (TILE_CONFIG[viewMode]) {
+    const { variant, width } = TILE_CONFIG[viewMode];
+    return (
+      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+        {displayedProperties.map(property => (
+          <PropertyCard
+            key={property._id}
+            data={property}
+            variant={variant}
+            className={`${width} snap-start shrink-0`}
+            isSaved={savedHotelIds.includes(property._id)}
+          />
+        ))}
+        <div className="w-1 shrink-0" />
+      </div>
+    );
+  }
+
   if (viewMode === 'stay-carousel') {
     return (
-      <div className="flex gap-2.5 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-3">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -163,7 +199,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
 
   if (viewMode === 'photo-carousel') {
     return (
-      <div className="flex gap-2.5 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pb-1">
+      <div className="flex gap-3 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}

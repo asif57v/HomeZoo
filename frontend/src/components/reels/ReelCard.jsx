@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, memo, useState } from 'react';
+import React, { useRef, useEffect, useCallback, memo, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Heart,
@@ -8,15 +8,33 @@ import {
   Volume2,
   VolumeX,
   Building2,
-  ExternalLink,
+  ChevronRight,
   MapPin,
   MoreVertical,
   EyeOff,
   Trash2,
+  Play,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { reelService } from '../../services/reelService';
 import toast from 'react-hot-toast';
+
+// Sound preference shared by every reel in the feed (like Instagram): sound is ON by default,
+// and once the user mutes a reel the next ones stay muted until they turn sound back on.
+let soundMuted = false;
+const soundListeners = new Set();
+const subscribeSound = (cb) => {
+  soundListeners.add(cb);
+  return () => soundListeners.delete(cb);
+};
+const getSoundMuted = () => soundMuted;
+const setSoundMuted = (value) => {
+  soundMuted = value;
+  soundListeners.forEach((l) => l());
+};
+
+const railButton =
+  'w-11 h-11 flex items-center justify-center text-white active:scale-90 transition-transform drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]';
 
 const ReelCard = memo(function ReelCard({
   reel,
@@ -31,21 +49,23 @@ const ReelCard = memo(function ReelCard({
 }) {
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const progressRef = useRef(null);
   const viewReported = useRef(false);
   const watchStartTimeRef = useRef(null);
   const watchDurationRef = useRef(0);
-
-  const [muted, setMuted] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [soundToast, setSoundToast] = useState(null);
-  const soundToastTimerRef = useRef(null);
   const clickTimeoutRef = useRef(null);
+  const heartTimeoutRef = useRef(null);
+
+  const muted = useSyncExternalStore(subscribeSound, getSoundMuted);
+  const [paused, setPaused] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showHeart, setShowHeart] = useState(false);
 
   const currentUser = React.useMemo(() => {
     try {
       const u = localStorage.getItem('user');
       return u ? JSON.parse(u) : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   }, []);
@@ -59,28 +79,29 @@ const ReelCard = memo(function ReelCard({
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
-    video.muted = muted;
+    if (video) video.muted = muted;
   }, [muted]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(clickTimeoutRef.current);
+      clearTimeout(heartTimeoutRef.current);
+    },
+    []
+  );
 
   const toggleMute = useCallback((e) => {
     if (e) e.stopPropagation();
-    setMuted((prev) => {
-      const nextMuted = !prev;
-      if (videoRef.current) {
-        videoRef.current.muted = nextMuted;
-        if (!nextMuted) {
-          videoRef.current.volume = 1.0;
-          videoRef.current.play().catch(() => {});
-        }
-      }
-      if (soundToastTimerRef.current) clearTimeout(soundToastTimerRef.current);
-      setSoundToast(nextMuted ? 'muted' : 'unmuted');
-      soundToastTimerRef.current = setTimeout(() => {
-        setSoundToast(null);
-      }, 1000);
-      return nextMuted;
-    });
+    const next = !getSoundMuted();
+    if (videoRef.current) videoRef.current.muted = next;
+    setSoundMuted(next);
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) video.play().catch(() => {});
+    else video.pause();
   }, []);
 
   // Track video play/pause & watch duration
@@ -90,7 +111,16 @@ const ReelCard = memo(function ReelCard({
 
     if (isActive) {
       watchStartTimeRef.current = Date.now();
-      video.play().catch(() => {});
+      video.muted = getSoundMuted();
+      video.play().catch((err) => {
+        // Browser blocked autoplay *with sound*: fall back to muted playback.
+        // The user can turn sound on with the speaker button.
+        if (err?.name === 'NotAllowedError' && !video.muted) {
+          setSoundMuted(true);
+          video.muted = true;
+          video.play().catch(() => {});
+        }
+      });
     } else {
       if (watchStartTimeRef.current) {
         const elapsed = (Date.now() - watchStartTimeRef.current) / 1000;
@@ -120,47 +150,56 @@ const ReelCard = memo(function ReelCard({
   }, [isActive, reel._id]);
 
   const handleTimeUpdate = useCallback(() => {
-    if (!isActive || viewReported.current || !onViewed) return;
     const video = videoRef.current;
-    if (video && video.currentTime >= 2) {
+    if (!video || !isActive) return;
+
+    if (progressRef.current && video.duration) {
+      progressRef.current.style.transform = `scaleX(${Math.min(1, video.currentTime / video.duration)})`;
+    }
+
+    if (viewReported.current || !onViewed) return;
+    if (video.currentTime >= 2) {
       viewReported.current = true;
       onViewed(reel._id);
     }
   }, [isActive, reel._id, onViewed]);
 
-  const handleDoubleTap = useCallback(() => {
-    if (!reel.likedByMe) onLikeToggle(reel._id);
-  }, [reel._id, reel.likedByMe, onLikeToggle]);
+  const burstHeart = useCallback(() => {
+    setShowHeart(true);
+    clearTimeout(heartTimeoutRef.current);
+    heartTimeoutRef.current = setTimeout(() => setShowHeart(false), 800);
+  }, []);
 
+  // Single tap = pause / play, double tap = like (Instagram / TikTok behaviour)
   const handleVideoTap = useCallback(
     (e) => {
       if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.no-tap')) return;
+      setMenuOpen(false);
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
         clickTimeoutRef.current = null;
-        // Double tap -> Like
         if (!reel.likedByMe) onLikeToggle(reel._id);
+        burstHeart();
       } else {
         clickTimeoutRef.current = setTimeout(() => {
           clickTimeoutRef.current = null;
-          toggleMute();
+          togglePlay();
         }, 250);
       }
     },
-    [reel._id, reel.likedByMe, onLikeToggle, toggleMute]
+    [reel._id, reel.likedByMe, onLikeToggle, togglePlay, burstHeart]
   );
 
-  const handlePropertyClick = useCallback(async (e) => {
-    if (e) e.stopPropagation();
-    const propId = typeof reel.property === 'object' ? reel.property?._id : reel.property;
-    if (!propId) return;
-    try {
+  const handlePropertyClick = useCallback(
+    (e) => {
+      if (e) e.stopPropagation();
+      const propId = typeof reel.property === 'object' ? reel.property?._id : reel.property;
+      if (!propId) return;
       reelService.recordPropertyClick(reel._id).catch(() => {});
       navigate(`/hotel/${propId}`);
-    } catch (e) {
-      navigate(`/hotel/${propId}`);
-    }
-  }, [navigate, reel._id, reel.property]);
+    },
+    [navigate, reel._id, reel.property]
+  );
 
   const handleNotInterestedClick = useCallback(async () => {
     setMenuOpen(false);
@@ -168,7 +207,7 @@ const ReelCard = memo(function ReelCard({
       await reelService.setNotInterested(reel._id);
       toast.success('We will show fewer reels like this');
       if (onNotInterested) onNotInterested(reel._id);
-    } catch (e) {
+    } catch {
       toast.error('Failed to update recommendation preferences');
     }
   }, [reel._id, onNotInterested]);
@@ -198,14 +237,24 @@ const ReelCard = memo(function ReelCard({
         src={reel.videoUrl}
         className="absolute inset-0 w-full h-full object-cover cursor-pointer"
         loop
-        muted
         playsInline
         preload="auto"
         onTimeUpdate={handleTimeUpdate}
+        onPlay={() => setPaused(false)}
+        onPause={() => setPaused(true)}
       />
 
-      {/* Top right floating controls: 3-dots Menu (positioned safely below top header) */}
-      <div className="absolute top-16 right-3.5 z-30 flex items-center gap-2.5">
+      {/* Top right: sound + menu */}
+      <div className="absolute top-3 right-3 z-30 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleMute}
+          className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center active:scale-90 transition-transform"
+          aria-label={muted ? 'Turn sound on' : 'Turn sound off'}
+        >
+          {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+        </button>
+
         <div className="relative">
           <button
             type="button"
@@ -213,7 +262,7 @@ const ReelCard = memo(function ReelCard({
               e.stopPropagation();
               setMenuOpen((o) => !o);
             }}
-            className="p-2.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 shadow-lg hover:bg-black/80 active:scale-90 transition-transform flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center active:scale-90 transition-transform"
             aria-label="More options"
           >
             <MoreVertical size={18} />
@@ -246,266 +295,169 @@ const ReelCard = memo(function ReelCard({
         </div>
       </div>
 
-      {/* Sound indicator toast (center of video on toggle/tap) */}
+      {/* Paused indicator */}
       <AnimatePresence>
-        {soundToast && (
+        {isActive && paused && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.6 }}
+            key="paused"
+            initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.18 }}
-            className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center"
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 z-[5] pointer-events-none flex items-center justify-center"
           >
-            <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-2xl bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl">
-              {soundToast === 'unmuted' ? (
-                <Volume2 size={36} className="text-emerald-400 animate-pulse" />
-              ) : (
-                <VolumeX size={36} className="text-red-400" />
-              )}
-              <span className="text-xs font-bold uppercase tracking-wider">
-                {soundToast === 'unmuted' ? 'Sound On' : 'Muted'}
-              </span>
-            </div>
+            <span className="w-20 h-20 rounded-full bg-black/45 backdrop-blur-sm flex items-center justify-center">
+              <Play size={38} className="text-white fill-white ml-1" />
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Right side interaction buttons */}
-      <div className="absolute right-3 bottom-24 flex flex-col items-center gap-4 z-20">
-        {/* Like */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            type="button"
-            onClick={() => onLikeToggle(reel._id)}
-            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
+      {/* Double-tap heart */}
+      <AnimatePresence>
+        {showHeart && (
+          <motion.div
+            key="heart"
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: 1.2, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 18 }}
+            className="absolute inset-0 z-[6] pointer-events-none flex items-center justify-center text-white drop-shadow-xl"
           >
-            <Heart
-              size={24}
-              className={reel.likedByMe ? 'fill-red-500 text-red-500' : ''}
-            />
+            <Heart size={96} fill="currentColor" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Right action rail: icons only, counts underneath */}
+      <div className="absolute right-1.5 bottom-6 flex flex-col items-center gap-3 z-20">
+        <div className="flex flex-col items-center">
+          <button type="button" onClick={() => onLikeToggle(reel._id)} className={railButton} aria-label="Like">
+            <Heart size={28} className={reel.likedByMe ? 'fill-red-500 text-red-500' : ''} />
           </button>
-          <span className="text-[11px] font-bold text-white drop-shadow">
-            {reel.likesCount ?? 0}
-          </span>
+          <span className="text-[11px] font-bold text-white drop-shadow -mt-1">{reel.likesCount ?? 0}</span>
         </div>
 
-        {/* Comment */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            type="button"
-            onClick={() => onCommentClick(reel)}
-            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
-          >
-            <MessageCircle size={24} />
+        <div className="flex flex-col items-center">
+          <button type="button" onClick={() => onCommentClick(reel)} className={railButton} aria-label="Comments">
+            <MessageCircle size={27} />
           </button>
-          <span className="text-[11px] font-bold text-white drop-shadow">
-            {reel.commentsCount ?? 0}
-          </span>
+          <span className="text-[11px] font-bold text-white drop-shadow -mt-1">{reel.commentsCount ?? 0}</span>
         </div>
 
-        {/* Save / Bookmark */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            type="button"
-            onClick={() => onSaveToggle(reel._id)}
-            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
-          >
-            <Bookmark
-              size={24}
-              className={reel.savedByMe ? 'fill-amber-400 text-amber-400' : ''}
-            />
+        <div className="flex flex-col items-center">
+          <button type="button" onClick={() => onSaveToggle(reel._id)} className={railButton} aria-label="Save">
+            <Bookmark size={27} className={reel.savedByMe ? 'fill-amber-400 text-amber-400' : ''} />
           </button>
-          <span className="text-[11px] font-bold text-white drop-shadow">
-            {reel.savesCount ?? 0}
-          </span>
+          <span className="text-[11px] font-bold text-white drop-shadow -mt-1">{reel.savesCount ?? 0}</span>
         </div>
 
-        {/* Share */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            type="button"
-            onClick={() => onShareClick(reel)}
-            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
-          >
-            <Share2 size={24} />
+        <div className="flex flex-col items-center">
+          <button type="button" onClick={() => onShareClick(reel)} className={railButton} aria-label="Share">
+            <Share2 size={26} />
           </button>
-          <span className="text-[11px] font-bold text-white drop-shadow">
-            {reel.sharesCount ?? 0}
-          </span>
-        </div>
-
-        {/* Sound / Volume Toggle */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            type="button"
-            onClick={toggleMute}
-            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 hover:bg-black/70"
-            title={muted ? 'Tap to Unmute' : 'Tap to Mute'}
-          >
-            {muted ? (
-              <VolumeX size={24} className="text-red-400" />
-            ) : (
-              <Volume2 size={24} className="text-emerald-400" />
-            )}
-          </button>
-          <span className="text-[10px] font-bold text-white drop-shadow">
-            {muted ? 'Muted' : 'Sound'}
-          </span>
-        </div>
-
-        {/* Uploader Avatar */}
-        <div className="mt-1">
-          <div className="w-9 h-9 rounded-full border-2 border-white/80 overflow-hidden bg-gray-800 flex items-center justify-center shadow-lg">
-            {user.profileImage ? (
-              <img
-                src={user.profileImage}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-white font-bold text-xs">
-                {displayName.charAt(0)}
-              </span>
-            )}
-          </div>
+          <span className="text-[11px] font-bold text-white drop-shadow -mt-1">{reel.sharesCount ?? 0}</span>
         </div>
       </div>
 
-      {/* Bottom Information & Property Overlay Banner */}
+      {/* Bottom info. Wrapper ignores taps so the whole screen toggles play/pause. */}
       <div
-        className="absolute left-0 right-0 bottom-0 pl-4 pr-20 pb-20 pt-16 z-10 text-left space-y-2 pointer-events-auto no-tap"
+        className="absolute left-0 right-0 bottom-0 pl-4 pr-16 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-28 z-10 text-left space-y-2.5 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)',
+            'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 55%, transparent 100%)',
         }}
       >
-        {/* Linked Property Banner Card */}
-        {property && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            onClick={handlePropertyClick}
-            className="mb-2 p-2.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-between gap-3 cursor-pointer hover:bg-white/25 transition-all group"
-          >
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              {property.coverImage ? (
-                <img
-                  src={property.coverImage}
-                  alt=""
-                  className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-lg bg-emerald-600/30 flex items-center justify-center flex-shrink-0 text-emerald-400">
-                  <Building2 size={20} />
-                </div>
-              )}
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="font-bold text-xs text-white truncate group-hover:text-emerald-300 transition-colors">
-                    {property.propertyName}
-                  </h4>
-                  {propertyPrice && (
-                    <span className="text-[10px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.5 rounded-full flex-shrink-0">
-                      {propertyPrice}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[10px] text-gray-300 truncate flex items-center gap-1 mt-0.5">
-                  <MapPin size={10} className="text-emerald-400" />
-                  {property.address?.city || property.address?.state || 'Verified Property'}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handlePropertyClick}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 flex-shrink-0 group-hover:bg-emerald-500 shadow-md transition-all"
-            >
-              View Property
-              <ExternalLink size={12} />
-            </button>
-          </motion.div>
-        )}
-
-        {/* Creator Name & Category Tag */}
-        <div className="flex items-center gap-2">
-          <p className="font-bold text-sm text-white drop-shadow">
-            {displayName}
-          </p>
+        {/* Creator */}
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 rounded-full border-2 border-white/80 overflow-hidden bg-gray-800 flex items-center justify-center shrink-0">
+            {user.profileImage ? (
+              <img src={user.profileImage} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-bold text-xs">{displayName.charAt(0)}</span>
+            )}
+          </div>
+          <p className="font-bold text-sm text-white drop-shadow truncate">{displayName}</p>
           {reel.creatorType === 'vendor' && (
-            <span className="bg-emerald-600/80 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+            <span className="shrink-0 bg-emerald-600/90 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase">
               Partner
             </span>
           )}
           {(reel.creatorType === 'admin' || user.role === 'admin' || user.role === 'superadmin') && (
-            <span className="bg-amber-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase shadow">
+            <span className="shrink-0 bg-amber-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase">
               Admin
             </span>
           )}
-          <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+          <span className="shrink-0 text-[10px] font-semibold text-emerald-300 bg-white/10 px-2 py-0.5 rounded-full">
             #{reel.category?.toLowerCase() || 'general'}
           </span>
         </div>
 
         {/* Caption */}
         {reel.caption ? (
-          <p className="text-xs text-white/95 line-clamp-2 leading-relaxed drop-shadow">
-            {reel.caption}
-          </p>
+          <p className="text-[13px] text-white/95 line-clamp-2 leading-snug drop-shadow">{reel.caption}</p>
         ) : null}
 
         {/* Hashtags */}
         {reel.hashtags && reel.hashtags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5">
             {reel.hashtags.map((tag, idx) => (
-              <span key={idx} className="text-[10px] font-medium text-white/80">
+              <span key={idx} className="text-[11px] font-medium text-white/80">
                 #{tag}
               </span>
             ))}
           </div>
         )}
+
+        {/* Linked property: compact CTA */}
+        {property && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={handlePropertyClick}
+            className="pointer-events-auto flex items-center gap-2.5 p-2 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 cursor-pointer active:scale-[0.98] transition-transform"
+          >
+            {property.coverImage ? (
+              <img src={property.coverImage} alt="" className="w-11 h-11 rounded-xl object-cover shrink-0" />
+            ) : (
+              <div className="w-11 h-11 rounded-xl bg-emerald-600/30 flex items-center justify-center shrink-0 text-emerald-300">
+                <Building2 size={20} />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-[13px] text-white truncate">{property.propertyName}</h4>
+              <p className="text-[11px] text-white/75 truncate flex items-center gap-1 mt-0.5">
+                <MapPin size={10} className="text-emerald-300 shrink-0" />
+                <span className="truncate">
+                  {property.address?.city || property.address?.state || 'Verified Property'}
+                </span>
+                {propertyPrice && (
+                  <span className="shrink-0 font-bold text-white">· {propertyPrice}</span>
+                )}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handlePropertyClick}
+              className="shrink-0 flex items-center gap-0.5 pl-3 pr-2 py-1.5 rounded-full bg-emerald-500 text-white text-xs font-bold active:scale-95 transition-transform"
+            >
+              View
+              <ChevronRight size={14} />
+            </button>
+          </motion.div>
+        )}
       </div>
 
-      {/* Double-tap heart overlay */}
-      <DoubleTapHeart reelId={reel._id} onLikeToggle={onLikeToggle} likedByMe={reel.likedByMe} />
+      {/* Progress bar */}
+      <div className="absolute bottom-0 inset-x-0 h-[3px] bg-white/20 z-20 pointer-events-none">
+        <div
+          ref={progressRef}
+          className="h-full bg-white origin-left transition-transform duration-300 ease-linear"
+          style={{ transform: 'scaleX(0)' }}
+        />
+      </div>
     </div>
   );
 });
-
-function DoubleTapHeart({ reelId, onLikeToggle, likedByMe }) {
-  const [show, setShow] = useState(false);
-  const handleDoubleTap = useCallback(
-    (e) => {
-      if (e.target.closest('button')) return;
-      if (!likedByMe) {
-        onLikeToggle(reelId);
-        setShow(true);
-        setTimeout(() => setShow(false), 800);
-      }
-    },
-    [reelId, likedByMe, onLikeToggle]
-  );
-  return (
-    <>
-      <div
-        className="absolute inset-0 z-[1] pointer-events-none flex items-center justify-center"
-        aria-hidden
-      >
-        <AnimatePresence>
-          {show && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1.3 }}
-              exit={{ scale: 0, opacity: 0 }}
-              className="text-red-500 drop-shadow-xl"
-            >
-              <Heart size={90} fill="currentColor" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </>
-  );
-}
 
 export default ReelCard;

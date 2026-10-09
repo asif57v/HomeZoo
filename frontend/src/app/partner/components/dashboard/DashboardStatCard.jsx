@@ -1,34 +1,48 @@
-
 import React from 'react';
+import { ChevronRight } from 'lucide-react';
 
-const DashboardStatCard = ({ icon: Icon, label, value, subtext, actionLabel, onAction, colorClass = "text-[#005CA8]" }) => {
+const TONES = {
+  blue: { icon: 'bg-blue-50 text-[#005CA8]', action: 'text-[#005CA8]' },
+  sky: { icon: 'bg-sky-50 text-sky-600', action: 'text-sky-700' },
+  purple: { icon: 'bg-purple-50 text-purple-600', action: 'text-purple-700' },
+  orange: { icon: 'bg-orange-50 text-orange-500', action: 'text-orange-600' }
+};
+
+/**
+ * Compact KPI tile. The whole card is the action target, so the action label
+ * sits at the bottom instead of competing with the icon at the top.
+ */
+const DashboardStatCard = ({ icon: Icon, label, value, subtext, actionLabel, onAction, tone = 'blue', valueClass = '' }) => {
+  const t = TONES[tone] || TONES.blue;
+
   return (
-    <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-full transition-transform hover:scale-[1.01]">
-      <div className="flex justify-between items-start mb-1 sm:mb-2">
-        <div className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-gray-50 text-gray-700`}>
-          <Icon size={16} className={`sm:w-5 sm:h-5 ${colorClass}`} />
-        </div>
-        {actionLabel && (
-          <button
-            onClick={onAction}
-            className="text-[9px] sm:text-xs font-semibold text-[#005CA8] hover:text-[#004b8a] hover:underline whitespace-nowrap ml-1"
-          >
-            {actionLabel}
-          </button>
-        )}
+    <button
+      type="button"
+      onClick={onAction}
+      className="group bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)] flex flex-col text-left h-full active:scale-[0.98] hover:border-gray-200 transition-all"
+    >
+      <div className="flex items-center gap-2">
+        <span className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${t.icon}`}>
+          <Icon size={16} className="sm:w-5 sm:h-5" />
+        </span>
+        <p className="text-[11px] sm:text-sm text-gray-500 font-semibold leading-tight line-clamp-2">{label}</p>
       </div>
-      <div>
-        <h3 className="text-base sm:text-2xl font-bold text-gray-900 leading-tight">{value}</h3>
-        <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate leading-tight mt-0.5">{label}</p>
 
-        {/* Subtext shown conditionally or very small */}
-        {subtext && (
-          <p className="hidden sm:block text-[9px] sm:text-xs text-emerald-600 font-medium mt-1 truncate">
-            {subtext}
-          </p>
-        )}
-      </div>
-    </div>
+      <h3 className={`mt-2.5 sm:mt-4 text-lg sm:text-2xl font-extrabold leading-none tracking-tight truncate ${valueClass || 'text-gray-900'}`}>
+        {value}
+      </h3>
+
+      {subtext && (
+        <p className="hidden sm:block text-xs text-gray-400 font-medium mt-1.5 truncate">{subtext}</p>
+      )}
+
+      {actionLabel && (
+        <span className={`mt-2.5 sm:mt-4 inline-flex items-center gap-0.5 text-[11px] sm:text-xs font-bold ${t.action}`}>
+          {actionLabel}
+          <ChevronRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+        </span>
+      )}
+    </button>
   );
 };
 

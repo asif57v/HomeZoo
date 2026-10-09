@@ -18,7 +18,7 @@ const FeaturedCategories = ({
 
   if (loading) {
     return (
-      <section className="w-full max-w-7xl mx-auto px-4 md:px-0 py-4 md:py-8">
+      <section className="w-full max-w-7xl mx-auto px-4 md:px-0 py-7 md:py-12">
         <div className="h-6 w-44 bg-gray-200 rounded-md animate-pulse mb-4" />
         <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[104px] md:auto-rows-[160px] gap-2 md:gap-3">
           <div className="row-span-2 md:col-span-2 bg-gray-200/80 rounded-3xl animate-pulse" />

@@ -75,7 +75,7 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
 
   return (
     <section>
-      <div className="flex items-center justify-between px-4 md:px-0 mb-2 md:mb-4">
+      <div className="flex items-center justify-between px-4 md:px-0 mb-4 md:mb-5">
         <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
           <Sparkles size={18} className="text-emerald-600" />
           Offers for you

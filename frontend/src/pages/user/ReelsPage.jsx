@@ -643,63 +643,44 @@ export default function ReelsPage() {
 
   // Render Top Header Navigation
   const ReelsTopBar = () => (
-    <div className="fixed top-0 left-0 right-0 z-50 md:max-w-md md:left-1/2 md:-translate-x-1/2 flex items-center justify-between p-3 pt-safe safe-area-top bg-black/60 backdrop-blur-md border-b border-white/10">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          aria-label="Go back"
-        >
-          <ArrowLeft size={20} />
-        </button>
-      </div>
+    <div className="fixed top-0 left-0 right-0 z-50 md:max-w-md md:left-1/2 md:-translate-x-1/2 h-14 flex items-center justify-between gap-2 px-2 pt-safe safe-area-top bg-black">
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white active:bg-white/10 transition-colors"
+        aria-label="Go back"
+      >
+        <ArrowLeft size={22} />
+      </button>
 
-      {/* Tabs Switcher: Discover | My Reels | Saved */}
-      <div className="flex items-center bg-white/10 backdrop-blur-md p-1 rounded-full border border-white/10">
-        <button
-          type="button"
-          onClick={() => setActiveTab('discover')}
-          className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${
-            activeTab === 'discover'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-white/70 hover:text-white'
-          }`}
-        >
-          <Compass size={13} />
-          Discover
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('my')}
-          className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${
-            activeTab === 'my'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-white/70 hover:text-white'
-          }`}
-        >
-          <Video size={13} />
-          My Reels
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('saved')}
-          className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${
-            activeTab === 'saved'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-white/70 hover:text-white'
-          }`}
-        >
-          <Bookmark size={13} />
-          Saved
-        </button>
+      {/* Tabs: Discover | My Reels | Saved — text tabs with an underline, never wrap */}
+      <div className="flex items-center justify-center gap-5 min-w-0">
+        {[
+          { key: 'discover', label: 'Discover' },
+          { key: 'my', label: 'My Reels' },
+          { key: 'saved', label: 'Saved' },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`relative py-1.5 text-[13px] font-bold whitespace-nowrap transition-colors ${
+              activeTab === tab.key ? 'text-white' : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            {tab.label}
+            {activeTab === tab.key && (
+              <span className="absolute left-0 right-0 -bottom-0.5 h-0.5 rounded-full bg-white" />
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Upload + Button */}
       <button
         type="button"
         onClick={handleUploadClick}
-        className="p-2.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg transition-transform active:scale-95"
+        className="w-9 h-9 shrink-0 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 transition-transform active:scale-95"
         aria-label="Create reel"
         title="Create Reel"
       >

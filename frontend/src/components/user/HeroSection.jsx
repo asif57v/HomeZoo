@@ -5,6 +5,7 @@ import logo from '../../assets/rokologin-removebg-preview.png';
 import MobileMenu from '../../components/ui/MobileMenu';
 import { useNavigate } from 'react-router-dom';
 import walletService from '../../services/walletService';
+import { fetchIndianPlaces, rankLocations } from '../../utils/placeSuggestions';
 
 const HeroSection = ({ theme, selectedType }) => {
     const accentColor = theme?.accent || '#10B981';
@@ -123,7 +124,7 @@ const HeroSection = ({ theme, selectedType }) => {
         "Raipur, Chhattisgarh"
     ];
 
-    // Dynamic Autocomplete suggestions when user types in Hero search
+    // Dynamic autocomplete: India-only places (see utils/placeSuggestions)
     useEffect(() => {
         const query = searchQuery?.trim();
         if (!query || query.length < 2) {
@@ -131,58 +132,20 @@ const HeroSection = ({ theme, selectedType }) => {
             return;
         }
 
+        let cancelled = false;
         const timer = setTimeout(async () => {
-            try {
-                // Photon OpenStreetMap Autocomplete (Instant, handles partial words like "raja", "khand")
-                const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en`);
-                const data = await res.json();
-                if (data && data.features && data.features.length > 0) {
-                    const fetched = data.features.map(f => {
-                        const props = f.properties;
-                        const name = props.name || '';
-                        const city = props.city || props.county || props.district || props.state || '';
-                        if (name && city && !name.toLowerCase().includes(city.toLowerCase())) {
-                            return `${name}, ${city}`;
-                        }
-                        return name || city;
-                    }).filter(Boolean);
-                    
-                    if (fetched.length > 0) {
-                        setHeroApiSuggestions(fetched);
-                        return;
-                    }
-                }
-            } catch (err) {
-                console.warn("Photon autocomplete failed", err);
-            }
+            const places = await fetchIndianPlaces(query);
+            if (!cancelled) setHeroApiSuggestions(places);
+        }, 250);
 
-            // Fallback to Google Geocode API
-            const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
-            if (apiKey) {
-                try {
-                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}&components=country:in`);
-                    const data = await res.json();
-                    if (data.status === 'OK' && data.results) {
-                        const fetched = data.results.slice(0, 5).map(item => item.formatted_address);
-                        setHeroApiSuggestions(fetched);
-                    }
-                } catch (err) {
-                    console.warn("Google Geocoding error in HeroSection", err);
-                }
-            }
-        }, 200);
-
-        return () => clearTimeout(timer);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
     }, [searchQuery]);
 
-    const getFilteredHeroLocations = () => {
-        const query = (searchQuery || '').toLowerCase().trim();
-        const localFiltered = MASTER_LOCATIONS.filter(loc => 
-            !query || loc.toLowerCase().includes(query)
-        );
-        const combined = Array.from(new Set([...heroApiSuggestions, ...localFiltered]));
-        return combined.slice(0, 8);
-    };
+    const getFilteredHeroLocations = () =>
+        rankLocations(searchQuery, { curated: MASTER_LOCATIONS, live: heroApiSuggestions });
 
     const categoryContent = {
         'All': { title: "", subtitle: "Your home, your way." },

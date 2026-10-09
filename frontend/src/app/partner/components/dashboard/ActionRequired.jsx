@@ -9,20 +9,20 @@ const ActionRequired = ({ items }) => {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="mb-8 animate-fade-in-up">
-      <h3 className="font-bold text-gray-900 mb-4 px-1">Action Required</h3>
-      <div className="space-y-3">
+    <div className="animate-fade-in-up">
+      <h3 className="font-bold text-gray-900 mb-2.5 px-1">Action Required</h3>
+      <div className="space-y-2.5">
         {items.map((item, index) => (
           <div
             key={index}
             onClick={() => navigate(item.link)}
             className={`
-                            relative flex items-center p-4 rounded-2xl border cursor-pointer hover:shadow-md transition-all
+                            relative flex items-center p-3 md:p-4 rounded-2xl border cursor-pointer hover:shadow-md transition-all
                             ${item.urgent ? 'bg-red-50 border-red-100' : 'bg-orange-50 border-orange-100'}
                         `}
           >
             <div className={`
-                            p-3 rounded-xl mr-4
+                            p-2.5 rounded-xl mr-3
                             ${item.urgent ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}
                         `}>
               {item.type === 'check-in' ? <UserCheck size={24} /> : <AlertCircle size={24} />}

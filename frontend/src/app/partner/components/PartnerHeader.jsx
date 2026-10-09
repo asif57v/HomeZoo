@@ -42,7 +42,7 @@ const PartnerHeader = ({ title, subtitle }) => {
 
     return (
         <>
-            <div className="flex items-center justify-between relative h-24 px-4 pt-2 bg-white/50 backdrop-blur-sm sticky top-0 z-30 border-b border-gray-100/50">
+            <div className="flex items-center justify-between relative h-16 px-4 bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-gray-100">
                 <button
                     onClick={() => setIsSidebarOpen(true)}
                     className="p-1.5 rounded-full bg-white hover:bg-gray-100 transition shadow-sm border border-gray-100"

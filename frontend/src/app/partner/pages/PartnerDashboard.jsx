@@ -56,52 +56,52 @@ const PartnerDashboard = () => {
         <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-24">
             <PartnerHeader />
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* One spacing unit (space-y-4 / md:space-y-6) between every block keeps gaps even */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 md:py-8 space-y-4 md:space-y-6">
                 {/* Header & Greeting */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-slate-900">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight truncate">
                             Welcome back, {user?.name?.split(' ')[0] || 'Partner'}! 👋
                         </h1>
-                        <p className="text-gray-500 mt-1 text-sm font-medium">
+                        <p className="text-gray-500 mt-0.5 text-xs md:text-sm font-medium line-clamp-1">
                             Here's what's happening with your properties today.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        {/* Add Property - High Visible */}
-                        <button
-                            onClick={() => navigate('/hotel/join')}
-                            className="flex items-center gap-2 bg-[#005CA8] hover:bg-[#004b8a] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md active:scale-95"
-                        >
-                            <Plus size={18} />
-                            Add Property
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => navigate('/hotel/join')}
+                        className="shrink-0 flex items-center gap-1.5 bg-[#005CA8] hover:bg-[#004b8a] text-white pl-3 pr-4 py-2 md:px-5 md:py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95"
+                    >
+                        <Plus size={16} />
+                        Add Property
+                    </button>
                 </div>
 
                 {/* Priority Actions */}
                 <ActionRequired items={actionItems} />
 
                 {/* KPI Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                     <DashboardStatCard
                         icon={Calendar}
                         label="Total Bookings"
                         value={stats.totalBookings}
                         subtext={stats.bookingsThisWeek > 0 ? `+${stats.bookingsThisWeek} this week` : 'No new bookings this week'}
-                        actionLabel="View All"
+                        actionLabel="View all"
                         onAction={() => navigate('/hotel/bookings')}
+                        tone="blue"
                     />
 
                     <DashboardStatCard
                         icon={Wallet}
                         label="Wallet Balance"
                         value={formatCurrency(stats.walletBalance)}
+                        valueClass={stats.walletBalance < 0 ? 'text-red-600' : ''}
                         subtext="Available to withdraw"
                         actionLabel="Withdraw"
                         onAction={() => navigate('/hotel/wallet')}
-                        colorClass="text-blue-600"
+                        tone="sky"
                     />
 
                     <DashboardStatCard
@@ -111,7 +111,7 @@ const PartnerDashboard = () => {
                         subtext="Online & Bookable"
                         actionLabel="Manage"
                         onAction={() => navigate('/hotel/properties')}
-                        colorClass="text-purple-600"
+                        tone="purple"
                     />
 
                     <DashboardStatCard
@@ -121,7 +121,7 @@ const PartnerDashboard = () => {
                         subtext="Action required"
                         actionLabel="Reply"
                         onAction={() => navigate('/hotel/reviews')}
-                        colorClass="text-orange-500"
+                        tone="orange"
                     />
                 </div>
 

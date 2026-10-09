@@ -11,7 +11,9 @@ const ALL_OPTION = {
   isDynamic: false
 };
 
-const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }) => {
+const PropertyTypeFilter = ({ selectedType: selectedTypeProp, selectedLabel, onSelectType, theme, variant = 'dark' }) => {
+  const light = variant === 'light';
+  const selectedType = selectedTypeProp === 'all' || selectedTypeProp === undefined ? null : selectedTypeProp;
   const accentColor = theme?.accent || '#005CA8';
   const STATIC_TYPES = [];
 
@@ -125,14 +127,14 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
                     w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 mx-auto
                     ${
                       isSelected
-                        ? 'bg-white shadow-[0_6px_16px_rgba(0,0,0,0.25)] scale-105 ring-1.5 ring-white/70'
-                        : 'bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 shadow-xs hover:scale-105 active:scale-95'
+                        ? (light ? 'bg-white shadow-[0_6px_16px_rgba(0,0,0,0.15)] scale-105 ring-1 ring-gray-200' : 'bg-white shadow-[0_6px_16px_rgba(0,0,0,0.25)] scale-105 ring-1.5 ring-white/70')
+                        : (light ? 'bg-gray-100 hover:bg-gray-200 border border-gray-200 hover:scale-105 active:scale-95' : 'bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 shadow-xs hover:scale-105 active:scale-95')
                     }
                   `}
                 >
                   <Icon
                     className="w-4 h-4 md:w-6 md:h-6 transition-all duration-300"
-                    style={{ color: isSelected ? accentColor : '#ffffff' }}
+                    style={{ color: isSelected ? accentColor : (light ? '#4b5563' : '#ffffff') }}
                     strokeWidth={isSelected ? 2.3 : 1.8}
                   />
                 </div>
@@ -141,7 +143,9 @@ const PropertyTypeFilter = ({ selectedType, selectedLabel, onSelectType, theme }
               <span
                 className={`
                   text-[10px] md:text-xs tracking-tight transition-colors whitespace-nowrap text-center w-full mt-0.5
-                  ${isSelected ? 'font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]' : 'font-medium text-white/90 group-hover:text-white'}
+                  ${light
+                    ? (isSelected ? 'font-extrabold text-gray-900' : 'font-medium text-gray-500 group-hover:text-gray-800')
+                    : (isSelected ? 'font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]' : 'font-medium text-white/90 group-hover:text-white')}
                 `}
               >
                 {type.label}

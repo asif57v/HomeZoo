@@ -13,7 +13,6 @@ import ReelSection from '../../components/user/ReelSection';
 import LatestProjectsBanner from '../../components/user/LatestProjectsBanner';
 import PayHostelFeesSection from '../../components/user/PayHostelFeesSection';
 import HomeBottomSections from '../../components/user/HomeBottomSections';
-import ExplorePropertiesSection from '../../components/user/home/ExplorePropertiesSection';
 import { Band, SectionHeader } from '../../components/user/home/HomeLayout';
 import { categoryService } from '../../services/categoryService';
 import homeService from '../../services/homeService';
@@ -196,11 +195,6 @@ const Home = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const exploreTabs = [
-    { key: 'rent', label: 'Rent', title: 'rentals', emoji: '🔑', typeId: sectionIds.rent, filterLabel: 'Rent' },
-    { key: 'buy', label: 'Buy', title: 'homes for sale', emoji: '🏠', typeId: sectionIds.buy, filterLabel: 'Buy' },
-    { key: 'plot', label: 'Plots', title: 'plots & land', emoji: '🌳', typeId: sectionIds.plot, filterLabel: 'Plot' }
-  ];
 
   return (
     <main className="min-h-screen pb-24 transition-colors duration-700" style={{ backgroundColor: pageBg }}>
@@ -283,7 +277,7 @@ const Home = () => {
       {(!selectedType.id || selectedType.label === 'All') ? (
         // Each section owns a full-width background band; alternating tones
         // (white / tint / cream / dark) separate sections instead of borders.
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-3 md:gap-0">
           {/* 1. Popular Categories — round story-style icons */}
           <PopularCategories
             categories={homeData.popularCategories}
@@ -349,8 +343,44 @@ const Home = () => {
           {/* 8. Reels — soft blush band */}
           <ReelSection category={selectedType.label} banded />
 
-          {/* 9. Rent / Buy / Plots — one tabbed list section */}
-          <ExplorePropertiesSection tabs={exploreTabs} onViewAll={openCategory} />
+          {/* 9. Rent — square tiles on a violet band */}
+          {sectionIds.rent && (
+            <Band tone="violet" spacing="normal" rounded>
+              <SectionHeader
+                icon="🔑"
+                title="Properties for rent"
+                subtitle="Apartments, homes and villas"
+                onAction={() => openCategory(sectionIds.rent, 'Rent')}
+              />
+              <PropertyFeed selectedType={sectionIds.rent} viewMode="rent-grid" limit={8} />
+            </Band>
+          )}
+
+          {/* 10. Buy — square tiles on a white band */}
+          {sectionIds.buy && (
+            <Band tone="white" spacing="normal">
+              <SectionHeader
+                icon="🏠"
+                title="Dream homes for sale"
+                subtitle="Buy your perfect home today"
+                onAction={() => openCategory(sectionIds.buy, 'Buy')}
+              />
+              <PropertyFeed selectedType={sectionIds.buy} viewMode="sale-grid" limit={8} />
+            </Band>
+          )}
+
+          {/* 11. Plots — square tiles on a sand band */}
+          {sectionIds.plot && (
+            <Band tone="sand" spacing="normal" rounded>
+              <SectionHeader
+                icon="🌳"
+                title="Premium plots & land"
+                subtitle="Invest in the best locations"
+                onAction={() => openCategory(sectionIds.plot, 'Plot')}
+              />
+              <PropertyFeed selectedType={sectionIds.plot} viewMode="plot-grid" limit={8} />
+            </Band>
+          )}
         </div>
       ) : (
         // Show Filtered Grid when a specific category is selected
@@ -384,7 +414,7 @@ const Home = () => {
 
       {/* Bottom Sections (Partners, News, App download) — only on the "All" tab */}
       {(!selectedType.id || selectedType.label === 'All') && (
-        <div className="mt-2 md:mt-6 max-w-7xl mx-auto px-3.5 md:px-0">
+        <div className="mt-6 md:mt-6 max-w-7xl mx-auto px-3.5 md:px-0">
           <HomeBottomSections />
         </div>
       )}

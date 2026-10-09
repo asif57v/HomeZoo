@@ -7,14 +7,16 @@ const BAND_TONES = {
   tint: 'bg-gradient-to-b from-emerald-50/80 to-teal-50/40',
   cream: 'bg-[#FBF7F0]',
   muted: 'bg-slate-50',
+  violet: 'bg-linear-to-b from-violet-50 to-indigo-50/40',
+  sand: 'bg-linear-to-b from-amber-50 to-yellow-50/40',
   blush: 'bg-gradient-to-b from-rose-50 to-orange-50/40',
   dark: 'bg-slate-950'
 };
 
 const BAND_SPACING = {
-  tight: 'py-2 md:py-5',
-  normal: 'py-3 md:py-8',
-  loose: 'py-4 md:py-12'
+  tight: 'py-4 md:py-6',
+  normal: 'py-6 md:py-10',
+  loose: 'py-7 md:py-12'
 };
 
 /**
@@ -57,7 +59,7 @@ export const SectionHeader = ({
   actionLabel = 'See all',
   className = ''
 }) => (
-  <div className={`flex items-end justify-between gap-3 px-4 md:px-0 mb-2 md:mb-4 ${className}`}>
+  <div className={`flex items-end justify-between gap-3 px-4 md:px-0 mb-4 md:mb-5 ${className}`}>
     <div className="min-w-0">
       <h2
         className={`${TITLE_SIZES[size] || TITLE_SIZES.md} tracking-tight leading-tight flex items-center gap-2 ${dark ? 'text-white' : 'text-gray-900'}`}

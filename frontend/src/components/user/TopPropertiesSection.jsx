@@ -55,7 +55,7 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
   if (configLoading || loading) {
     if (!configLoading && !idsKey) return null;
     return (
-      <section className="max-w-7xl mx-auto w-full px-4 md:px-0 py-3 md:py-8">
+      <section className="max-w-7xl mx-auto w-full px-4 md:px-0 py-6 md:py-10">
         <div className="h-7 w-48 bg-gray-200/70 rounded-md animate-pulse mb-4" />
         <div className="flex gap-2.5 md:gap-4 overflow-hidden">
           {[1, 2].map((i) => (
@@ -77,7 +77,7 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
         subtitle={config.subtitle}
       />
 
-      <div className="flex overflow-x-auto gap-2.5 md:gap-5 no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pb-1">
+      <div className="flex overflow-x-auto gap-3 md:gap-5 no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
         {properties.map((property) => (
           <PropertyCard
             key={property._id}

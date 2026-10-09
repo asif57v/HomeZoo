@@ -211,7 +211,7 @@ const HomeBottomSections = () => {
     ];
 
     return (
-        <div className="w-full text-slate-800 antialiased space-y-8 sm:space-y-16 md:space-y-32 mt-4 mb-8 sm:my-16 md:my-28">
+        <div className="w-full text-slate-800 antialiased space-y-10 sm:space-y-16 md:space-y-32 mt-4 mb-8 sm:my-16 md:my-28">
             
             {/* =========================================================
                 SECTION 1: ⭐ TOP RATED HOMEZO PARTNERS

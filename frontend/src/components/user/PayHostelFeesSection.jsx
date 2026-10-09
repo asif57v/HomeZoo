@@ -205,7 +205,7 @@ const PayHostelFeesSection = () => {
       <div className="w-full">
 
         {/* Header Section */}
-        <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-4 tracking-tight flex items-center gap-2">
+        <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-5 tracking-tight flex items-center gap-2">
           💳 Pay Hostel Fees
         </h2>
 
