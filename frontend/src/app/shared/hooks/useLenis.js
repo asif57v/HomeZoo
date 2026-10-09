@@ -14,57 +14,71 @@ export const useLenis = (disabled = false) => {
             if (lenisRef.current) {
                 lenisRef.current.destroy();
                 lenisRef.current = null;
-                window.lenis = null;
+                if (window.lenis === lenisRef.current) {
+                    window.lenis = null;
+                }
             }
             return;
         }
 
+        // Clean up any stale global instance before creating a new one
+        if (window.lenis && window.lenis !== lenisRef.current) {
+            try {
+                window.lenis.destroy();
+            } catch (e) {
+                // Ignore cleanup errors
+            }
+            window.lenis = null;
+        }
+
+        // Ultra-smooth cinematic glide with luxurious momentum
         const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            lerp: 0.09,
+            duration: 1.25, // Silky smooth deceleration time
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential ease-out glide
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
             smoothWheel: true,
-            wheelMultiplier: 0.9,
-            // Lenis v1 uses syncTouch (smoothTouch was removed): momentum scrolling on touch devices
-            syncTouch: true,
-            syncTouchLerp: 0.08,
-            touchInertiaExponent: 1.6,
-            touchMultiplier: 1.2,
+            wheelMultiplier: 1.15, // Responsive, effortless travel
+            syncTouch: true, // Inertial momentum scrolling on touch / mobile devices
+            syncTouchLerp: 0.075, // Natural glide on finger release
+            touchMultiplier: 1.25,
+            touchInertiaExponent: 1.65,
             infinite: false,
             autoResize: true,
+            autoRaf: true, // Native 60/120Hz requestAnimationFrame loop
+            overscroll: true,
         });
 
         lenisRef.current = lenis;
 
-        // Sync ScrollTrigger with Lenis
+        // Sync GSAP ScrollTrigger with Lenis
         lenis.on('scroll', ScrollTrigger.update);
 
-        // Use GSAP ticker to drive Lenis for perfect sync
-        const update = (time) => {
-            lenis.raf(time * 1000);
-        };
-
-        gsap.ticker.add(update);
-        gsap.ticker.lagSmoothing(0);
-
-        // Expose globally for stop/start control (modals, sidebars, etc.)
+        // Expose globally for modals, sheets, and navbars
         window.lenis = lenis;
 
-        // Handle resize / orientation changes
+        // Debounced resize handler so window/viewport adjustments don't cancel active scroll glide
+        let resizeTimer = null;
         const handleResize = () => {
-            lenis.resize();
-            ScrollTrigger.refresh();
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                lenis.resize();
+                ScrollTrigger.refresh();
+            }, 200);
         };
+
         window.addEventListener('resize', handleResize);
         window.addEventListener('orientationchange', handleResize);
 
         return () => {
+            clearTimeout(resizeTimer);
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('orientationchange', handleResize);
             lenis.destroy();
-            gsap.ticker.remove(update);
             lenisRef.current = null;
-            window.lenis = null;
+            if (window.lenis === lenis) {
+                window.lenis = null;
+            }
         };
     }, [disabled]);
 };

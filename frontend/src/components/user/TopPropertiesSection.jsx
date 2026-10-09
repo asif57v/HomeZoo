@@ -69,7 +69,7 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
   if (!config?.enabled || properties.length === 0) return null;
 
   return (
-    <Band tone="white" spacing="normal">
+    <Band tone="white" spacing="tight" className="pt-2 sm:pt-3 md:pt-4">
       <SectionHeader
         size="lg"
         title={config.title || 'Top Properties'}

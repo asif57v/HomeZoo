@@ -46,6 +46,32 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: auto !important;
+    overflow-x: clip;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: clip;
+  }
+
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+
   body {
     /* 
        Reverted Background:
@@ -61,7 +87,7 @@
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
     width: 100%;
     position: relative;
   }

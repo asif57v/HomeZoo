@@ -1,6 +1,5 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { useLenis } from '../app/shared/hooks/useLenis';
 
 const HotelLayout = () => {
     // Initialize global smooth scrolling

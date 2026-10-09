@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
   CheckCircle2, 
   Lock, 
-  Info,
+  Info, 
   CreditCard, 
   QrCode, 
   Sparkles, 
@@ -17,6 +17,7 @@ import {
   IndianRupee, 
   Calendar,
   ChevronRight,
+  ArrowRight,
   Loader2
 } from 'lucide-react';
 import paymentService from '../../services/paymentService';
@@ -24,8 +25,9 @@ import apiService from '../../services/apiService';
 
 // Custom SVG Icons for authentic payment brand visuals
 const PhonePeIcon = () => (
-  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-700 to-indigo-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-purple-500/30">
-    <span className="tracking-tighter">पे</span>
+  <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-[#5f259f] to-[#7b2cbf] flex items-center justify-center text-white font-extrabold text-xl sm:text-2xl shadow-md shadow-purple-600/25 shrink-0">
+    <span className="leading-none select-none tracking-tight">पे</span>
+    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-xs" title="Verified Gateway" />
   </div>
 );
 
@@ -78,14 +80,27 @@ const PayHostelFeesSection = () => {
   const [loading, setLoading] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
 
-  // Form State
+  // Form State with dynamic current period
+  const currentMonthYear = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
   const [formData, setFormData] = useState({
     studentName: '',
     studentId: '',
     hostelName: '',
-    feePeriod: 'August 2026',
+    feePeriod: currentMonthYear,
     amount: '8500'
   });
+
+  // Lock body scroll and pause Lenis smooth scroll when payment modal is active
+  useEffect(() => {
+    if (isModalOpen) {
+      window.lenis?.stop();
+    } else {
+      window.lenis?.start();
+    }
+    return () => {
+      window.lenis?.start();
+    };
+  }, [isModalOpen]);
 
   const handleOpenPayModal = (method) => {
     setSelectedMethod(method);
@@ -203,13 +218,20 @@ const PayHostelFeesSection = () => {
   return (
     <section className="relative">
       <div className="w-full">
+        {/* Header Section - compact spacing */}
+        <div className="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[15px] sm:text-lg md:text-xl font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
+              <span>Pay Hostel Fees</span>
+            </h2>
+          </div>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 shrink-0">
+            <ShieldCheck size={12} className="text-emerald-600" />
+            <span>0% Extra Fee</span>
+          </span>
+        </div>
 
-        {/* Header Section */}
-        <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-5 tracking-tight flex items-center gap-2">
-          Pay Hostel Fees
-        </h2>
-
-        {/* 1 Payment Card styled like Exclusive Offers */}
+        {/* 1 Payment Card styled with premium fintech aesthetic */}
         <div className="flex">
           {PAYMENT_METHODS.map((method) => {
             const { Icon } = method;
@@ -218,30 +240,54 @@ const PayHostelFeesSection = () => {
                 key={method.id}
                 onClick={() => handleOpenPayModal(method)}
                 whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-white rounded-2xl md:rounded-[1.25rem] px-3 py-2.5 md:p-5 flex items-center gap-2.5 md:gap-5 cursor-pointer hover:bg-white/70 transition-all duration-200 group"
+                whileTap={{ scale: 0.985 }}
+                className="relative w-full bg-gradient-to-r from-white via-white to-purple-50/40 rounded-2xl md:rounded-[1.25rem] p-3 sm:p-3.5 md:p-4 border border-purple-100/90 hover:border-purple-200 shadow-xs hover:shadow-md hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group overflow-hidden"
               >
-                {/* Left side Image/Logo Box */}
-                <div className="w-10 h-10 sm:w-20 sm:h-16 shrink-0 flex items-center justify-center">
-                  <div className="scale-[0.55] sm:scale-100 origin-center transition-transform group-hover:scale-[0.6] sm:group-hover:scale-105">
+                {/* Decorative background ambient glow */}
+                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-purple-500/10 transition-colors" />
+
+                <div className="relative flex items-center gap-3 sm:gap-3.5">
+                  {/* Left side PhonePe Logo Box */}
+                  <div className="group-hover:scale-105 transition-transform duration-200">
                     <Icon />
+                  </div>
+
+                  {/* Title and Details */}
+                  <div className="flex-1 min-w-0 pr-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h3 className="text-sm sm:text-base font-bold text-gray-900 group-hover:text-purple-950 transition-colors truncate">
+                        PhonePe UPI
+                      </h3>
+                      <span className="inline-flex items-center text-[9px] font-bold text-purple-700 bg-purple-100/80 px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                        Instant Slip
+                      </span>
+                    </div>
+                    <p className="text-[11px] sm:text-xs text-gray-500 font-medium line-clamp-1 mt-0.5">
+                      Hostel Rent, Mess & Maintenance via UPI
+                    </p>
+                    <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-400 font-medium">
+                      <span className="truncate">GPay • Paytm • Cards • NetBanking</span>
+                    </div>
+                  </div>
+
+                  {/* Pay Now Button */}
+                  <div className="shrink-0">
+                    <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#5f259f] to-[#7b2cbf] group-hover:from-[#521e8a] group-hover:to-[#6c26a8] px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl shadow-xs shadow-purple-600/20 group-hover:shadow-md group-hover:shadow-purple-600/30 transition-all">
+                      <span>Pay Now</span>
+                      <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                    </span>
                   </div>
                 </div>
 
-                {/* Title and Details */}
-                <div className="flex flex-col justify-center min-w-0 flex-1 gap-0.5">
-                  <h3 className="text-[13px] sm:text-base md:text-[20px] font-bold text-gray-900 leading-tight truncate">
-                    {method.name}
-                  </h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 font-medium leading-snug line-clamp-2">
-                    {method.description}
-                  </p>
+                {/* Micro trust bar */}
+                <div className="mt-2.5 pt-2 border-t border-gray-100/90 flex items-center justify-between text-[10px] text-gray-400 font-medium">
+                  <span className="flex items-center gap-1 text-gray-500">
+                    <Lock size={10} className="text-emerald-600" /> 100% Secure UPI Gateway
+                  </span>
+                  <span className="flex items-center gap-1 text-purple-700 font-semibold">
+                    <Sparkles size={10} /> Instant Digital Receipt
+                  </span>
                 </div>
-
-                {/* Pay Now action */}
-                <span className="shrink-0 text-[10px] md:text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-100/80 px-2.5 py-1 rounded-full flex items-center gap-0.5 group-hover:bg-purple-100 transition-colors">
-                  Pay Now <ChevronRight size={11} />
-                </span>
               </motion.div>
             );
           })}

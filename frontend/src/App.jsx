@@ -134,10 +134,11 @@ const Layout = ({ children }) => {
     maintenanceMessage: ''
   });
 
-  // Enable Lenis smooth scrolling for user-facing pages only (not admin or partner)
+  // Enable Lenis smooth scrolling for user-facing pages only (not admin, partner, or reels snap-feed)
   const isPartnerRoute = location.pathname.startsWith('/hotel') && !/^\/hotel\/[0-9a-fA-F]{24}/.test(location.pathname);
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const disableLenis = isPartnerRoute || isAdminRoute;
+  const isReelsRoute = location.pathname === '/reels';
+  const disableLenis = isPartnerRoute || isAdminRoute || isReelsRoute;
   useLenis(disableLenis);
 
   React.useEffect(() => {

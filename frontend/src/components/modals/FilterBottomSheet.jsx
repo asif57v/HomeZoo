@@ -24,13 +24,21 @@ const FilterBottomSheet = ({
         }
     };
 
-    // Scroll to section on open
+    // Scroll to section and manage Lenis state on open
     useEffect(() => {
-        if (isOpen && scrollToSection && sectionRefs.current[scrollToSection]) {
-            setTimeout(() => {
-                sectionRefs.current[scrollToSection].scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
+        if (isOpen) {
+            window.lenis?.stop();
+            if (scrollToSection && sectionRefs.current[scrollToSection]) {
+                setTimeout(() => {
+                    sectionRefs.current[scrollToSection]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+            }
+        } else {
+            window.lenis?.start();
         }
+        return () => {
+            window.lenis?.start();
+        };
     }, [isOpen, scrollToSection]);
 
     // Mock Data
@@ -113,7 +121,7 @@ const FilterBottomSheet = ({
                         </div>
 
                         {/* Scrollable Content */}
-                        <div className="overflow-y-auto p-5 pb-24 space-y-8 scroll-smooth">
+                        <div className="overflow-y-auto p-5 pb-24 space-y-8 scroll-smooth" data-lenis-prevent="true" data-lenis-prevent-touch="true">
 
                             {/* Popular Localities */}
                             <section ref={setSectionRef("Locality")}>

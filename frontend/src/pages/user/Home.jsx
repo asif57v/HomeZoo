@@ -185,7 +185,11 @@ const Home = () => {
 
   const handleCategorySelectFromBannerOrChip = (categoryId, categoryName) => {
     handleTypeSelect(categoryId, categoryName);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lenis) {
+      window.lenis.scrollTo(0);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   };
 
   const pageBg = activeTheme.pageBg || '#f8fafc';
@@ -193,7 +197,11 @@ const Home = () => {
   // Switch the page to a category tab (used by section "see all" actions)
   const openCategory = (typeId, label) => {
     handleTypeSelect(typeId, label);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.lenis) {
+      window.lenis.scrollTo(0);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   };
 
 
@@ -294,16 +302,18 @@ const Home = () => {
           />
 
           {/* 3. Offers + Pay Hostel Fees on a tinted band */}
-          <Band tone="tint" spacing="normal" rounded className="mt-1">
-            <div className="flex flex-col md:flex-row gap-3 md:gap-8">
-              <div className="flex-1 min-w-0">
-                <ExclusiveOffers
-                  offers={homeData.offers}
-                  loading={homeLoading}
-                  city={currentCity}
-                />
-              </div>
-              <div className="w-full md:w-[320px] shrink-0 px-4 md:px-0">
+          <Band tone="tint" rounded className="my-1 sm:my-1.5 py-3 sm:py-3.5 md:py-4">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-6 items-stretch">
+              {homeData.offers && homeData.offers.length > 0 && (
+                <div className="flex-1 min-w-0">
+                  <ExclusiveOffers
+                    offers={homeData.offers}
+                    loading={homeLoading}
+                    city={currentCity}
+                  />
+                </div>
+              )}
+              <div className={`px-4 md:px-0 ${homeData.offers && homeData.offers.length > 0 ? 'w-full md:w-[360px] lg:w-[400px] shrink-0' : 'w-full max-w-xl mx-auto'}`}>
                 <PayHostelFeesSection />
               </div>
             </div>

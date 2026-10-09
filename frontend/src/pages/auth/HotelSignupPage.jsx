@@ -3,7 +3,6 @@ import usePartnerStore from '../../app/partner/store/partnerStore';
 import { useNavigate } from 'react-router-dom';
 import StepWrapper from '../../app/partner/components/StepWrapper';
 import { ArrowLeft, ArrowRight, X } from 'lucide-react';
-import { useLenis } from '../../app/shared/hooks/useLenis';
 import { authService, userService } from '../../services/apiService';
 import { requestNotificationPermission } from '../../utils/firebase';
 
@@ -55,7 +54,6 @@ const steps = [
 ];
 
 const HotelSignup = () => {
-    useLenis();
     const navigate = useNavigate();
     const { currentStep, nextStep, prevStep, formData, setStep } = usePartnerStore();
     const [error, setError] = useState('');
