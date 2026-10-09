@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
 import HeroSection from '../../components/user/HeroSection';
 import PopularCategories from '../../components/user/PopularCategories';
 import BannerCarousel from '../../components/user/BannerCarousel';
@@ -324,7 +325,6 @@ const Home = () => {
           {sectionIds.pg && (
             <Band tone="white" spacing="normal">
               <SectionHeader
-                icon="🛏️"
                 title="Find your perfect stay"
                 subtitle="Top rated PGs and hostels near you"
                 onAction={() => openCategory(sectionIds.pg, 'PG/Co-Living')}
@@ -347,7 +347,6 @@ const Home = () => {
           {sectionIds.rent && (
             <Band tone="violet" spacing="normal" rounded>
               <SectionHeader
-                icon="🔑"
                 title="Properties for rent"
                 subtitle="Apartments, homes and villas"
                 onAction={() => openCategory(sectionIds.rent, 'Rent')}
@@ -360,7 +359,6 @@ const Home = () => {
           {sectionIds.buy && (
             <Band tone="white" spacing="normal">
               <SectionHeader
-                icon="🏠"
                 title="Dream homes for sale"
                 subtitle="Buy your perfect home today"
                 onAction={() => openCategory(sectionIds.buy, 'Buy')}
@@ -373,7 +371,6 @@ const Home = () => {
           {sectionIds.plot && (
             <Band tone="sand" spacing="normal" rounded>
               <SectionHeader
-                icon="🌳"
                 title="Premium plots & land"
                 subtitle="Invest in the best locations"
                 onAction={() => openCategory(sectionIds.plot, 'Plot')}

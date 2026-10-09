@@ -146,11 +146,6 @@ const ReelSection = ({ category, banded = false }) => {
             <Band tone="blush" spacing="loose" rounded>
                 <SectionHeader
                     size="md"
-                    icon={
-                        <span className="inline-flex bg-red-600 p-1.5 rounded-xl">
-                            <Play size={14} className="text-white fill-white" />
-                        </span>
-                    }
                     title="Reels"
                     subtitle="Short video tours and updates"
                     onAction={() => navigate('/reels')}

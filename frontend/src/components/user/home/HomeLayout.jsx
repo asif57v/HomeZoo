@@ -52,7 +52,7 @@ const TITLE_SIZES = {
 export const SectionHeader = ({
   title,
   subtitle,
-  icon,
+  icon: Icon,
   size = 'md',
   dark = false,
   onAction,
@@ -64,7 +64,11 @@ export const SectionHeader = ({
       <h2
         className={`${TITLE_SIZES[size] || TITLE_SIZES.md} tracking-tight leading-tight flex items-center gap-2 ${dark ? 'text-white' : 'text-gray-900'}`}
       >
-        {icon && <span className="shrink-0 text-[1.1em] leading-none">{icon}</span>}
+        {Icon && (
+          <span className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center ${dark ? 'bg-white/10 text-white' : 'bg-gray-900 text-white'}`}>
+            <Icon className="w-4 h-4 md:w-[18px] md:h-[18px]" strokeWidth={2} />
+          </span>
+        )}
         <span className="truncate">{title}</span>
       </h2>
       {subtitle && (

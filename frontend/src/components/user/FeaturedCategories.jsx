@@ -69,7 +69,6 @@ const FeaturedCategories = ({
     <Band tone="cream" spacing="loose" rounded>
       <SectionHeader
         size="md"
-        icon="✨"
         title={title}
         subtitle={subtitle}
         onAction={() => navigate('/search')}

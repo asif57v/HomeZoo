@@ -206,7 +206,7 @@ const PayHostelFeesSection = () => {
 
         {/* Header Section */}
         <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-5 tracking-tight flex items-center gap-2">
-          💳 Pay Hostel Fees
+          Pay Hostel Fees
         </h2>
 
         {/* 1 Payment Card styled like Exclusive Offers */}

@@ -22,10 +22,14 @@ export const useLenis = (disabled = false) => {
         const lenis = new Lenis({
             duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            lerp: 0.1,
+            lerp: 0.09,
             smoothWheel: true,
-            smoothTouch: false, // Let native touch scroll handle — feels more natural on mobile
-            touchMultiplier: 1.5,
+            wheelMultiplier: 0.9,
+            // Lenis v1 uses syncTouch (smoothTouch was removed): momentum scrolling on touch devices
+            syncTouch: true,
+            syncTouchLerp: 0.08,
+            touchInertiaExponent: 1.6,
+            touchMultiplier: 1.2,
             infinite: false,
             autoResize: true,
         });

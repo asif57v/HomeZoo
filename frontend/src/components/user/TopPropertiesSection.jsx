@@ -72,7 +72,6 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
     <Band tone="white" spacing="normal">
       <SectionHeader
         size="lg"
-        icon="🔥"
         title={config.title || 'Top Properties'}
         subtitle={config.subtitle}
       />
