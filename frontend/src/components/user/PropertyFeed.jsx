@@ -165,7 +165,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
   if (TILE_CONFIG[viewMode]) {
     const { variant, width } = TILE_CONFIG[viewMode];
     return (
-      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -182,7 +182,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
 
   if (viewMode === 'stay-carousel') {
     return (
-      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -199,7 +199,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
 
   if (viewMode === 'photo-carousel') {
     return (
-      <div className="flex gap-3 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+      <div className="flex gap-3 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -216,7 +216,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
 
   if (viewMode === 'carousel') {
     return (
-      <div className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory py-2 pl-3.5 pr-3.5 md:px-0 scroll-pl-3.5 pb-1">
+      <div className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-proximity py-2 pl-3.5 pr-3.5 md:px-0 scroll-pl-3.5 pb-1">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}

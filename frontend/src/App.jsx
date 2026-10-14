@@ -138,7 +138,8 @@ const Layout = ({ children }) => {
   const isPartnerRoute = location.pathname.startsWith('/hotel') && !/^\/hotel\/[0-9a-fA-F]{24}/.test(location.pathname);
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isReelsRoute = location.pathname === '/reels';
-  const disableLenis = isPartnerRoute || isAdminRoute || isReelsRoute;
+  // Lenis disabled globally: it lagged page scroll and broke horizontal carousel swiping.
+  const disableLenis = true || isPartnerRoute || isAdminRoute || isReelsRoute;
   useLenis(disableLenis);
 
   React.useEffect(() => {

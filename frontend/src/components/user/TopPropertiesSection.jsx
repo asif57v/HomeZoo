@@ -76,7 +76,7 @@ const TopPropertiesSection = ({ config, loading: configLoading = false }) => {
         subtitle={config.subtitle}
       />
 
-      <div className="flex overflow-x-auto gap-3 md:gap-5 no-scrollbar snap-x snap-mandatory px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+      <div className="flex overflow-x-auto gap-3 md:gap-5 no-scrollbar snap-x snap-proximity px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
         {properties.map((property) => (
           <PropertyCard
             key={property._id}
