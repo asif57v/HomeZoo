@@ -12,6 +12,7 @@ import {
   updateReviewStatus,
   updateUserStatus,
   updatePartnerStatus,
+  updatePartnerTopRated,
   deleteUser,
   deletePartner,
   getUserDetails,
@@ -72,6 +73,7 @@ router.delete('/delete-review', deleteReview);
 router.put('/update-review-status', updateReviewStatus);
 router.put('/update-user-status', updateUserStatus);
 router.put('/update-partner-status', updatePartnerStatus);
+router.put('/update-partner-top-rated', updatePartnerTopRated);
 router.put('/update-partner-approval', updatePartnerApprovalStatus);
 router.delete('/delete-user', deleteUser);
 router.delete('/delete-partner', deletePartner);

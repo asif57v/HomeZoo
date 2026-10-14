@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     CheckCircle, ShieldCheck, Package, Clock,
-    Crown, Zap, Star, Layout, MapPin, Play, Pause, AlertCircle
+    Crown, Zap, Star, Layout, MapPin, AlertCircle, Check, CalendarDays, Home, Users
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import subscriptionService from '../../../services/subscriptionService';
@@ -149,18 +149,6 @@ const PartnerSubscriptions = () => {
         }
     };
 
-    const handleTogglePause = async () => {
-        try {
-            const res = await subscriptionService.togglePause();
-            if (res.success) {
-                toast.success(res.message);
-                setCurrentSub({ ...currentSub, isPaused: res.subscription.isPaused, expiryDate: res.subscription.expiryDate });
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Action failed");
-        }
-    };
-
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency', currency: 'INR', maximumFractionDigits: 0
@@ -177,11 +165,13 @@ const PartnerSubscriptions = () => {
     const isExpired = currentSub?.status === 'expired' || (currentSub?.expiryDate && new Date(currentSub.expiryDate) < new Date());
     const isActive = currentSub?.status === 'active' && !isExpired;
 
+    const usagePercent = (used, cap) => (cap > 0 ? Math.min(100, Math.round((used / cap) * 100)) : 0);
+
     return (
-        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-12">
+        <div className="px-4 py-5 md:p-8 max-w-7xl mx-auto space-y-6 pb-28">
             <div>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Expand Your Business</h1>
-                <p className="text-gray-500 mt-1">Choose a plan that fits your growth strategy and scale today.</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Subscription</h1>
+                <p className="text-sm text-gray-500 mt-1">Pick a plan that matches your growth.</p>
             </div>
 
             {loading ? (
@@ -190,112 +180,106 @@ const PartnerSubscriptions = () => {
                 </div>
             ) : (
                 <>
-                    {/* Active Subscription Banner */}
+                    {/* Current plan */}
                     {currentSub && currentSub.planId && (
-                        <div className="relative overflow-hidden rounded-3xl bg-gray-900 text-white p-8 md:p-10 shadow-2xl">
-                            {/* Decorative Elements */}
-                            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-[#005CA8]/20 rounded-full blur-3xl" />
-                            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
-
-                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isActive ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'bg-red-500/20 text-red-400 border border-red-500/40'}`}>
-                                            {isActive ? (currentSub.isPaused ? 'Paused' : 'Active Plan') : 'Expired'}
-                                        </span>
-                                        {currentSub.planId.tier === 'gold' && (
-                                            <button
-                                                onClick={handleTogglePause}
-                                                className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold transition-all border border-white/5"
-                                            >
-                                                {currentSub.isPaused ? <Play size={14} className="fill-current" /> : <Pause size={14} className="fill-current" />}
-                                                {currentSub.isPaused ? 'Resume Plan' : 'Pause Plan'}
-                                            </button>
-                                        )}
-                                    </div>
-                                    <h2 className="text-4xl font-black flex items-center gap-3">
-                                        {currentSub.planId.name}
-                                        <ShieldCheck className="text-blue-400" />
-                                    </h2>
-                                    <p className="text-gray-400 max-w-md text-sm leading-relaxed">
-                                        {currentSub.planId.description}
-                                    </p>
+                        <section className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+                            <div className="p-5 bg-gradient-to-br from-[#0b1f3a] to-[#005CA8] text-white">
+                                <div className="flex items-center justify-between">
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${isActive ? 'bg-emerald-400/20 text-emerald-200' : 'bg-red-400/20 text-red-200'}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-300' : 'bg-red-300'}`} />
+                                        {isActive ? 'Active' : 'Expired'}
+                                    </span>
+                                    <ShieldCheck size={20} className="text-white/80" />
                                 </div>
+                                <p className="mt-4 text-xs text-white/60">Current plan</p>
+                                <h2 className="text-xl font-bold leading-tight">{currentSub.planId.name}</h2>
+                                {currentSub.planId.description && (
+                                    <p className="mt-1.5 text-xs text-white/70 leading-relaxed line-clamp-2">{currentSub.planId.description}</p>
+                                )}
+                            </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full md:w-auto">
-                                    <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Properties</p>
-                                        <p className="text-xl font-bold">{currentSub.propertiesAdded} <span className="text-gray-500 text-sm">/ {currentSub.planId.maxProperties}</span></p>
-                                    </div>
-                                    <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Leads Used</p>
-                                        <p className="text-xl font-bold">{currentSub.leadsUsedThisMonth} <span className="text-gray-500 text-sm">/ {currentSub.planId.leadCap || '∞'}</span></p>
-                                    </div>
-                                    <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md col-span-2">
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Expiry Date</p>
-                                        <p className="text-xl font-bold">{formatDate(currentSub.expiryDate)}</p>
-                                    </div>
+                            <div className="p-5 space-y-4">
+                                <UsageRow
+                                    icon={Home}
+                                    label="Properties"
+                                    used={currentSub.propertiesAdded}
+                                    cap={currentSub.planId.maxProperties}
+                                    percent={usagePercent(currentSub.propertiesAdded, currentSub.planId.maxProperties)}
+                                />
+                                <UsageRow
+                                    icon={Users}
+                                    label="Leads this month"
+                                    used={currentSub.leadsUsedThisMonth}
+                                    cap={currentSub.planId.leadCap}
+                                    percent={usagePercent(currentSub.leadsUsedThisMonth, currentSub.planId.leadCap)}
+                                />
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                    <span className="flex items-center gap-2 text-xs text-gray-500">
+                                        <CalendarDays size={14} /> {isActive ? 'Valid until' : 'Expired on'}
+                                    </span>
+                                    <span className="text-sm font-semibold text-gray-900">{formatDate(currentSub.expiryDate)}</span>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     )}
 
-                    {/* Tier Selection */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                        {plans.map((plan) => {
-                            const config = TIER_CONFIG[plan.tier] || TIER_CONFIG.silver;
-                            const Icon = config.icon;
-                            const isCurrent = currentSub?.planId?._id === plan._id && isActive;
+                    {/* Plans */}
+                    <div>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Available plans</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                            {plans.map((plan) => {
+                                const config = TIER_CONFIG[plan.tier] || TIER_CONFIG.silver;
+                                const Icon = config.icon;
+                                const isCurrent = currentSub?.planId?._id === plan._id && isActive;
 
-                            return (
-                                <div
-                                    key={plan._id}
-                                    className={`relative group bg-white rounded-[2rem] border-2 transition-all duration-500 hover:-translate-y-2 flex flex-col overflow-hidden ${isCurrent ? 'border-[#005CA8] shadow-2xl shadow-blue-100' : 'border-gray-100 hover:border-gray-200 hover:shadow-xl'}`}
-                                >
-                                    {/* Header Gradient */}
-                                    <div className={`h-24 bg-gradient-to-br ${config.color} p-6 flex justify-between items-start`}>
-                                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                                            <Icon className="text-white" size={24} />
-                                        </div>
-                                        {isCurrent && <div className="bg-white text-[#005CA8] text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">Current</div>}
-                                    </div>
-
-                                    <div className="p-6 flex-1 flex flex-col pt-8">
-                                        <h4 className="text-lg font-black text-gray-900 mb-1 capitalize leading-none">{plan.name}</h4>
-                                        <div className="flex items-baseline gap-1 mb-6">
-                                            <span className="text-2xl font-black text-gray-900">₹{plan.price}</span>
-                                            <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">/ {plan.durationDays}d</span>
+                                return (
+                                    <div
+                                        key={plan._id}
+                                        className={`relative bg-white rounded-2xl border flex flex-col p-5 ${isCurrent ? 'border-[#005CA8] ring-1 ring-[#005CA8]/30 shadow-md' : 'border-gray-200 shadow-sm'}`}
+                                    >
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.color} flex items-center justify-center`}>
+                                                <Icon className="text-white" size={20} />
+                                            </div>
+                                            {isCurrent && (
+                                                <span className="text-[11px] font-semibold text-[#005CA8] bg-blue-50 px-2.5 py-1 rounded-full">Current plan</span>
+                                            )}
                                         </div>
 
-                                        <div className="space-y-4 mb-8">
-                                            <FeatureItem icon={Package} text={`Add ${plan.maxProperties} Properties`} />
-                                            {plan.leadCap > 0 ? <FeatureItem icon={Zap} text={`${plan.leadCap} Leads / Month`} /> : <FeatureItem icon={Zap} text="Unlimited Leads" />}
-                                            {plan.rankingWeight > 1 && <FeatureItem icon={Layout} text={`Ranking Boost (Lvl ${plan.rankingWeight})`} color="text-amber-600" />}
-                                            {plan.hasVerifiedTag && <FeatureItem icon={ShieldCheck} text="Verified Partner Tag" color="text-blue-600" />}
-                                            {plan.bannerType !== 'none' && <FeatureItem icon={MapPin} text={`${plan.bannerType.charAt(0).toUpperCase() + plan.bannerType.slice(1)} Banner`} color="text-indigo-600" />}
-                                            {plan.pauseDaysAllowed > 0 && <FeatureItem icon={Clock} text={`${plan.pauseDaysAllowed} Pause Days`} color="text-orange-600" />}
+                                        <h4 className="text-base font-semibold text-gray-900 leading-tight">{plan.name}</h4>
+                                        <div className="flex items-baseline gap-1 mt-1 mb-4">
+                                            <span className="text-2xl font-bold text-gray-900">₹{plan.price}</span>
+                                            <span className="text-xs text-gray-400">/ {plan.durationDays} days</span>
                                         </div>
+
+                                        <ul className="space-y-2.5 mb-5 pt-4 border-t border-gray-100">
+                                            <FeatureItem text={`Up to ${plan.maxProperties} properties`} />
+                                            <FeatureItem text={plan.leadCap > 0 ? `${plan.leadCap} leads / month` : 'Unlimited leads'} />
+                                            {plan.rankingWeight > 1 && <FeatureItem text={`Ranking boost (Level ${plan.rankingWeight})`} />}
+                                            {plan.hasVerifiedTag && <FeatureItem text="Verified partner badge" />}
+                                            {plan.bannerType !== 'none' && <FeatureItem text={`${plan.bannerType.charAt(0).toUpperCase() + plan.bannerType.slice(1)} banner`} />}
+                                        </ul>
 
                                         <button
                                             onClick={() => handlePurchase(plan)}
                                             disabled={processing || isCurrent}
-                                            className={`mt-auto w-full py-4 rounded-2xl font-black text-sm transition-all active:scale-95 ${isCurrent
+                                            className={`mt-auto w-full py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] ${isCurrent
                                                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : 'bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-200 hover:shadow-gray-300'
+                                                : 'bg-[#005CA8] text-white hover:bg-[#004a87] shadow-sm'
                                                 }`}
                                         >
-                                            {isCurrent ? 'Already Active' : 'Get Started'}
+                                            {isCurrent ? 'Active' : 'Choose plan'}
                                         </button>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    {/* Disclaimer / Info */}
-                    <div className="bg-blue-50 rounded-2xl p-6 flex items-start gap-4 border border-blue-100 italic">
-                        <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={20} />
-                        <p className="text-sm text-blue-800 leading-relaxed font-medium">
+                    {/* Disclaimer */}
+                    <div className="bg-gray-50 rounded-xl p-4 flex items-start gap-3 border border-gray-200">
+                        <AlertCircle className="text-gray-400 shrink-0 mt-0.5" size={18} />
+                        <p className="text-xs text-gray-500 leading-relaxed">
                             Subscription plans are non-refundable. For higher tiers (Platinum & Diamond),
                             exclusive city-level banner slots are subject to availability.
                             Contact support for bulk listing packages.
@@ -307,13 +291,31 @@ const PartnerSubscriptions = () => {
     );
 };
 
-const FeatureItem = ({ icon: Icon, text, color = "text-gray-700" }) => (
-    <div className="flex items-start gap-3">
-        <div className="mt-0.5 p-1 bg-gray-50 rounded border border-gray-100">
-            <Icon size={12} className="text-gray-400" />
+const UsageRow = ({ icon: Icon, label, used, cap, percent }) => (
+    <div>
+        <div className="flex items-center justify-between mb-1.5">
+            <span className="flex items-center gap-2 text-xs text-gray-500"><Icon size={14} /> {label}</span>
+            <span className="text-sm font-semibold text-gray-900">
+                {used}
+                <span className="text-gray-400 font-medium"> / {cap > 0 ? cap : '∞'}</span>
+            </span>
         </div>
-        <span className={`text-[12px] font-bold ${color} leading-tight`}>{text}</span>
+        <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+            <div
+                className={`h-full rounded-full ${percent >= 90 ? 'bg-red-500' : 'bg-[#005CA8]'}`}
+                style={{ width: cap > 0 ? `${Math.max(percent, used > 0 ? 4 : 0)}%` : '0%' }}
+            />
+        </div>
     </div>
+);
+
+const FeatureItem = ({ text }) => (
+    <li className="flex items-center gap-2.5">
+        <span className="w-4 h-4 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+            <Check size={10} className="text-emerald-600" strokeWidth={3} />
+        </span>
+        <span className="text-[13px] text-gray-700">{text}</span>
+    </li>
 );
 
 export default PartnerSubscriptions;

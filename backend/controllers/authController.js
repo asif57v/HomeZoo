@@ -3,6 +3,7 @@ import notificationService from '../services/notificationService.js';
 import Admin from '../models/Admin.js';
 import User from '../models/User.js';
 import Partner from '../models/Partner.js';
+import PlatformSettings from '../models/PlatformSettings.js';
 import Otp from '../models/Otp.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -151,8 +152,19 @@ export const registerPartner = async (req, res) => {
     const randomPassword = Math.random().toString(36).slice(-8);
     const passwordHash = await bcrypt.hash(randomPassword, 10);
 
+    // Free allowance for new partners comes from admin platform settings
+    const platformSettings = await PlatformSettings.getSettings();
+    const trial = platformSettings.partnerFreeTrial || {};
+    const trialGranted = trial.enabled !== false;
+
     // Create Partner directly with pending approval
     const newPartner = new Partner({
+      freeTrial: {
+        granted: trialGranted,
+        propertiesLimit: trialGranted ? (trial.freeProperties ?? 1) : 0,
+        leadsLimit: trialGranted ? (trial.freeLeads ?? 5) : 0,
+        leadsUsed: 0
+      },
       name: full_name,
       email,
       phone,

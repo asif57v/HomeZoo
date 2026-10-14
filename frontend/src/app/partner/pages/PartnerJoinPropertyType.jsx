@@ -100,7 +100,8 @@ const PartnerJoinPropertyType = () => {
   const handleSelectType = (item) => {
     if (!item.route) return;
 
-    if (subscription) {
+    // Partners who never bought a plan (new / free trial) are checked by the server
+    if (subscription?.planId) {
       const isActive =
         subscription?.status === 'active' &&
         subscription?.expiryDate &&
@@ -114,7 +115,7 @@ const PartnerJoinPropertyType = () => {
         return;
       }
 
-      if (maxAllowed && propertyCount >= maxAllowed) {
+      if (maxAllowed && (subscription.propertiesAdded ?? propertyCount) >= maxAllowed) {
         toast.error(`Property limit reached! Your plan allows ${maxAllowed} properties.`);
         navigate('/hotel/subscriptions');
         return;

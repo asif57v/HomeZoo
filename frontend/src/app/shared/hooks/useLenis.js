@@ -21,6 +21,19 @@ export const useLenis = (disabled = false) => {
             return;
         }
 
+        // Touch devices: native scrolling is already smooth and GPU-accelerated.
+        // Driving it from JS (Lenis syncTouch) causes visible lag on phones.
+        const isTouchDevice =
+            typeof window !== 'undefined' &&
+            (window.matchMedia?.('(pointer: coarse)').matches || 'ontouchstart' in window);
+        if (isTouchDevice) {
+            if (window.lenis) {
+                try { window.lenis.destroy(); } catch (e) { /* ignore */ }
+                window.lenis = null;
+            }
+            return;
+        }
+
         // Clean up any stale global instance before creating a new one
         if (window.lenis && window.lenis !== lenisRef.current) {
             try {
@@ -39,7 +52,7 @@ export const useLenis = (disabled = false) => {
             gestureOrientation: 'vertical',
             smoothWheel: true,
             wheelMultiplier: 1.15, // Responsive, effortless travel
-            syncTouch: true, // Inertial momentum scrolling on touch / mobile devices
+            syncTouch: false, // Native touch scrolling (JS-driven touch scroll lags on phones)
             syncTouchLerp: 0.075, // Natural glide on finger release
             touchMultiplier: 1.25,
             touchInertiaExponent: 1.65,

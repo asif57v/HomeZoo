@@ -183,14 +183,14 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
               <Star size={9} className="fill-black" /> Premium
             </span>
           ) : badgeLabel ? (
-            <span className="bg-white/20 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[10px] font-bold">
+            <span className="bg-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-bold">
               {badgeLabel}
             </span>
           ) : <span />}
           <button
             onClick={handleToggleSave}
             aria-label="Save property"
-            className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
+            className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center active:scale-90 transition-transform"
           >
             <Heart size={16} className={isSaved ? 'fill-red-500 text-red-500' : 'text-white'} />
           </button>
@@ -338,7 +338,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
           <button
             onClick={handleToggleSave}
             aria-label="Save property"
-            className="w-7 h-7 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
+            className="w-7 h-7 rounded-full bg-black/30 flex items-center justify-center active:scale-90 transition-transform"
           >
             <Heart size={14} className={isSaved ? 'fill-red-500 text-red-500' : 'text-white'} />
           </button>
@@ -407,14 +407,14 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
           <button
             onClick={handleToggleSave}
             aria-label="Save property"
-            className="w-8 h-8 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
+            className="w-8 h-8 rounded-full bg-white/25 flex items-center justify-center active:scale-90 transition-transform"
           >
             <Heart size={16} className={isSaved ? 'fill-red-500 text-red-500' : 'text-white'} />
           </button>
         </div>
 
         {/* Glass info panel */}
-        <div className="absolute bottom-2.5 inset-x-2.5 rounded-2xl bg-white/15 backdrop-blur-lg border border-white/25 p-2.5 text-white">
+        <div className="absolute bottom-2.5 inset-x-2.5 rounded-2xl bg-black/35 border border-white/25 p-2.5 text-white">
           <div className="flex items-center justify-between gap-2">
             {displayPrice ? (
               <span className="flex items-baseline gap-0.5">
@@ -479,7 +479,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
               {tag}
             </span>
           )}
-          <span className="absolute bottom-2 right-2 flex items-center gap-0.5 bg-black/45 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+          <span className="absolute bottom-2 right-2 flex items-center gap-0.5 bg-black/45 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             <Star size={9} className="fill-amber-400 text-amber-400" /> {displayRating}
           </span>
         </div>
@@ -676,7 +676,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
               </span>
             )}
             {item.hasVerifiedTag && (
-              <div className="bg-white/90 backdrop-blur-sm p-0.5 rounded-full shadow-sm">
+              <div className="bg-white/90 p-0.5 rounded-full shadow-sm">
                 <BadgeCheck size={14} className="fill-blue-500 text-white" />
               </div>
             )}
@@ -689,7 +689,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
         <div className="absolute top-2.5 right-2.5 flex flex-col gap-2 items-end">
           <button
             onClick={handleToggleSave}
-            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md z-20 hover:bg-white active:scale-95 transition-all"
+            className="p-1.5 bg-white/90 rounded-full shadow-md z-20 hover:bg-white active:scale-95 transition-all"
           >
             <Heart
               size={14}
@@ -697,7 +697,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
             />
           </button>
 
-          <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-[4px] shadow-sm text-[10px] font-bold text-gray-800">
+          <div className="flex items-center gap-1 bg-white/90 px-1.5 py-0.5 rounded-[4px] shadow-sm text-[10px] font-bold text-gray-800">
             <span className="text-green-600 font-extrabold">{displayRating}</span>
             <Star size={9} className="fill-green-600 text-green-600" />
           </div>

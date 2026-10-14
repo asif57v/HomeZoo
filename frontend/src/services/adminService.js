@@ -65,6 +65,11 @@ const adminService = {
     return response.data;
   },
 
+  updatePartnerTopRated: async (userId, isTopRated) => {
+    const response = await axiosInstance.put('/admin/update-partner-top-rated', { userId, isTopRated });
+    return response.data;
+  },
+
   deleteUser: async (userId) => {
     const response = await axiosInstance.delete('/admin/delete-user', { data: { userId } });
     return response.data;

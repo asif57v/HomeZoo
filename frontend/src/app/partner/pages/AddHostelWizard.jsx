@@ -947,7 +947,7 @@ const AddHostelWizard = () => {
                       type="tel"
                       inputMode="numeric"
                       maxLength={10}
-                      className="input pl-16 w-full"
+                      className="input pl-16 w-full" style={{ paddingLeft: "4.5rem" }}
                       placeholder="9876543210"
                       value={propertyForm.contactNumber || ''}
                       onChange={e => updatePropertyForm('contactNumber', sanitizePhoneNumber(e.target.value))}

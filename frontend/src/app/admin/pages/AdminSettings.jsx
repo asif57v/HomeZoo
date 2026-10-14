@@ -47,6 +47,9 @@ const AdminSettings = () => {
     const [maintenanceMessage, setMaintenanceMessage] = useState('');
     const [commission, setCommission] = useState(10);
     const [taxRate, setTaxRate] = useState(12);
+    const [trialEnabled, setTrialEnabled] = useState(true);
+    const [freeProperties, setFreeProperties] = useState(1);
+    const [freeLeads, setFreeLeads] = useState(5);
 
     const [loadingSettings, setLoadingSettings] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
@@ -77,6 +80,11 @@ const AdminSettings = () => {
                     setMaintenanceMessage(res.settings.maintenanceMessage || '');
                     setCommission(res.settings.defaultCommission || 10);
                     setTaxRate(res.settings.taxRate || 12);
+                    if (res.settings.partnerFreeTrial) {
+                        setTrialEnabled(res.settings.partnerFreeTrial.enabled !== false);
+                        setFreeProperties(res.settings.partnerFreeTrial.freeProperties ?? 1);
+                        setFreeLeads(res.settings.partnerFreeTrial.freeLeads ?? 5);
+                    }
                 }
             } catch (error) {
                 toast.error('Failed to load platform settings');
@@ -120,7 +128,12 @@ const AdminSettings = () => {
                 maintenanceTitle,
                 maintenanceMessage,
                 defaultCommission: Number(commission),
-                taxRate: Number(taxRate)
+                taxRate: Number(taxRate),
+                partnerFreeTrial: {
+                    enabled: trialEnabled,
+                    freeProperties: Number(freeProperties) || 0,
+                    freeLeads: Number(freeLeads) || 0
+                }
             });
             toast.success('Platform settings updated');
         } catch (error) {
@@ -251,6 +264,38 @@ const AdminSettings = () => {
                                 onChange={(e) => setTaxRate(e.target.value)}
                                 className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
                             />
+                        </div>
+                    </div>
+                    <div className="pt-6">
+                        <div className="pb-2 font-bold text-lg flex items-center gap-4"><Globe size={18} />New Partner Free Trial</div>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="font-medium text-gray-900">Give free allowance to new partners</p>
+                                <p className="text-sm text-gray-500">Applies only to partners who register after saving. If off, new partners must buy a plan to add properties and receive leads.</p>
+                            </div>
+                            <ToggleSwitch enabled={trialEnabled} onChange={setTrialEnabled} />
+                        </div>
+                        <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 ${trialEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Free Properties</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={freeProperties}
+                                    onChange={(e) => setFreeProperties(e.target.value)}
+                                    className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Free Leads (total)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={freeLeads}
+                                    onChange={(e) => setFreeLeads(e.target.value)}
+                                    className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
+                                />
+                            </div>
                         </div>
                     </div>
                     {/* <div className="flex items-center justify-between pt-2">

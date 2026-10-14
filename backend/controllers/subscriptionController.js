@@ -1,5 +1,6 @@
 import SubscriptionPlan from '../models/SubscriptionPlan.js';
 import Partner from '../models/Partner.js';
+import Property from '../models/Property.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import PaymentConfig from '../config/payment.config.js';
@@ -145,9 +146,18 @@ export const getCurrentSubscription = async (req, res) => {
 
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
+        // Usage must reflect real listings, not a counter that never decrements
+        const sub = partner.subscription?.toObject ? partner.subscription.toObject() : partner.subscription;
+        if (sub) {
+            // Only properties uploaded under the current subscription
+            const q = { partnerId: partner._id, status: { $ne: 'deleted' } };
+            if (sub.startDate) q.createdAt = { $gte: sub.startDate };
+            sub.propertiesAdded = await Property.countDocuments(q);
+        }
+
         res.json({
             success: true,
-            subscription: partner.subscription
+            subscription: sub
         });
     } catch (error) {
         console.error('Get Subscription Error:', error);
@@ -256,13 +266,14 @@ export const verifySubscription = async (req, res) => {
             status: 'active',
             startDate: new Date(),
             expiryDate: expiryDate,
-            propertiesAdded: partner.subscription?.propertiesAdded || 0,
+            propertiesAdded: 0, // fresh count for each new subscription
             transactionId: razorpay_payment_id,
             leadsUsedThisMonth: 0, // Reset/Initialize leads
             isPaused: false
         };
 
         await partner.save();
+        await partner.populate('subscription.planId');
 
         // NOTIFICATION: Notify Partner
         notificationService.sendToUser(partner._id, {

@@ -30,6 +30,12 @@ const platformSettingsSchema = new mongoose.Schema(
       type: Number,
       default: 12 // Percentage (GST)
     },
+    /** Free allowance granted to NEW partners at registration (admin controlled) */
+    partnerFreeTrial: {
+      enabled: { type: Boolean, default: true },
+      freeProperties: { type: Number, default: 1, min: 0 },
+      freeLeads: { type: Number, default: 5, min: 0 },
+    },
     reelCouponTarget: {
       type: Number,
       default: 1000 // Default target likes

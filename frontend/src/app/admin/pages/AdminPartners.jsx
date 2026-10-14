@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Search, Filter, MoreVertical, Ban, CheckCircle,
     Mail, Phone, Shield, Trash2, Unlock, Eye,
-    ChevronLeft, ChevronRight, Download
+    ChevronLeft, ChevronRight, Download, Star
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -41,7 +41,8 @@ const AdminPartners = () => {
         search: '',
         role: 'partner',
         status: '',
-        approvalStatus: ''
+        approvalStatus: '',
+        topRated: ''
     });
 
     const [activeDropdown, setActiveDropdown] = useState(null);
@@ -58,7 +59,8 @@ const AdminPartners = () => {
                 limit,
                 search: currentFilters.search,
                 status: currentFilters.status,
-                approvalStatus: currentFilters.approvalStatus
+                approvalStatus: currentFilters.approvalStatus,
+                topRated: currentFilters.topRated
             };
             const data = await adminService.getPartners(params);
             if (data.success) {
@@ -98,6 +100,18 @@ const AdminPartners = () => {
             }
         } catch {
             toast.error('Failed to update partner status');
+        }
+    };
+
+    const handleTopRated = async (user) => {
+        try {
+            const res = await adminService.updatePartnerTopRated(user._id, !user.isTopRated);
+            if (res.success) {
+                toast.success(res.message);
+                fetchUsers(currentPage, filters);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update top rated status');
         }
     };
 
@@ -251,6 +265,14 @@ const AdminPartners = () => {
                         <option value="active">Active</option>
                         <option value="blocked">Blocked</option>
                     </select>
+                    <select
+                        value={filters.topRated}
+                        onChange={(e) => handleFilterChange('topRated', e.target.value)}
+                        className="px-4 py-2 bg-gray-50 border border-transparent rounded-xl text-[10px] font-bold uppercase outline-none focus:bg-white focus:border-black transition-all"
+                    >
+                        <option value="">All Partners</option>
+                        <option value="true">Top Rated Only</option>
+                    </select>
                 </div>
             </div>
 
@@ -298,7 +320,10 @@ const AdminPartners = () => {
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-bold text-gray-900 uppercase tracking-tight">{user.name}</p>
+                                                            <p className="text-sm font-bold text-gray-900 uppercase tracking-tight flex items-center gap-1.5">
+                                                                {user.name}
+                                                                {user.isTopRated && <Star size={12} className="fill-amber-500 text-amber-500" title="Top Rated Partner" />}
+                                                            </p>
                                                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">ID: {user._id.slice(-6)}</p>
                                                         </div>
                                                     </Link>
@@ -344,6 +369,11 @@ const AdminPartners = () => {
                                                             <Link to={`/admin/partners/${user._id}`} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-[10px] font-bold uppercase text-gray-700">
                                                                 <Eye size={14} /> View Details
                                                             </Link>
+                                                            {user.partnerApprovalStatus === 'approved' && (
+                                                                <button onClick={() => { setActiveDropdown(null); handleTopRated(user); }} className="w-full flex items-center gap-2 px-4 py-2 hover:bg-amber-50 text-[10px] font-bold uppercase text-amber-700">
+                                                                    <Star size={14} className={user.isTopRated ? 'fill-amber-500' : ''} /> {user.isTopRated ? 'Remove Top Rated' : 'Add to Top Rated'}
+                                                                </button>
+                                                            )}
                                                             {user.partnerApprovalStatus !== 'approved' && (
                                                                 <button onClick={() => handleAction('approve', user)} className="w-full flex items-center gap-2 px-4 py-2 hover:bg-green-50 text-[10px] font-bold uppercase text-green-700">
                                                                     <CheckCircle size={14} /> Approve

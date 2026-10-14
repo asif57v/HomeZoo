@@ -270,9 +270,10 @@ export const getAllPartners = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    const { search, approvalStatus, status } = req.query;
+    const { search, approvalStatus, status, topRated } = req.query;
 
     let query = {};
+    if (topRated === 'true') query.isTopRated = true;
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -573,6 +574,22 @@ export const updatePartnerStatus = async (req, res) => {
     res.status(200).json({ success: true, message: `Partner ${isBlocked ? 'blocked' : 'unblocked'} successfully`, partner });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error updating partner status' });
+  }
+};
+
+export const updatePartnerTopRated = async (req, res) => {
+  try {
+    const { userId, isTopRated } = req.body;
+    const partner = await Partner.findById(userId);
+    if (!partner) return res.status(404).json({ success: false, message: 'Partner not found' });
+    if (isTopRated && partner.partnerApprovalStatus !== 'approved') {
+      return res.status(400).json({ success: false, message: 'Only approved partners can be featured' });
+    }
+    partner.isTopRated = !!isTopRated;
+    await partner.save({ validateBeforeSave: false });
+    res.status(200).json({ success: true, message: `Partner ${isTopRated ? 'added to' : 'removed from'} Top Rated`, partner });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error updating top rated status' });
   }
 };
 
@@ -928,6 +945,7 @@ export const updatePlatformSettings = async (req, res) => {
       reelPaidDurationEnabled,
       reelDurationTiers,
       reelPricing,
+      partnerFreeTrial,
     } = req.body;
 
     const settings = await PlatformSettings.getSettings();
@@ -940,6 +958,18 @@ export const updatePlatformSettings = async (req, res) => {
 
     if (defaultCommission !== undefined) settings.defaultCommission = Number(defaultCommission);
     if (taxRate !== undefined) settings.taxRate = Number(taxRate);
+    if (partnerFreeTrial && typeof partnerFreeTrial === 'object') {
+      const props = Number(partnerFreeTrial.freeProperties);
+      const leads = Number(partnerFreeTrial.freeLeads);
+      if (!(props >= 0) || !(leads >= 0)) {
+        return res.status(400).json({ success: false, message: 'Free properties and leads must be 0 or more' });
+      }
+      settings.partnerFreeTrial = {
+        enabled: !!partnerFreeTrial.enabled,
+        freeProperties: Math.floor(props),
+        freeLeads: Math.floor(leads),
+      };
+    }
     if (reelCouponTarget !== undefined) settings.reelCouponTarget = Number(reelCouponTarget);
     if (reelCouponDiscount !== undefined) settings.reelCouponDiscount = Number(reelCouponDiscount);
 

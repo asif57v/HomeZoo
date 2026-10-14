@@ -62,6 +62,18 @@ const partnerSchema = new mongoose.Schema({
     }
   },
 
+  // Admin-curated "Top Rated HomeZo Partners" on the home page
+  isTopRated: { type: Boolean, default: false },
+
+  // Free allowance snapshot taken at registration (from admin settings).
+  // granted === undefined -> legacy partner, old behaviour applies.
+  freeTrial: {
+    granted: { type: Boolean },
+    propertiesLimit: { type: Number, default: 0 },
+    leadsLimit: { type: Number, default: 0 },
+    leadsUsed: { type: Number, default: 0 }
+  },
+
   // Subscription Details
   subscription: {
     planId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan' },

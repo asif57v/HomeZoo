@@ -51,6 +51,25 @@ const AddDynamicWizard = () => {
   const [tempNearbyPlace, setTempNearbyPlace] = useState({ name: '', type: 'tourist', distanceKm: '' });
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [locationResults, setLocationResults] = useState([]);
+
+  // Live address suggestions while typing (debounced)
+  useEffect(() => {
+    const q = locationSearchQuery.trim();
+    if (q.length < 2) {
+      setLocationResults([]);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const res = await hotelService.searchLocation(q);
+        if (!cancelled) setLocationResults(Array.isArray(res?.results) ? res.results : []);
+      } catch {
+        if (!cancelled) setLocationResults([]);
+      }
+    }, 350);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [locationSearchQuery]);
   const [uploading, setUploading] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [isFlutter, setIsFlutter] = useState(false);
@@ -331,6 +350,7 @@ const AddDynamicWizard = () => {
   };
 
   const selectLocationResult = async (place) => {
+    setLocationResults([]);
     try {
       setError('');
       const lat = place.lat;
@@ -1076,7 +1096,7 @@ const AddDynamicWizard = () => {
                       type="tel"
                       inputMode="numeric"
                       maxLength={10}
-                      className="input pl-16 w-full"
+                      className="input pl-16 w-full" style={{ paddingLeft: "4.5rem" }}
                       placeholder="9876543210"
                       value={propertyForm.contactNumber || ''}
                       onChange={e => updatePropertyForm('contactNumber', sanitizePhoneNumber(e.target.value))}

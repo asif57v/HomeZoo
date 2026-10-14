@@ -62,10 +62,11 @@ export const createProperty = async (req, res) => {
 
     if (isSubscriptionActive) {
       maxAllowed = subscription.planId?.maxProperties || 1;
+    } else if (partner.freeTrial && typeof partner.freeTrial.granted === 'boolean') {
+      // Partner registered under the free-trial rules set by admin
+      maxAllowed = partner.freeTrial.propertiesLimit || 0;
     } else {
-      // No subscription / Expired
-      // "Vo properties add kar sakta hai" -> Allow.
-      // We set a high number or skip the check.
+      // Legacy partner without a trial snapshot: unrestricted as before
       maxAllowed = 9999;
     }
 
@@ -80,16 +81,23 @@ export const createProperty = async (req, res) => {
     */
 
     // Check if partner has reached property limit
-    const currentPropertyCount = await Property.countDocuments({
+    // With an active plan, only properties added under this subscription count
+    const countQuery = {
       partnerId: req.user._id,
       status: { $ne: 'deleted' } // Don't count deleted properties
-    });
+    };
+    if (isSubscriptionActive && subscription.startDate) {
+      countQuery.createdAt = { $gte: subscription.startDate };
+    }
+    const currentPropertyCount = await Property.countDocuments(countQuery);
 
     // maxAllowed is already determined above based on subscription status
 
     if (currentPropertyCount >= maxAllowed) {
       return res.status(403).json({
-        message: `Property limit reached. Your plan allows ${maxAllowed} properties. Please upgrade your subscription.`,
+        message: maxAllowed === 0
+          ? 'Please purchase a subscription plan to add properties.'
+          : `Property limit reached. Your plan allows ${maxAllowed} properties. Please upgrade your subscription.`,
         limitReached: true,
         currentCount: currentPropertyCount,
         maxAllowed: maxAllowed
@@ -876,6 +884,17 @@ export const revealContact = async (req, res) => {
       // Increment leads count
       partner.subscription.leadsUsedThisMonth = (sub.leadsUsedThisMonth || 0) + 1;
       await partner.save();
+    } else if (partner.freeTrial && typeof partner.freeTrial.granted === 'boolean') {
+      // No active plan: free-lead allowance set by admin at registration
+      if ((partner.freeTrial.leadsUsed || 0) >= (partner.freeTrial.leadsLimit || 0)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Partner lead limit reached. Try another property.',
+          limitReached: true
+        });
+      }
+      partner.freeTrial.leadsUsed = (partner.freeTrial.leadsUsed || 0) + 1;
+      await partner.save();
     }
 
     res.json({
@@ -896,12 +915,15 @@ export const revealContact = async (req, res) => {
  */
 export const getRecommendedSellers = async (req, res) => {
   try {
+    // Admin-curated list wins; fall back to automatic ranking when none are picked
+    const curatedMatch = { isTopRated: true, partnerApprovalStatus: 'approved', isBlocked: { $ne: true } };
+    const curated = (await Partner.countDocuments(curatedMatch)) > 0;
+
     const pipeline = [
       {
-        $match: {
-          partnerApprovalStatus: 'approved',
-          'subscription.status': 'active'
-        }
+        $match: curated
+          ? curatedMatch
+          : { partnerApprovalStatus: 'approved', 'subscription.status': 'active' }
       },
       {
         $lookup: {
@@ -911,7 +933,7 @@ export const getRecommendedSellers = async (req, res) => {
           as: 'plan'
         }
       },
-      { $unwind: '$plan' },
+      { $unwind: { path: '$plan', preserveNullAndEmptyArrays: curated } },
       // Sort by rankingWeight (Diamond=5, etc.) then by creation date
       { $sort: { 'plan.rankingWeight': -1, createdAt: -1 } },
       { $limit: 10 },

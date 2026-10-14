@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { propertyService, legalService, reviewService, offerService, availabilityService, userService, bookingService } from '../../services/apiService';
 import {
   MapPin, Star, Share2, Heart, ArrowLeft,
@@ -14,6 +14,13 @@ import ModernDatePicker from '../../components/ui/ModernDatePicker';
 const PropertyDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Go back in history; if the page was opened directly (no history), fall back to search
+  const handleBack = () => {
+    if (location.key !== 'default') navigate(-1);
+    else navigate('/search');
+  };
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -733,7 +740,7 @@ const PropertyDetailsPage = () => {
       {/* Top Header / Breadcrumb Bar */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-3 flex items-center justify-between">
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-black transition-colors px-3.5 py-2 rounded-xl bg-white border border-gray-200 hover:bg-gray-100 shadow-sm active:scale-95"
         >
           <ArrowLeft size={18} />
