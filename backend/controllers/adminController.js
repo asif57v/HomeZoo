@@ -1,6 +1,6 @@
 import User from '../models/User.js';
 import Partner from '../models/Partner.js';
-import InfoPage from '../models/InfoPage.js';
+import InfoPage, { INFO_PAGE_SLUGS } from '../models/InfoPage.js';
 import ContactMessage from '../models/ContactMessage.js';
 import PlatformSettings from '../models/PlatformSettings.js';
 import { validateReelDurationTiers, validateRolePricingPayload } from '../utils/reelDurationPricing.js';
@@ -828,13 +828,13 @@ export const getLegalPages = async (req, res) => {
 
 export const upsertLegalPage = async (req, res) => {
   try {
-    const { audience, slug, title, content, isActive } = req.body;
+    const { audience, slug, title, content, isActive, supportEmail, supportPhone, supportWhatsapp, supportHours } = req.body;
 
     if (!['user', 'partner'].includes(audience)) {
       return res.status(400).json({ success: false, message: 'Invalid audience' });
     }
 
-    if (!['terms', 'privacy', 'about', 'contact'].includes(slug)) {
+    if (!INFO_PAGE_SLUGS.includes(slug)) {
       return res.status(400).json({ success: false, message: 'Invalid page type' });
     }
 
@@ -925,6 +925,55 @@ export const getPlatformSettings = async (req, res) => {
     res.status(200).json({ success: true, settings });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching platform settings' });
+  }
+};
+
+const serializeFeatures = (fc = {}) => ({
+  subscriptionEnabled: fc.subscriptionEnabled !== false,
+  subscriptionUpdatedAt: fc.subscriptionUpdatedAt || null,
+  razorpayEnabled: fc.razorpayEnabled !== false,
+  razorpayUpdatedAt: fc.razorpayUpdatedAt || null
+});
+
+export const getFeatureControls = async (req, res) => {
+  try {
+    const settings = await PlatformSettings.getSettings();
+    res.status(200).json({ success: true, features: serializeFeatures(settings.featureControls) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching feature controls' });
+  }
+};
+
+export const updateFeatureControls = async (req, res) => {
+  try {
+    const { subscriptionEnabled, razorpayEnabled } = req.body;
+    const provided = [subscriptionEnabled, razorpayEnabled].filter((v) => v !== undefined);
+
+    if (provided.length === 0 || provided.some((v) => typeof v !== 'boolean')) {
+      return res.status(400).json({ success: false, message: 'subscriptionEnabled / razorpayEnabled must be booleans' });
+    }
+
+    const settings = await PlatformSettings.getSettings();
+    const fc = settings.featureControls || {};
+    const now = new Date();
+
+    // Only touch the toggle that was sent, so the two switches stay independent
+    if (typeof subscriptionEnabled === 'boolean' && subscriptionEnabled !== (fc.subscriptionEnabled !== false)) {
+      settings.set('featureControls.subscriptionEnabled', subscriptionEnabled);
+      settings.set('featureControls.subscriptionUpdatedAt', now);
+      settings.set('featureControls.subscriptionUpdatedBy', req.user._id);
+    }
+    if (typeof razorpayEnabled === 'boolean' && razorpayEnabled !== (fc.razorpayEnabled !== false)) {
+      settings.set('featureControls.razorpayEnabled', razorpayEnabled);
+      settings.set('featureControls.razorpayUpdatedAt', now);
+      settings.set('featureControls.razorpayUpdatedBy', req.user._id);
+    }
+
+    await settings.save();
+    res.status(200).json({ success: true, features: serializeFeatures(settings.featureControls) });
+  } catch (error) {
+    console.error('Update Feature Controls Error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating feature controls' });
   }
 };
 

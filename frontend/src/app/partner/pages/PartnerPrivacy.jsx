@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Shield } from 'lucide-react';
 import gsap from 'gsap';
 import PartnerHeader from '../components/PartnerHeader';
+import LegalContent, { formatUpdated } from '../../../components/ui/LegalContent';
 import { legalService } from '../../../services/apiService';
 
 const PartnerPrivacy = () => {
@@ -63,14 +64,11 @@ const PartnerPrivacy = () => {
               <h2 className="text-lg font-black text-slate-900">
                 {page?.title || 'Partner data and privacy'}
               </h2>
+              {formatUpdated(page) && <p className="text-xs text-gray-400">Last updated: {formatUpdated(page)}</p>}
             </div>
           </div>
 
-          <div className="text-xs text-gray-500 leading-relaxed space-y-3">
-            {paragraphs.length > 0
-              ? paragraphs.map((p, idx) => <p key={idx}>{p}</p>)
-              : <p>{content}</p>}
-          </div>
+          <LegalContent content={content} />
         </div>
       </main>
     </div>

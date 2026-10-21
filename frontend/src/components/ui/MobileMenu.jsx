@@ -74,8 +74,8 @@ const MobileMenu = ({ isOpen, onClose }) => {
     ];
 
     const legalItems = [
-        { icon: Shield, label: 'Privacy Policy', path: '/legal' },
-        { icon: FileText, label: 'Terms & Conditions', path: '/legal' },
+        { icon: Shield, label: 'Privacy Policy', path: '/privacy' },
+        { icon: FileText, label: 'Terms & Conditions', path: '/terms' },
     ];
 
     const handleNavigation = (path) => {

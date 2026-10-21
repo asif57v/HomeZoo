@@ -8,8 +8,10 @@ import {
 import { api } from '../../services/apiService';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useFeatureFlags, RAZORPAY_UNAVAILABLE_MESSAGE } from '../../store/featureFlagsStore';
 
 const WalletPage = () => {
+    const { razorpayEnabled } = useFeatureFlags();
     const navigate = useNavigate();
     const [balance, setBalance] = useState(0);
     const [transactions, setTransactions] = useState([]);
@@ -156,9 +158,13 @@ const WalletPage = () => {
                 </div>
 
                 <div className="mt-8">
+                    {!razorpayEnabled && (
+                        <p className="text-center text-[11px] text-white/80 mb-2">{RAZORPAY_UNAVAILABLE_MESSAGE}</p>
+                    )}
                     <button
+                        disabled={!razorpayEnabled}
                         onClick={() => setShowAddMoneySheet(true)}
-                        className="w-full bg-white text-amber-700 py-3.5 rounded-xl font-bold text-sm shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        className="w-full disabled:opacity-50 disabled:cursor-not-allowed bg-white text-amber-700 py-3.5 rounded-xl font-bold text-sm shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
                         <Plus size={18} strokeWidth={3} /> Add Money
                     </button>

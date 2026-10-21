@@ -9,6 +9,7 @@ import emailService from '../services/emailService.js';
 import notificationService from '../services/notificationService.js';
 import User from '../models/User.js'; // Needed to find Admins? Or Admin model
 import Admin from '../models/Admin.js';
+import { getFeatureFlags } from '../middlewares/featureGuards.js';
 
 const sanitizePhone = (phone) => {
   if (!phone) return phone;
@@ -80,6 +81,9 @@ export const createProperty = async (req, res) => {
     } 
     */
 
+    // Subscription system OFF: plan limits can't be upgraded, so they are not enforced (records stay untouched)
+    const { subscriptionEnabled } = await getFeatureFlags();
+
     // Check if partner has reached property limit
     // With an active plan, only properties added under this subscription count
     const countQuery = {
@@ -93,7 +97,7 @@ export const createProperty = async (req, res) => {
 
     // maxAllowed is already determined above based on subscription status
 
-    if (currentPropertyCount >= maxAllowed) {
+    if (subscriptionEnabled && currentPropertyCount >= maxAllowed) {
       return res.status(403).json({
         message: maxAllowed === 0
           ? 'Please purchase a subscription plan to add properties.'
@@ -868,8 +872,12 @@ export const revealContact = async (req, res) => {
     const sub = partner.subscription;
     const plan = sub?.planId;
 
-    // Check if partner is active and has a plan
-    if (sub?.status === 'active' && plan) {
+    const { subscriptionEnabled } = await getFeatureFlags();
+
+    // Subscription system OFF: no plan lead caps / counters (existing data is preserved, just not enforced)
+    if (!subscriptionEnabled) {
+      // fall through and return the contact details
+    } else if (sub?.status === 'active' && plan) {
       // Logic for Silver Tier Lead Capping
       if (plan.tier === 'silver' && plan.leadCap > 0) {
         if ((sub.leadsUsedThisMonth || 0) >= plan.leadCap) {

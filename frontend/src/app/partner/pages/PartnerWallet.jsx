@@ -6,6 +6,7 @@ import {
 import walletService from '../../../services/walletService';
 import { toast } from 'react-hot-toast';
 import { useRazorpay } from 'react-razorpay';
+import { useFeatureFlags, RAZORPAY_UNAVAILABLE_MESSAGE } from '../../../store/featureFlagsStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Transaction Item (Compact) ---
@@ -49,6 +50,7 @@ const PartnerWallet = () => {
     const [stats, setStats] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { razorpayEnabled } = useFeatureFlags();
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('transactions');
     const [selectedTxn, setSelectedTxn] = useState(null);
@@ -223,8 +225,10 @@ const PartnerWallet = () => {
 
                 <div className="flex gap-4 justify-center max-w-sm mx-auto">
                     <button
+                        disabled={!razorpayEnabled}
+                        title={!razorpayEnabled ? RAZORPAY_UNAVAILABLE_MESSAGE : undefined}
                         onClick={() => setActiveModal('add_money')}
-                        className="flex-1 bg-white text-[#005CA8] py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                        className="flex-1 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-[#005CA8] py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
                     >
                         <Plus size={16} strokeWidth={3} className="sm:w-[18px] sm:h-[18px]" /> Add Money
                     </button>

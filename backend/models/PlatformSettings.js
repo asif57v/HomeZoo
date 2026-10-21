@@ -30,6 +30,15 @@ const platformSettingsSchema = new mongoose.Schema(
       type: Number,
       default: 12 // Percentage (GST)
     },
+    /** Admin "Platform Feature Controls": global switches read by both apps and enforced in the APIs */
+    featureControls: {
+      subscriptionEnabled: { type: Boolean, default: true },
+      subscriptionUpdatedAt: { type: Date },
+      subscriptionUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+      razorpayEnabled: { type: Boolean, default: true },
+      razorpayUpdatedAt: { type: Date },
+      razorpayUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    },
     /** Free allowance granted to NEW partners at registration (admin controlled) */
     partnerFreeTrial: {
       enabled: { type: Boolean, default: true },

@@ -1,5 +1,6 @@
 import express from 'express';
 import { protect, authorizedRoles, optionalProtect } from '../middlewares/authMiddleware.js';
+import { requireRazorpayEnabled } from '../middlewares/featureGuards.js';
 import { rateLimitReelUpload } from '../middlewares/rateLimitReelUpload.js';
 import {
   uploadReel,
@@ -30,7 +31,7 @@ const router = express.Router();
 
 router.get('/duration-settings', optionalProtect, getReelDurationSettings);
 router.post('/duration-quote', optionalProtect, quoteReelDuration);
-router.post('/duration-payment/create-order', protect, createReelDurationOrder);
+router.post('/duration-payment/create-order', protect, requireRazorpayEnabled, createReelDurationOrder);
 router.post('/duration-payment/verify', protect, verifyReelDurationPayment);
 
 router.post(

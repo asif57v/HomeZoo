@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Star, 
     BadgeCheck, 
@@ -17,7 +17,11 @@ import {
     TrendingUp,
     CheckCircle2,
     Quote,
-    Phone
+    Phone,
+    X,
+    Clock,
+    Share2,
+    Check
 } from 'lucide-react';
 import { propertyService } from '../../services/apiService';
 
@@ -25,6 +29,12 @@ const HomeBottomSections = () => {
     // 1. Partners State (using existing recommended sellers service to maintain backend integration)
     const [partners, setPartners] = useState([]);
     const [loadingPartners, setLoadingPartners] = useState(true);
+
+    // 2. Dynamic News Articles State
+    const [newsArticles, setNewsArticles] = useState([]);
+    const [loadingNews, setLoadingNews] = useState(true);
+    const [selectedNews, setSelectedNews] = useState(null);
+    const [copiedNews, setCopiedNews] = useState(false);
 
     // 4. Cities Filter State
     const [citySearch, setCitySearch] = useState('');
@@ -40,7 +50,25 @@ const HomeBottomSections = () => {
                 setLoadingPartners(false);
             }
         };
+
+        const fetchNews = async () => {
+            try {
+                const res = await propertyService.getNewsArticles({ limit: 6 });
+                if (res && res.articles && res.articles.length > 0) {
+                    setNewsArticles(res.articles);
+                } else {
+                    setNewsArticles(DEFAULT_NEWS_ARTICLES);
+                }
+            } catch (err) {
+                console.error("Failed to fetch news articles:", err);
+                setNewsArticles(DEFAULT_NEWS_ARTICLES);
+            } finally {
+                setLoadingNews(false);
+            }
+        };
+
         fetchPartners();
+        fetchNews();
     }, []);
 
     // Dynamic Package-Based Theming Helper
@@ -179,36 +207,66 @@ const HomeBottomSections = () => {
         }
     ]).slice(0, 6);
 
-    // 2. News & Updates Data
-    const newsArticles = [
+    // Fallback/Default News & Updates Data if backend is unreachable
+    const DEFAULT_NEWS_ARTICLES = [
         {
-            id: 1,
+            _id: 'default-1',
             title: "Why Residential Plots Are Overperforming Urban Apartments in 2026",
             description: "An in-depth market analysis revealing how smart infrastructure improvements and express highway corridors are fueling record returns in land investment.",
-            date: "Jul 24, 2026",
+            content: "Across India's rapidly expanding commercial corridors, residential plot investments are delivering unprecedented annual yields. Rapid infrastructure projects, high-speed metro lines, and green corridor masterplans have shifted investor interest from high-density multi-story apartments to independent plots. Investors value the long-term capital appreciation, complete freehold ownership, and freedom of customized architectural construction.",
+            publishedAt: "2026-07-24T00:00:00.000Z",
             category: "Market Insights",
             image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=80",
             readTime: "5 min read"
         },
         {
-            id: 2,
+            _id: 'default-2',
             title: "Essential Legal Checklist Before Investing in Agricultural & Residential Land",
             description: "Learn the crucial title verification steps, RERA compliance check procedures, and zoning laws to ensure your property purchase is 100% secure.",
-            date: "Jul 20, 2026",
+            content: "Purchasing plot land requires careful due diligence. Key verification steps include examining 30-year Encumbrance Certificates (EC), verifying 7/12 land records and mutation entries, checking RERA registration numbers, ensuring town and country planning (TNCP/BDA/PMDA) approvals, and ensuring there are no pending litigation or conversion hurdles.",
+            publishedAt: "2026-07-20T00:00:00.000Z",
             category: "Legal Guide",
             image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=700&q=80",
             readTime: "7 min read"
         },
         {
-            id: 3,
+            _id: 'default-3',
             title: "The Rise of Eco-Friendly Gated Plot Communities Across India's IT Hubs",
             description: "Modern homeowners are shifting towards customizable villa plots within solar-powered, green luxury townships offering resort-like amenities.",
-            date: "Jul 15, 2026",
+            content: "Post-pandemic buyer psychology has driven strong demand for sustainable, self-sufficient communities. Leading developers are integrating rainwater harvesting, solar microgrids, organic farming clusters, and private clubhouses into gated layout townships outside bustling urban centers.",
+            publishedAt: "2026-07-15T00:00:00.000Z",
             category: "Lifestyle & Design",
             image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=700&q=80",
             readTime: "4 min read"
         }
     ];
+
+    const formatNewsDate = (dateVal) => {
+        if (!dateVal) return 'Recent';
+        try {
+            return new Date(dateVal).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return 'Recent';
+        }
+    };
+
+    const handleShareNews = (article) => {
+        if (navigator.share) {
+            navigator.share({
+                title: article.title,
+                text: article.description,
+                url: window.location.href
+            }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            setCopiedNews(true);
+            setTimeout(() => setCopiedNews(false), 2000);
+        }
+    };
 
     return (
         <div className="w-full text-slate-800 antialiased space-y-10 sm:space-y-16 md:space-y-32 mt-4 mb-8 sm:my-16 md:my-28">
@@ -463,11 +521,12 @@ const HomeBottomSections = () => {
                 </div>
 
                 <div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-5 md:gap-8 pb-4 md:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {newsArticles.map((item) => (
+                    {newsArticles.map((item, idx) => (
                         <motion.article
-                            key={item.id}
+                            key={item._id || item.id || idx}
                             whileHover={{ y: -8 }}
                             transition={{ duration: 0.25 }}
+                            onClick={() => setSelectedNews(item)}
                             className="group w-[85vw] max-w-[340px] sm:max-w-[380px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start bg-white rounded-3xl border border-slate-100/90 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_24px_54px_-12px_rgba(15,23,42,0.12)] overflow-hidden flex flex-col justify-between cursor-pointer transition-all duration-300"
                         >
                             <div>
@@ -493,7 +552,7 @@ const HomeBottomSections = () => {
                                 <div className="p-6 sm:p-7">
                                     <div className="flex items-center gap-2 text-xs font-extrabold text-indigo-600 mb-3 uppercase tracking-wider">
                                         <Calendar className="w-3.5 h-3.5" />
-                                        <span>{item.date}</span>
+                                        <span>{formatNewsDate(item.publishedAt || item.date || item.createdAt)}</span>
                                     </div>
 
                                     <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors leading-snug tracking-tight line-clamp-2">
@@ -596,6 +655,113 @@ const HomeBottomSections = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Interactive Article Reading Modal */}
+            <AnimatePresence>
+                {selectedNews && (
+                    <div 
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto"
+                        onClick={() => setSelectedNews(null)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl border border-slate-200 my-8 flex flex-col max-h-[90vh]"
+                        >
+                            {/* Modal Header Bar */}
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+                                <div className="flex items-center gap-2">
+                                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-extrabold text-xs">
+                                        {selectedNews.category}
+                                    </span>
+                                    <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {selectedNews.readTime}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => handleShareNews(selectedNews)}
+                                        className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+                                        title="Share article link"
+                                    >
+                                        {copiedNews ? <Check className="w-5 h-5 text-emerald-600" /> : <Share2 className="w-5 h-5" />}
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedNews(null)}
+                                        className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="overflow-y-auto p-6 sm:p-8 space-y-6">
+                                <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-md">
+                                    <img
+                                        src={selectedNews.image}
+                                        alt={selectedNews.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 mb-2">
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        <span>Published on {formatNewsDate(selectedNews.publishedAt || selectedNews.date || selectedNews.createdAt)}</span>
+                                    </div>
+                                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
+                                        {selectedNews.title}
+                                    </h2>
+                                </div>
+
+                                <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-100 text-blue-950 font-medium text-sm sm:text-base leading-relaxed">
+                                    {selectedNews.description}
+                                </div>
+
+                                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4">
+                                    {selectedNews.content ? (
+                                        selectedNews.content.split('\n\n').map((paragraph, idx) => (
+                                            <p key={idx} className="text-base text-slate-700 leading-relaxed font-normal">
+                                                {paragraph}
+                                            </p>
+                                        ))
+                                    ) : (
+                                        <p className="text-base text-slate-700 leading-relaxed">
+                                            {selectedNews.description}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="p-4 px-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                                <span className="text-xs font-medium text-slate-400">HomeZo Real Estate Intelligence</span>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedNews(null);
+                                            window.location.href = '#/news';
+                                        }}
+                                        className="text-xs font-bold text-blue-600 hover:underline"
+                                    >
+                                        View All News →
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedNews(null)}
+                                        className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+                                    >
+                                        Close Story
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
         </div>
     );

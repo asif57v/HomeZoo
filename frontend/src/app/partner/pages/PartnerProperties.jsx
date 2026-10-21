@@ -1,3 +1,4 @@
+import { useFeatureFlags } from '../../../store/featureFlagsStore';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, MapPin, Pencil, PlusCircle, Trash2, Eye, AlertCircle, Lock } from 'lucide-react';
@@ -52,7 +53,11 @@ const PartnerProperties = () => {
     fetchSubscription();
   }, []);
 
+  const { subscriptionEnabled } = useFeatureFlags();
+
   const checkSubscriptionLimit = () => {
+    // Subscription system switched off by admin: nothing to buy, so no plan gate (server enforces the same)
+    if (!subscriptionEnabled) return true;
     // Check if subscription exists and is active
     const isActive =
       subscription?.status === 'active' &&

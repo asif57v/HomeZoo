@@ -145,6 +145,16 @@ const adminService = {
     return response.data;
   },
 
+  getFeatureControls: async () => {
+    const response = await axiosInstance.get('/admin/feature-controls');
+    return response.data;
+  },
+
+  updateFeatureControls: async (payload) => {
+    const response = await axiosInstance.put('/admin/feature-controls', payload);
+    return response.data;
+  },
+
   getReelDurationPayments: async (params = {}) => {
     const response = await axiosInstance.get('/admin/reel-duration-payments', { params });
     return response.data;
@@ -352,6 +362,41 @@ const adminService = {
 
   uploadImage: async (formData) => {
     const response = await axiosInstance.post('/admin/upload-image', formData);
+    return response.data;
+  },
+
+  // News & Property Updates
+  getAllNews: async (params = {}) => {
+    const response = await axiosInstance.get('/news/admin/all', { params });
+    return response.data;
+  },
+
+  createNews: async (formData) => {
+    const response = await axiosInstance.post('/news', formData, {
+      headers: formData instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+    });
+    return response.data;
+  },
+
+  updateNews: async (id, formData) => {
+    const response = await axiosInstance.put(`/news/${id}`, formData, {
+      headers: formData instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+    });
+    return response.data;
+  },
+
+  toggleNewsPublish: async (id) => {
+    const response = await axiosInstance.patch(`/news/${id}/toggle-publish`);
+    return response.data;
+  },
+
+  deleteNews: async (id) => {
+    const response = await axiosInstance.delete(`/news/${id}`);
+    return response.data;
+  },
+
+  getPublicNews: async (params = {}) => {
+    const response = await axiosInstance.get('/news', { params });
     return response.data;
   }
 };

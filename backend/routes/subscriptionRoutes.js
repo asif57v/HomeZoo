@@ -10,6 +10,7 @@ import {
     verifySubscription
 } from '../controllers/subscriptionController.js';
 import { protect, authorizedRoles } from '../middlewares/authMiddleware.js';
+import { requireSubscriptionEnabled, requireRazorpayEnabled } from '../middlewares/featureGuards.js';
 
 const router = express.Router();
 
@@ -30,9 +31,12 @@ const partnerRouter = express.Router();
 partnerRouter.use(protect);
 partnerRouter.use(authorizedRoles('partner'));
 
-partnerRouter.get('/plans', getActivePlans);
+// Plans / checkout are blocked when the admin turns the subscription system OFF.
+// /current stays readable so existing subscription data is preserved.
+// /verify is intentionally NOT blocked: it only completes a payment that was already taken.
+partnerRouter.get('/plans', requireSubscriptionEnabled, getActivePlans);
 partnerRouter.get('/current', getCurrentSubscription);
-partnerRouter.post('/checkout', createSubscriptionOrder);
+partnerRouter.post('/checkout', requireSubscriptionEnabled, requireRazorpayEnabled, createSubscriptionOrder);
 partnerRouter.post('/verify', verifySubscription);
 
 router.use('/', partnerRouter);

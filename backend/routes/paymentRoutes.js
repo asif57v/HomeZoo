@@ -7,11 +7,12 @@ import {
   processRefund
 } from '../controllers/paymentController.js';
 import { protect } from '../middlewares/authMiddleware.js';
+import { requireRazorpayEnabled } from '../middlewares/featureGuards.js';
 
 const router = express.Router();
 
 // Create Razorpay order
-router.post('/create-order', protect, createPaymentOrder);
+router.post('/create-order', protect, requireRazorpayEnabled, createPaymentOrder);
 
 // Verify payment
 router.post('/verify', protect, verifyPayment);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera, Bell } from 'lucide-react';
+import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera, Bell, Lock } from 'lucide-react';
 import { authService, userService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 import { isFlutterApp, openFlutterCamera, uploadBase64Image } from '../../utils/flutterBridge';
@@ -374,21 +374,21 @@ const ProfileEdit = () => {
               </div>
             </div>
 
-            {/* Phone */}
+            {/* Phone (login identity - not editable) */}
             <div>
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Phone Number</label>
-              <div className="flex items-center gap-3 border-b border-gray-100 pb-2 focus-within:border-surface transition-colors">
+              <div className="flex items-center gap-3 border-b border-gray-100 pb-2">
                 <Phone size={16} className="text-gray-300" />
                 <input
                   type="tel"
-                  maxLength={10}
-                  pattern="[0-9]{10}"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
-                  className="flex-1 text-sm font-bold text-gray-800 outline-none placeholder:text-gray-300"
-                  placeholder="9876543210"
+                  readOnly
+                  disabled
+                  className="flex-1 text-sm font-bold text-gray-500 bg-transparent outline-none cursor-not-allowed"
                 />
+                <Lock size={14} className="text-gray-300" />
               </div>
+              <p className="text-[10px] text-gray-400 mt-1">Phone number is your login ID and can't be changed.</p>
             </div>
           </div>
 

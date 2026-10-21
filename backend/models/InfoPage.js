@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+export const INFO_PAGE_SLUGS = ['terms', 'privacy', 'support', 'about', 'contact'];
+
 const infoPageSchema = new mongoose.Schema(
   {
     audience: {
@@ -9,7 +11,7 @@ const infoPageSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      enum: ['terms', 'privacy', 'about', 'contact'],
+      enum: INFO_PAGE_SLUGS,
       required: true
     },
     title: {
@@ -21,13 +23,18 @@ const infoPageSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    // Contact details shown on the Support page (only used when slug === 'support')
+    supportEmail: { type: String, trim: true, default: '' },
+    supportPhone: { type: String, trim: true, default: '' },
+    supportWhatsapp: { type: String, trim: true, default: '' },
+    supportHours: { type: String, trim: true, default: '' },
     isActive: {
       type: Boolean,
       default: true
     },
     lastUpdatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'Admin'
     }
   },
   { timestamps: true }

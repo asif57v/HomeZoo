@@ -11,6 +11,7 @@ import {
   deleteBankDetails
 } from '../controllers/walletController.js';
 import { protect } from '../middlewares/authMiddleware.js';
+import { requireRazorpayEnabled } from '../middlewares/featureGuards.js';
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.get('/', getWallet);
 router.get('/stats', getWalletStats);
 
 // Add Money (Razorpay)
-router.post('/add-money', createAddMoneyOrder);
+router.post('/add-money', requireRazorpayEnabled, createAddMoneyOrder);
 router.post('/verify-add-money', verifyAddMoneyPayment);
 
 // Get transaction history

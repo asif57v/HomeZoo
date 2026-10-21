@@ -1,19 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Shield, Info, PhoneCall, Save } from 'lucide-react';
+import { FileText, Shield, Info, PhoneCall, LifeBuoy, Save, Eye, Heading, List } from 'lucide-react';
 import adminService from '../../../services/adminService';
+import LegalContent, { formatUpdated } from '../../../components/ui/LegalContent';
 
 const SLUG_META = [
   { slug: 'terms', label: 'Terms & Conditions', icon: FileText },
   { slug: 'privacy', label: 'Privacy Policy', icon: Shield },
+  { slug: 'support', label: 'Help & Support', icon: LifeBuoy },
   { slug: 'about', label: 'About Us', icon: Info },
   { slug: 'contact', label: 'Contact Us', icon: PhoneCall }
 ];
 
-const AdminLegalPages = () => {
+const SUPPORT_FIELDS = [
+  { key: 'supportEmail', label: 'Support Email', placeholder: 'support@hoomzo.in' },
+  { key: 'supportPhone', label: 'Support Phone', placeholder: '9111384535' },
+  { key: 'supportWhatsapp', label: 'WhatsApp Number (with country code)', placeholder: '919111384535' },
+  { key: 'supportHours', label: 'Support Hours', placeholder: 'Every day, 9:00 AM - 9:00 PM' }
+];
+
+const inputCls =
+  'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-surface/60';
+
+// Each admin route renders this editor for its own page(s): slugs=['terms'], ['privacy'], ['support'] or ['about','contact'].
+const AdminLegalPages = ({ slugs = ['terms'] }) => {
   const [audience, setAudience] = useState('user');
+  const [slug, setSlug] = useState(slugs[0]);
+  const tabs = SLUG_META.filter((m) => slugs.includes(m.slug));
   const [pages, setPages] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -28,53 +44,57 @@ const AdminLegalPages = () => {
       });
       setPages(map);
     } catch (e) {
-      setError('Unable to fetch legal pages. Please try again.');
+      setError('Unable to fetch pages. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    setSlug(slugs[0]);
+    setPreview(false);
+    setMessage('');
+    setError('');
+  }, [slugs.join()]);
+
+  useEffect(() => {
     loadPages(audience);
   }, [audience]);
 
-  const handleFieldChange = (slug, field, value) => {
-    setPages((prev) => {
-      const current = prev[slug] || { slug, audience };
-      return {
-        ...prev,
-        [slug]: {
-          ...current,
-          [field]: value
-        }
-      };
-    });
+  const meta = SLUG_META.find((m) => m.slug === slug);
+  const page = pages[slug] || {};
+
+  const setField = (field, value) =>
+    setPages((prev) => ({ ...prev, [slug]: { ...(prev[slug] || { slug, audience }), [field]: value } }));
+
+  const insertSyntax = (prefix) => {
+    const current = page.content || '';
+    setField('content', `${current}${current && !current.endsWith('\n') ? '\n' : ''}${prefix}`);
   };
 
-  const handleSaveAll = async () => {
-    setSaving(true);
+  const handleSave = async () => {
     setMessage('');
     setError('');
+    if (!(page.content || '').trim()) {
+      setError('Content cannot be empty.');
+      return;
+    }
+    setSaving(true);
     try {
-      const entries = SLUG_META.map(({ slug, label }) => {
-        const page = pages[slug] || {};
-        return {
-          audience,
-          slug,
-          title: page.title || label,
-          content: page.content || '',
-          isActive: page.isActive !== false
-        };
+      await adminService.saveLegalPage({
+        audience,
+        slug,
+        title: page.title || meta.label,
+        content: page.content,
+        isActive: page.isActive !== false,
+        ...(slug === 'support'
+          ? Object.fromEntries(SUPPORT_FIELDS.map(({ key }) => [key, page[key] || '']))
+          : {})
       });
-
-      for (const entry of entries) {
-        await adminService.saveLegalPage(entry);
-      }
-
-      setMessage('Legal pages saved successfully.');
+      setMessage(`${meta.label} saved. It is now live in the ${audience} app.`);
       await loadPages(audience);
     } catch (e) {
-      setError('Failed to save changes. Please try again.');
+      setError(e?.response?.data?.message || 'Failed to save changes. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -82,93 +102,169 @@ const AdminLegalPages = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-24">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Legal & Info Pages</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{tabs.map((t) => t.label).join(' & ')}</h2>
           <p className="text-gray-500 text-sm">
-            Manage Terms, Privacy, About and Contact content for users and partners.
+            Edit this page for the user app or the partner app. Changes go live instantly.
           </p>
         </div>
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1">
-          <button
-            onClick={() => setAudience('user')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg ${audience === 'user' ? 'bg-black text-white' : 'text-gray-600'
+          {['user', 'partner'].map((a) => (
+            <button
+              key={a}
+              onClick={() => {
+                setAudience(a);
+                setMessage('');
+                setError('');
+              }}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg capitalize ${
+                audience === a ? 'bg-surface text-white' : 'text-gray-600'
               }`}
-          >
-            User
-          </button>
-          <button
-            onClick={() => setAudience('partner')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg ${audience === 'partner' ? 'bg-black text-white' : 'text-gray-600'
-              }`}
-          >
-            Partner
-          </button>
+            >
+              {a} app
+            </button>
+          ))}
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-2">
-          {error}
-        </div>
+      {tabs.length > 1 && (
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {tabs.map(({ slug: s, label, icon: Icon }) => (
+          <button
+            key={s}
+            onClick={() => {
+              setSlug(s);
+              setMessage('');
+              setError('');
+              setPreview(false);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition ${
+              slug === s
+                ? 'bg-surface text-white border-surface'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            <Icon size={14} /> {label}
+            {pages[s] && pages[s].isActive === false && <span className="text-[9px] opacity-70">(hidden)</span>}
+          </button>
+        ))}
+      </div>
       )}
+
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-2">{error}</div>}
       {message && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl px-4 py-2">
           {message}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {SLUG_META.map(({ slug, label, icon: Icon }) => {
-          const page = pages[slug] || {};
-          return (
-            <div key={slug} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col">
-              <div className="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-gray-700">
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">{label}</p>
-                  <p className="text-[11px] text-gray-500 uppercase tracking-wide">
-                    {audience === 'user' ? 'User facing' : 'Partner facing'}
-                  </p>
-                </div>
-              </div>
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-3">
+          <div>
+            <p className="text-sm font-bold text-gray-900">{meta.label}</p>
+            <p className="text-[11px] text-gray-500">
+              {page.updatedAt ? `Last updated ${formatUpdated(page)}` : 'Not published yet - app shows default text'}
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-xs font-bold text-gray-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={page.isActive !== false}
+              onChange={(e) => setField('isActive', e.target.checked)}
+              className="accent-[#005CA8] w-4 h-4"
+            />
+            Visible in app
+          </label>
+        </div>
 
-              <div className="space-y-3 flex-1 flex flex-col">
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Title</label>
-                  <input
-                    type="text"
-                    value={page.title || label}
-                    onChange={(e) => handleFieldChange(slug, 'title', e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-black/70"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col">
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Content</label>
-                  <textarea
-                    rows={6}
-                    value={page.content || ''}
-                    onChange={(e) => handleFieldChange(slug, 'content', e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-black/70 resize-none flex-1"
-                    placeholder="Write the copy that will appear on web and app."
-                  />
-                </div>
+        <div>
+          <label className="block text-xs font-bold text-gray-600 mb-1">Title</label>
+          <input
+            type="text"
+            value={page.title ?? meta.label}
+            onChange={(e) => setField('title', e.target.value)}
+            className={inputCls}
+          />
+        </div>
+
+        {slug === 'support' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {SUPPORT_FIELDS.map(({ key, label, placeholder }) => (
+              <div key={key}>
+                <label className="block text-xs font-bold text-gray-600 mb-1">{label}</label>
+                <input
+                  type="text"
+                  value={page[key] || ''}
+                  placeholder={placeholder}
+                  onChange={(e) => setField(key, e.target.value)}
+                  className={inputCls}
+                />
               </div>
+            ))}
+          </div>
+        )}
+
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-bold text-gray-600">Content</label>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => insertSyntax('# Heading')}
+                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+                title="Add heading"
+              >
+                <Heading size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertSyntax('- Bullet point')}
+                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+                title="Add bullet"
+              >
+                <List size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreview((v) => !v)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${
+                  preview ? 'bg-surface text-white' : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                <Eye size={14} /> Preview
+              </button>
             </div>
-          );
-        })}
+          </div>
+          {preview ? (
+            <div className="min-h-[320px] rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <h3 className="font-bold text-lg mb-3">{page.title || meta.label}</h3>
+              <LegalContent content={page.content || ''} />
+            </div>
+          ) : (
+            <textarea
+              rows={14}
+              value={page.content || ''}
+              onChange={(e) => setField('content', e.target.value)}
+              className={`${inputCls} font-mono resize-y`}
+              placeholder={'# 1. Heading\nParagraph text.\n\n- Bullet point\n- Another bullet'}
+            />
+          )}
+          <p className="mt-1 text-[11px] text-gray-400">
+            Use <code># Heading</code>, <code>## Sub heading</code>, <code>- bullet</code>. Leave a blank line between
+            paragraphs.
+          </p>
+        </div>
       </div>
 
-      <div className="flex justify-end pt-2">
+      <div className="flex justify-end">
         <button
-          onClick={handleSaveAll}
+          onClick={handleSave}
           disabled={saving || loading}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white text-sm font-bold rounded-xl shadow-lg hover:bg-gray-900 active:scale-95 disabled:opacity-60 disabled:active:scale-100 transition-transform"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-surface text-white text-sm font-bold rounded-xl shadow-lg active:scale-95 disabled:opacity-60 disabled:active:scale-100 transition-transform"
         >
           <Save size={16} />
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? 'Saving...' : `Save ${meta.label}`}
         </button>
       </div>
     </div>
@@ -176,4 +272,3 @@ const AdminLegalPages = () => {
 };
 
 export default AdminLegalPages;
-

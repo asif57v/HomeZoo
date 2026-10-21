@@ -24,6 +24,8 @@ import {
   updateContactStatus,
   getPlatformSettings,
   updatePlatformSettings,
+  getFeatureControls,
+  updateFeatureControls,
   getReelDurationPayments,
   verifyPropertyDocuments,
   getHotelDetails,
@@ -91,6 +93,8 @@ router.get('/contact-messages', getContactMessages);
 router.put('/contact-messages/:id/status', updateContactStatus);
 router.get('/platform-settings', getPlatformSettings);
 router.put('/platform-settings', updatePlatformSettings);
+router.get('/feature-controls', getFeatureControls);
+router.put('/feature-controls', updateFeatureControls);
 router.get('/reel-duration-payments', getReelDurationPayments);
 router.get('/reel-analysis', getReelAnalysis);
 router.get('/reels', getAdminReels);

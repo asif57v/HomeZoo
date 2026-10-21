@@ -7,6 +7,7 @@ import AvailabilityLedger from '../models/AvailabilityLedger.js';
 import Wallet from '../models/Wallet.js';
 import Transaction from '../models/Transaction.js';
 import Razorpay from 'razorpay';
+import { getFeatureFlags, RAZORPAY_DISABLED_MESSAGE } from '../middlewares/featureGuards.js';
 import PaymentConfig from '../config/payment.config.js';
 import mongoose from 'mongoose';
 import emailService from '../services/emailService.js';
@@ -414,6 +415,11 @@ export const createBooking = async (req, res) => {
         const amountToPay = totalAmount - (useWallet ? (walletDeduction || 0) : 0);
 
         if (amountToPay > 0) {
+          // Admin kill-switch: block creating a NEW Razorpay order (other payment methods are unaffected)
+          const featureFlags = await getFeatureFlags();
+          if (!featureFlags.razorpayEnabled) {
+            return res.status(503).json({ success: false, code: 'RAZORPAY_DISABLED', message: RAZORPAY_DISABLED_MESSAGE });
+          }
           try {
             const instance = new Razorpay({
               key_id: PaymentConfig.razorpayKeyId,

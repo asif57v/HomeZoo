@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { bookingService, paymentService } from '../../services/apiService';
+import { useFeatureFlags, RAZORPAY_UNAVAILABLE_MESSAGE } from '../../store/featureFlagsStore';
 import walletService from '../../services/walletService';
 
 const loadRazorpay = () => {
@@ -34,6 +35,12 @@ const BookingCheckoutPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('pay_at_hotel');
+  const { razorpayEnabled } = useFeatureFlags();
+
+  // Admin turned Razorpay off while this page was open: fall back to pay at hotel
+  useEffect(() => {
+    if (!razorpayEnabled && paymentMethod === 'online') setPaymentMethod('pay_at_hotel');
+  }, [razorpayEnabled, paymentMethod]);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWallet, setUseWallet] = useState(false);
@@ -423,6 +430,7 @@ const BookingCheckoutPage = () => {
                 </label>
 
                 {/* Option 2: Pay Now */}
+                {razorpayEnabled ? (
                 <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-surface bg-surface/5' : 'border-gray-100 hover:border-gray-200'}`}>
                   <input
                     type="radio"
@@ -452,6 +460,15 @@ const BookingCheckoutPage = () => {
                     </div>
                   </div>
                 </label>
+                ) : (
+                  <div className="flex items-start gap-3 p-4 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50">
+                    <CreditCard size={16} className="text-gray-400 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-sm text-gray-500">Pay Now</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{RAZORPAY_UNAVAILABLE_MESSAGE}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CreditCard, Loader2 } from 'lucide-react';
 import paymentService from '../../services/paymentService';
 import { toast } from 'react-hot-toast';
+import { useFeatureFlags, RAZORPAY_UNAVAILABLE_MESSAGE } from '../../store/featureFlagsStore';
 
 const RazorpayButton = ({
   bookingId,
@@ -12,8 +13,13 @@ const RazorpayButton = ({
   disabled = false
 }) => {
   const [loading, setLoading] = useState(false);
+  const { razorpayEnabled } = useFeatureFlags();
 
   const handlePayment = async () => {
+    if (!razorpayEnabled) {
+      toast.error(RAZORPAY_UNAVAILABLE_MESSAGE);
+      return;
+    }
     if (!bookingId) {
       toast.error('Booking ID is required');
       return;

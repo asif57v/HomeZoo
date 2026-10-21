@@ -6,6 +6,7 @@ import {
 import toast from 'react-hot-toast';
 import useAdminStore from '../store/adminStore';
 import adminService from '../../../services/adminService';
+import PlatformFeatureControls from '../components/PlatformFeatureControls';
 
 const ToggleSwitch = ({ enabled, onChange }) => (
     <button
@@ -150,6 +151,8 @@ const AdminSettings = () => {
                 <h2 className="text-2xl font-bold text-gray-900">Platform Settings</h2>
                 <p className="text-gray-500 text-sm">Configure global rules, commission rates, and system preferences.</p>
             </div>
+
+            <PlatformFeatureControls />
 
             <Section title="Admin Profile" icon={Settings}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

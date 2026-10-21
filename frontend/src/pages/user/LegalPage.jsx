@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, FileText, Shield } from 'lucide-react';
+import LegalContent from '../../components/ui/LegalContent';
 import { legalService } from '../../services/apiService';
 
 const LegalPage = () => {
@@ -62,26 +63,12 @@ const LegalPage = () => {
         }
     }, [loading, terms, privacy, activeTab]);
 
-    const renderContent = (fallbackTitle, fallbackContent, page) => {
-        const title = page?.title || fallbackTitle;
-        const content = page?.content || fallbackContent;
-        const paragraphs = typeof content === 'string' ? content.split('\n').filter(Boolean) : [];
-
-        return (
-            <>
-                <h3 className="font-bold text-lg">{title}</h3>
-                <div className="space-y-3 text-sm text-gray-600 leading-relaxed">
-                    {paragraphs.length > 0 ? (
-                        paragraphs.map((p, idx) => (
-                            <p key={idx}>{p}</p>
-                        ))
-                    ) : (
-                        <p>{content}</p>
-                    )}
-                </div>
-            </>
-        );
-    };
+    const renderContent = (fallbackTitle, fallbackContent, page) => (
+        <>
+            <h3 className="font-bold text-lg">{page?.title || fallbackTitle}</h3>
+            <LegalContent content={page?.content || fallbackContent} />
+        </>
+    );
 
     return (
         <div className="min-h-screen bg-gray-50">

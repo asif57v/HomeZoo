@@ -13,6 +13,7 @@ import ScrollToTop from './components/ui/ScrollToTop';
 // Hooks & Services
 import { useLenis } from './app/shared/hooks/useLenis';
 import { legalService, userService } from './services/apiService';
+import useFeatureFlagsStore, { useFeatureFlags } from './store/featureFlagsStore';
 import adminService from './services/adminService';
 import { requestNotificationPermission, onMessageListener, detectPlatform } from './utils/firebase';
 import logo from './assets/rokologin-removebg-preview.png';
@@ -45,6 +46,7 @@ const OffersPage = React.lazy(() => import('./pages/user/OffersPage'));
 const ProfileEdit = React.lazy(() => import('./pages/user/ProfileEdit'));
 const BookingCheckoutPage = React.lazy(() => import('./pages/user/BookingCheckoutPage'));
 const ReelsPage = React.lazy(() => import('./pages/user/ReelsPage'));
+const NewsPage = React.lazy(() => import('./pages/user/NewsPage'));
 
 // Lazy Imports - Admin Pages
 const AdminLogin = React.lazy(() => import('./app/admin/pages/AdminLogin'));
@@ -63,6 +65,7 @@ const AdminSettings = React.lazy(() => import('./app/admin/pages/AdminSettings')
 const AdminOffers = React.lazy(() => import('./app/admin/pages/AdminOffers'));
 const AdminBanners = React.lazy(() => import('./app/admin/pages/AdminBanners'));
 const AdminHomeSections = React.lazy(() => import('./app/admin/pages/AdminHomeSections'));
+const AdminNews = React.lazy(() => import('./app/admin/pages/AdminNews'));
 const AdminProtectedRoute = React.lazy(() => import('./app/admin/AdminProtectedRoute'));
 const AdminProperties = React.lazy(() => import('./app/admin/pages/AdminProperties'));
 const AdminLegalPages = React.lazy(() => import('./app/admin/pages/AdminLegalPages'));
@@ -124,9 +127,31 @@ const PageLoader = () => (
   </div>
 );
 
+// Redirects away from subscription pages while the admin has the subscription system switched off
+const SubscriptionGate = ({ children }) => {
+  const { subscriptionEnabled, loaded } = useFeatureFlags();
+  if (loaded && !subscriptionEnabled) return <Navigate to="/hotel/dashboard" replace />;
+  return children;
+};
+
 // Wrapper to conditionally render Navbars & Handle Lenis
 const Layout = ({ children }) => {
   const location = useLocation();
+
+  // Keep admin feature switches (subscription / Razorpay) fresh for every app
+  React.useEffect(() => {
+    const { fetchFlags } = useFeatureFlagsStore.getState();
+    fetchFlags();
+    const onVisible = () => document.visibilityState === 'visible' && fetchFlags();
+    const timer = setInterval(fetchFlags, 60000);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', fetchFlags);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', fetchFlags);
+    };
+  }, []);
   const [platformStatus, setPlatformStatus] = React.useState({
     loading: true,
     maintenanceMode: false,
@@ -448,9 +473,19 @@ function App() {
             {/* User Auth Routes (Public Only) */}
             <Route path="/login" element={<PublicRoute><UserLogin /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><UserSignup /></PublicRoute>} />
+            <Route path="/support" element={<SupportPage />} />
             <Route path="/legal" element={<LegalPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPage />} />
+            {/* Pre-login legal pages (same URL pattern as other apps: /login/terms, /login/privacy, /login/support) */}
+            <Route path="/login/terms" element={<TermsPage />} />
+            <Route path="/login/privacy" element={<PrivacyPage />} />
+            <Route path="/login/support" element={<SupportPage />} />
+            <Route path="/user/login" element={<Navigate to="/login" replace />} />
+            <Route path="/terms-conditions" element={<TermsPage />} />
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/login/*" element={<Navigate to="/login" replace />} />
 
             {/* Hotel/Partner Module Routes */}
             <Route path="/hotel/login" element={<HotelLogin />} />
@@ -492,7 +527,7 @@ function App() {
                 <Route path="settings" element={<PartnerSettings />} />
                 <Route path="bank-details" element={<PartnerBankDetails />} />
                 <Route path="profile" element={<PartnerProfile />} />
-                <Route path="subscriptions" element={<PartnerSubscriptions />} />
+                <Route path="subscriptions" element={<SubscriptionGate><PartnerSubscriptions /></SubscriptionGate>} />
               </Route>
             </Route>
 
@@ -513,7 +548,11 @@ function App() {
                 <Route path="partners/:id" element={<AdminPartnerDetail />} />
                 <Route path="reviews" element={<AdminReviews />} />
                 <Route path="finance" element={<AdminFinance />} />
-                <Route path="legal" element={<AdminLegalPages />} />
+                <Route path="terms-conditions" element={<AdminLegalPages slugs={['terms']} />} />
+                <Route path="privacy-policy" element={<AdminLegalPages slugs={['privacy']} />} />
+                <Route path="support-page" element={<AdminLegalPages slugs={['support']} />} />
+                <Route path="about-contact" element={<AdminLegalPages slugs={['about', 'contact']} />} />
+                <Route path="legal" element={<Navigate to="/admin/terms-conditions" replace />} />
                 <Route path="contact-messages" element={<AdminContactMessages />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="properties" element={<AdminProperties />} />
@@ -521,6 +560,7 @@ function App() {
                 <Route path="offers" element={<AdminOffers />} />
                 <Route path="banners" element={<AdminBanners />} />
                 <Route path="home-sections" element={<AdminHomeSections />} />
+                <Route path="news" element={<AdminNews />} />
                 <Route path="notifications" element={<AdminNotifications />} />
                 <Route path="faqs" element={<AdminFaqs />} />
                 <Route path="categories" element={<AdminCategories />} />
@@ -545,7 +585,6 @@ function App() {
               <Route path="/listings" element={<Navigate to="/search" replace />} />
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/payment" element={<PaymentPage />} />
-              <Route path="/support" element={<SupportPage />} />
               <Route path="/checkout" element={<BookingCheckoutPage />} />
               <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
               <Route path="/booking/:id" element={<BookingConfirmationPage />} />

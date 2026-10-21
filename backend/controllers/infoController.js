@@ -1,5 +1,6 @@
-import InfoPage from '../models/InfoPage.js';
+import InfoPage, { INFO_PAGE_SLUGS } from '../models/InfoPage.js';
 import PlatformSettings from '../models/PlatformSettings.js';
+import { getFeatureFlags } from '../middlewares/featureGuards.js';
 
 export const getPublicPage = async (req, res) => {
   try {
@@ -9,7 +10,7 @@ export const getPublicPage = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid audience' });
     }
 
-    if (!['terms', 'privacy', 'about', 'contact'].includes(slug)) {
+    if (!INFO_PAGE_SLUGS.includes(slug)) {
       return res.status(400).json({ success: false, message: 'Invalid page type' });
     }
 
@@ -53,5 +54,16 @@ export const getFinancialSettings = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching financial settings' });
+  }
+};
+
+// Public: global feature switches (subscription / Razorpay) shared by the User App and Hotel Panel
+export const getPublicFeatureFlags = async (req, res) => {
+  try {
+    const { subscriptionEnabled, razorpayEnabled } = await getFeatureFlags();
+    res.set('Cache-Control', 'no-store');
+    res.status(200).json({ success: true, subscriptionEnabled, razorpayEnabled });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching feature flags' });
   }
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
+import LegalContent, { formatUpdated } from '../../components/ui/LegalContent';
 import { legalService } from '../../services/apiService';
 
 const PrivacyPage = () => {
@@ -30,19 +31,6 @@ const PrivacyPage = () => {
     return () => { isMounted = false; };
   }, [audience]);
 
-  const renderContent = (content) => {
-    const paragraphs = typeof content === 'string' ? content.split('\n').filter(Boolean) : [];
-    return (
-      <div className="space-y-4 text-sm text-gray-600 leading-relaxed font-medium">
-        {paragraphs.length > 0 ? (
-          paragraphs.map((p, idx) => <p key={idx}>{p}</p>)
-        ) : (
-          <p>{content}</p>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-surface text-white p-6 pb-12 rounded-b-[30px] shadow-lg sticky top-0 z-20">
@@ -64,6 +52,10 @@ const PrivacyPage = () => {
             </span>
           </div>
 
+          {formatUpdated(pageData) && (
+            <p className="text-[11px] text-gray-400 -mt-4 mb-5">Last updated: {formatUpdated(pageData)}</p>
+          )}
+
           {loading ? (
             <div className="flex justify-center py-10">
               <div className="w-8 h-8 border-4 border-surface border-t-transparent rounded-full animate-spin"></div>
@@ -71,7 +63,7 @@ const PrivacyPage = () => {
           ) : error ? (
             <p className="text-center text-red-500 py-10 font-bold">{error}</p>
           ) : (
-            renderContent(pageData?.content || 'Latest policy not available.')
+            <LegalContent content={pageData?.content || 'Latest policy not available.'} />
           )}
         </div>
       </div>

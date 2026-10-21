@@ -2,6 +2,7 @@ import axios from 'axios';
 
 
 import { API_BASE_URL } from '../config/apiConfig';
+import useFeatureFlagsStore from '../store/featureFlagsStore';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,6 +25,21 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response ? error.response.status : null;
     const isBlocked = error.response?.data?.isBlocked;
+
+    // Handle 413 or raw HTML responses from reverse proxies like Nginx
+    if (status === 413 || (typeof error.response?.data === 'string' && error.response.data.includes('<html'))) {
+      error.response.data = { 
+        message: 'Upload failed: The image file size exceeds the server upload limit (HTTP 413 Request Entity Too Large).' 
+      };
+      error.message = error.response.data.message;
+    }
+
+    // Admin switched a feature off (or on) since this page loaded: resync flags and surface the server message
+    const featureCode = error.response?.data?.code;
+    if (featureCode === 'RAZORPAY_DISABLED' || featureCode === 'SUBSCRIPTION_DISABLED') {
+      useFeatureFlagsStore.getState().fetchFlags();
+      error.message = error.response.data.message || error.message;
+    }
 
     if (status === 401 || (status === 403 && isBlocked)) {
       // Clear invalid token and redirect if not already on auth pages
@@ -335,6 +351,14 @@ export const propertyService = {
       throw error.response?.data || error.message;
     }
   },
+  getNewsArticles: async (params = {}) => {
+    try {
+      const response = await api.get('/news', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
   getDetails: async (id) => {
     try {
       const response = await api.get(`/properties/${id}`);
@@ -399,6 +423,9 @@ export const hotelService = {
       });
       return response.data;
     } catch (error) {
+      if (error?.response?.status === 413 || (typeof error?.response?.data === 'string' && error.response.data.includes('<html'))) {
+        throw new Error('Upload failed: File size exceeds the server limit (HTTP 413). Please choose a smaller photo.');
+      }
       throw error.response?.data || error.message;
     }
   },

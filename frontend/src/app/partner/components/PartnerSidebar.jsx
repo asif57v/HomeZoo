@@ -1,3 +1,4 @@
+import { useFeatureFlags } from '../../../store/featureFlagsStore';
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -62,7 +63,8 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
         </button>
     );
 
-    const menuGroups = [
+    const { subscriptionEnabled } = useFeatureFlags();
+    const allMenuGroups = [
         {
             title: 'Overview',
             items: [
@@ -98,6 +100,11 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
             ]
         }
     ];
+
+    const menuGroups = allMenuGroups.map((group) => ({
+        ...group,
+        items: group.items.filter((item) => subscriptionEnabled || item.path !== '/hotel/subscriptions')
+    }));
 
     return (
         <AnimatePresence>

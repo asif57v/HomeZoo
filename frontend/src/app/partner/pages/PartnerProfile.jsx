@@ -7,6 +7,7 @@ import { userService, authService, hotelService } from '../../../services/apiSer
 import PartnerHeader from '../components/PartnerHeader';
 import { isFlutterApp, openFlutterCamera, uploadBase64Image } from '../../../utils/flutterBridge';
 import { requestNotificationPermission, detectPlatform } from '../../../utils/firebase';
+import { compressImage } from '../../../utils/imageCompressor';
 
 const Field = ({ label, value, icon: Icon, isEditing, onChange }) => (
     <div className="mb-6 group">
@@ -149,8 +150,9 @@ const PartnerProfile = () => {
 
         try {
             setUploading(true);
+            const compressed = await compressImage(file, 1200, 1200, 0.85);
             const formData = new FormData();
-            formData.append('images', file);
+            formData.append('images', compressed);
 
             const res = await hotelService.uploadImages(formData);
             if (res.files && res.files.length > 0) {
@@ -160,6 +162,10 @@ const PartnerProfile = () => {
             }
         } catch (err) {
             console.error('Image upload failed:', err);
+            const errorMsg = typeof err === 'string' 
+                ? (err.includes('<html') ? 'File size exceeds server upload limit' : err)
+                : (err?.response?.data?.message || err?.message || 'Image upload failed');
+            toast.error(errorMsg);
         } finally {
             setUploading(false);
         }

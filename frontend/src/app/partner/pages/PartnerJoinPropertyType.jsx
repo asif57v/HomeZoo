@@ -1,3 +1,4 @@
+import { useFeatureFlags } from '../../../store/featureFlagsStore';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BedDouble, Landmark, Home, TreePine, ArrowLeft, ChevronRight, X } from 'lucide-react';
@@ -97,11 +98,13 @@ const PartnerJoinPropertyType = () => {
     buildFourOptions();
   }, []);
 
+  const { subscriptionEnabled } = useFeatureFlags();
+
   const handleSelectType = (item) => {
     if (!item.route) return;
 
     // Partners who never bought a plan (new / free trial) are checked by the server
-    if (subscription?.planId) {
+    if (subscriptionEnabled && subscription?.planId) {
       const isActive =
         subscription?.status === 'active' &&
         subscription?.expiryDate &&

@@ -17,6 +17,7 @@ import HomeBottomSections from '../../components/user/HomeBottomSections';
 import { Band, SectionHeader } from '../../components/user/home/HomeLayout';
 import { categoryService } from '../../services/categoryService';
 import homeService from '../../services/homeService';
+import { useFeatureFlags } from '../../store/featureFlagsStore';
 
 // Category Theme Map - Professional palettes inspired by Housing.com
 const THEME_MAP = {
@@ -66,6 +67,7 @@ const THEME_MAP = {
 };
 
 const Home = () => {
+  const { razorpayEnabled } = useFeatureFlags();
   const [selectedType, setSelectedType] = useState({ id: null, label: 'All' });
   const [pgFilters, setPgFilters] = useState({ gender: undefined, occupancy: undefined, foodIncluded: undefined });
   const [sectionIds, setSectionIds] = useState({ pg: null, rent: null, buy: null, plot: null });
@@ -314,7 +316,7 @@ const Home = () => {
                 </div>
               )}
               <div className={`px-4 md:px-0 ${homeData.offers && homeData.offers.length > 0 ? 'w-full md:w-[360px] lg:w-[400px] shrink-0' : 'w-full max-w-xl mx-auto'}`}>
-                <PayHostelFeesSection />
+                {razorpayEnabled && <PayHostelFeesSection />}
               </div>
             </div>
           </Band>

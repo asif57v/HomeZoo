@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Users, Building2, Calendar, Wallet,
-    Settings, Bell, Search, LogOut, Menu, X, DollarSign, ClipboardCheck, Star, Tag, FileText, MessageSquare, CircleHelp, Home, LayoutGrid, CreditCard, Video, Clock, Image, LayoutTemplate
+    Settings, Bell, Search, LogOut, Menu, X, DollarSign, ClipboardCheck, Star, Tag, FileText, MessageSquare, CircleHelp, Home, LayoutGrid, CreditCard, Video, Clock, Image, LayoutTemplate, Shield, LifeBuoy, Info, Newspaper
 } from 'lucide-react';
 
 import logo from '../../../assets/rokologin-removebg-preview.png';
@@ -79,7 +79,11 @@ const AdminLayout = () => {
         { icon: Tag, label: 'Offers & Coupons', path: '/admin/offers' },
         { icon: Image, label: 'Banners', path: '/admin/banners' },
         { icon: LayoutTemplate, label: 'Home Sections', path: '/admin/home-sections' },
-        { icon: FileText, label: 'Legal & Content', path: '/admin/legal' },
+        { icon: Newspaper, label: 'News & Updates', path: '/admin/news' },
+        { icon: FileText, label: 'Terms & Conditions', path: '/admin/terms-conditions' },
+        { icon: Shield, label: 'Privacy Policy', path: '/admin/privacy-policy' },
+        { icon: LifeBuoy, label: 'Support Page', path: '/admin/support-page' },
+        { icon: Info, label: 'About & Contact', path: '/admin/about-contact' },
         { icon: MessageSquare, label: 'Contact Messages', path: '/admin/contact-messages' },
         { icon: CircleHelp, label: 'FAQs', path: '/admin/faqs' },
         { icon: CreditCard, label: 'Subscriptions', path: '/admin/subscriptions' },

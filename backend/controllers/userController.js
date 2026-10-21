@@ -66,7 +66,8 @@ export const updateUserProfile = async (req, res) => {
     if (user) {
       user.name = req.body.name || user.name;
       if (req.body.email) user.email = req.body.email;
-      if (req.body.phone) user.phone = req.body.phone;
+      // Phone is the login identity for users, so only partners may change it here
+      if (req.body.phone && isPartner) user.phone = req.body.phone;
 
       if (req.body.password) {
         user.password = await bcrypt.hash(req.body.password, 10);

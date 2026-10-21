@@ -6,6 +6,7 @@ import logo from '../../assets/rokologin-removebg-preview.png';
 import { authService, userService } from '../../services/apiService';
 import { requestNotificationPermission, detectPlatform } from '../../utils/firebase';
 import toast from 'react-hot-toast';
+import AuthLegalLinks from '../../components/ui/AuthLegalLinks';
 
 const UserSignup = () => {
     const navigate = useNavigate();
@@ -369,6 +370,8 @@ const UserSignup = () => {
                         Login
                     </button>
                 </p>
+
+                <AuthLegalLinks action="creating an account" />
             </motion.div >
         </div >
     );

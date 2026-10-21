@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
 import toast from 'react-hot-toast';
-// Compression removed - Cloudinary handles optimization
+import { compressImage } from '../../../utils/imageCompressor';
 import { CheckCircle, FileText, Home, Image, Plus, Trash2, MapPin, Search, BedDouble, Wifi, Snowflake, Coffee, ShowerHead, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Upload, X, Clock, Loader2, Camera } from 'lucide-react';
 import logo from '../../../assets/rokologin-removebg-preview.png';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
@@ -444,11 +444,10 @@ const AddVillaWizard = () => {
         if (!file.type.startsWith('image/')) {
           throw new Error(`File ${file.name} is not an image`);
         }
-        if (file.size > 10 * 1024 * 1024) {
-          throw new Error(`Image ${file.name} is too large. Maximum 10MB allowed.`);
-        }
-        console.log(`Adding ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)...`);
-        fd.append('images', file);
+        // Compress client-side so 5-10MB mobile photos shrink to ~200-400KB and won't exceed Nginx client_max_body_size
+        const processed = await compressImage(file, 1600, 1600, 0.82);
+        console.log(`Adding ${processed.name} (${(processed.size / 1024 / 1024).toFixed(2)} MB)...`);
+        fd.append('images', processed);
       }
 
       const res = await hotelService.uploadImages(fd);
@@ -457,13 +456,17 @@ const AddVillaWizard = () => {
       onDone(urls);
     } catch (err) {
       console.error("Upload failed", err);
-      let msg = 'Upload failed';
-      if (typeof err === 'string') msg = err;
-      else if (err?.response?.data?.message) msg = err.response.data.message;
-      else if (err?.message) msg = err.message;
+      let msg = 'Upload failed. Please try again.';
+      if (typeof err === 'string') {
+        msg = err.includes('<html') ? 'Upload failed: Image file is too large for the server.' : err;
+      } else if (err?.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err?.message) {
+        msg = err.message.includes('<html') ? 'Upload failed: Image file is too large for the server.' : err.message;
+      }
 
       if (msg === 'Network Error' || (err?.response && err.response.status === 413)) {
-        msg = 'Upload failed: File size may be too large.';
+        msg = 'Upload failed: File size exceeds the server upload limit.';
       }
       setError(msg);
     } finally {

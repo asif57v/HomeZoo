@@ -2,7 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { CircleHelp, ChevronDown, Mail, Phone, MessageSquare, Loader2 } from 'lucide-react';
 import gsap from 'gsap';
 import PartnerHeader from '../components/PartnerHeader';
-import { faqService } from '../../../services/apiService';
+import LegalContent from '../../../components/ui/LegalContent';
+import { faqService, legalService } from '../../../services/apiService';
 
 const FaqItem = ({ question, answer }) => {
     /* ... existing FaqItem code ... */
@@ -39,6 +40,7 @@ const FaqItem = ({ question, answer }) => {
 const PartnerSupport = () => {
     const [faqs, setFaqs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [support, setSupport] = useState(null);
 
     useEffect(() => {
         const fetchFaqs = async () => {
@@ -52,6 +54,7 @@ const PartnerSupport = () => {
             }
         };
         fetchFaqs();
+        legalService.getPage('partner', 'support').then((res) => setSupport(res.page)).catch(() => {});
     }, []);
 
     return (
@@ -60,17 +63,24 @@ const PartnerSupport = () => {
 
             <div className="max-w-3xl mx-auto px-4 pt-6">
 
+                {support?.content && (
+                    <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
+                        <LegalContent content={support.content} />
+                        {support.supportHours && <p className="mt-3 text-xs text-gray-400">{support.supportHours}</p>}
+                    </div>
+                )}
+
                 {/* Contact Options */}
                 <div className="grid grid-cols-2 gap-3 mb-8">
                     <button
-                        onClick={() => window.open('https://wa.me/919111384535', '_blank')}
+                        onClick={() => window.open(`https://wa.me/${(support?.supportWhatsapp || '919111384535').replace(/D/g, '')}`, '_blank')}
                         className="bg-[#005CA8] hover:bg-[#004b8a] text-white p-5 rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         <MessageSquare size={24} />
                         <span className="text-sm font-bold">WhatsApp Chat</span>
                     </button>
                     <a
-                        href="tel:9111384535"
+                        href={`tel:${support?.supportPhone || '9111384535'}`}
                         className="bg-white border border-gray-200 text-slate-900 p-5 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         <Phone size={24} />
@@ -99,8 +109,8 @@ const PartnerSupport = () => {
 
                 <div className="mt-8 text-center">
                     <p className="text-xs text-gray-400 mb-2">Still have questions?</p>
-                    <a href="mailto:partners@rokkooin.com" className="inline-flex items-center gap-2 text-sm font-bold text-[#005CA8] border-b border-[#005CA8]/20 pb-0.5 hover:border-[#005CA8] transition-colors">
-                        <Mail size={14} /> Email us at partners@rokkooin.com
+                    <a href={`mailto:${support?.supportEmail || 'partners@rokkooin.com'}`} className="inline-flex items-center gap-2 text-sm font-bold text-[#005CA8] border-b border-[#005CA8]/20 pb-0.5 hover:border-[#005CA8] transition-colors">
+                        <Mail size={14} /> Email us at {support?.supportEmail || 'partners@rokkooin.com'}
                     </a>
                 </div>
             </div>

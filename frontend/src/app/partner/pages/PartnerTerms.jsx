@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Shield, FileText, CheckCircle, ExternalLink } from 'lucide-react';
 import gsap from 'gsap';
 import PartnerHeader from '../components/PartnerHeader';
+import LegalContent, { formatUpdated } from '../../../components/ui/LegalContent';
 import { legalService } from '../../../services/apiService';
 
 const Section = ({ title, children }) => (
@@ -64,7 +65,7 @@ const PartnerTerms = () => {
                             <h2 className="text-lg font-black text-slate-900">
                                 {page?.title || 'Partner Agreement'}
                             </h2>
-                            <p className="text-xs text-gray-400">Last updated: August 15, 2024</p>
+                            <p className="text-xs text-gray-400">Last updated: {formatUpdated(page) || 'August 15, 2024'}</p>
                         </div>
                     </div>
 
@@ -76,9 +77,7 @@ const PartnerTerms = () => {
 
                     {page?.content ? (
                         <Section title="">
-                            <p className="whitespace-pre-line">
-                                {page.content}
-                            </p>
+                            <LegalContent content={page.content} />
                         </Section>
                     ) : (
                         <>

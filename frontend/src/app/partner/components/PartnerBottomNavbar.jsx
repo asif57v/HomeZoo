@@ -1,3 +1,4 @@
+import { useFeatureFlags } from '../../../store/featureFlagsStore';
 import React from 'react';
 import { LayoutDashboard, Briefcase, UserCircle, Crown, Clapperboard } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -17,10 +18,11 @@ const PartnerBottomNavbar = () => {
     return '';
   };
 
+  const { subscriptionEnabled } = useFeatureFlags();
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, route: '/hotel/dashboard' },
     { name: 'Enquiry', icon: Briefcase, route: '/hotel/bookings' },
-    { name: 'Subscription', icon: Crown, route: '/hotel/subscriptions' },
+    ...(subscriptionEnabled ? [{ name: 'Subscription', icon: Crown, route: '/hotel/subscriptions' }] : []),
     { name: 'Reels', icon: Clapperboard, route: '/reels' },
     { name: 'Profile', icon: UserCircle, route: '/hotel/profile' },
   ];
@@ -34,15 +36,15 @@ const PartnerBottomNavbar = () => {
       className="fixed bottom-0 left-0 right-0 z-[100] print:hidden bg-white/95 backdrop-blur-md"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 10px)' }}
     >
-      <div className="
+      <div className={`
         bg-white/95 backdrop-blur-md 
         rounded-t-[28px] 
         shadow-[0_-8px_30px_rgba(0,0,0,0.08)] 
         border-t border-gray-100/80 
         px-2 h-[68px] 
-        grid grid-cols-5 items-center 
+        grid ${navItems.length === 4 ? 'grid-cols-4' : 'grid-cols-5'} items-center 
         relative
-      ">
+      `}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = getActiveTab() === item.name;
