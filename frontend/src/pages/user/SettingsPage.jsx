@@ -17,8 +17,8 @@ const SettingsPage = () => {
             items: [
                 { icon: Info, label: "About HoomZo", type: "nav", path: "/about" },
                 { icon: Phone, label: "Contact Us", type: "nav", path: "/contact" },
-                { icon: Shield, label: "Privacy Policy", type: "nav", path: "/privacy" },
-                { icon: FileText, label: "Terms & Conditions", type: "nav", path: "/terms" },
+                { icon: Shield, label: "Privacy Policy", type: "nav", path: "/login/privacy" },
+                { icon: FileText, label: "Terms & Conditions", type: "nav", path: "/login/terms" },
             ]
         },
     ];

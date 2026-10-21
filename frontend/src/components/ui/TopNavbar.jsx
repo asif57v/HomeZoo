@@ -42,9 +42,9 @@ const TopNavbar = () => {
     ];
 
     const supportLinks = [
-        { name: 'Help & Support', path: '/support', icon: HelpCircle },
-        { name: 'Terms & Conditions', path: '/terms', icon: FileText },
-        { name: 'Privacy Policy', path: '/privacy', icon: Shield },
+        { name: 'Help & Support', path: '/login/support', icon: HelpCircle },
+        { name: 'Terms & Conditions', path: '/login/terms', icon: FileText },
+        { name: 'Privacy Policy', path: '/login/privacy', icon: Shield },
     ];
 
     return (

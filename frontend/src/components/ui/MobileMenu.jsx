@@ -70,12 +70,12 @@ const MobileMenu = ({ isOpen, onClose }) => {
     const settingItems = [
         { icon: Bell, label: 'Notifications', path: '/notifications', badge: unreadCount > 0 ? unreadCount : null },
         { icon: Settings, label: 'Settings', path: '/settings' },
-        { icon: HelpCircle, label: 'Need Help?', path: '/support' },
+        { icon: HelpCircle, label: 'Need Help?', path: '/login/support' },
     ];
 
     const legalItems = [
-        { icon: Shield, label: 'Privacy Policy', path: '/privacy' },
-        { icon: FileText, label: 'Terms & Conditions', path: '/terms' },
+        { icon: Shield, label: 'Privacy Policy', path: '/login/privacy' },
+        { icon: FileText, label: 'Terms & Conditions', path: '/login/terms' },
     ];
 
     const handleNavigation = (path) => {

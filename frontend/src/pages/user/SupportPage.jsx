@@ -121,10 +121,10 @@ const SupportPage = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <button onClick={() => navigate('/terms')} className="flex items-center justify-center gap-2 bg-white border border-gray-100 rounded-xl py-3 text-xs font-bold text-surface shadow-sm">
+                    <button onClick={() => navigate('/login/terms')} className="flex items-center justify-center gap-2 bg-white border border-gray-100 rounded-xl py-3 text-xs font-bold text-surface shadow-sm">
                         <FileText size={14} /> Terms & Conditions
                     </button>
-                    <button onClick={() => navigate('/privacy')} className="flex items-center justify-center gap-2 bg-white border border-gray-100 rounded-xl py-3 text-xs font-bold text-surface shadow-sm">
+                    <button onClick={() => navigate('/login/privacy')} className="flex items-center justify-center gap-2 bg-white border border-gray-100 rounded-xl py-3 text-xs font-bold text-surface shadow-sm">
                         <Shield size={14} /> Privacy Policy
                     </button>
                 </div>

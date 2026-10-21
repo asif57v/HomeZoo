@@ -473,17 +473,17 @@ function App() {
             {/* User Auth Routes (Public Only) */}
             <Route path="/login" element={<PublicRoute><UserLogin /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><UserSignup /></PublicRoute>} />
-            <Route path="/support" element={<SupportPage />} />
+            <Route path="/support" element={<Navigate to="/login/support" replace />} />
             <Route path="/legal" element={<LegalPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/privacy-policy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<Navigate to="/login/terms" replace />} />
+            <Route path="/privacy" element={<Navigate to="/login/privacy" replace />} />
+            <Route path="/privacy-policy" element={<Navigate to="/login/privacy" replace />} />
             {/* Pre-login legal pages (same URL pattern as other apps: /login/terms, /login/privacy, /login/support) */}
             <Route path="/login/terms" element={<TermsPage />} />
             <Route path="/login/privacy" element={<PrivacyPage />} />
             <Route path="/login/support" element={<SupportPage />} />
             <Route path="/user/login" element={<Navigate to="/login" replace />} />
-            <Route path="/terms-conditions" element={<TermsPage />} />
+            <Route path="/terms-conditions" element={<Navigate to="/login/terms" replace />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/login/*" element={<Navigate to="/login" replace />} />
 
