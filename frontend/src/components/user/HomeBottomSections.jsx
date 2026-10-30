@@ -23,7 +23,9 @@ import {
     Share2,
     Check
 } from 'lucide-react';
+import axios from 'axios';
 import { propertyService } from '../../services/apiService';
+import { API_BASE_URL } from '../../config/apiConfig';
 
 const HomeBottomSections = () => {
     // 1. Partners State (using existing recommended sellers service to maintain backend integration)
@@ -38,6 +40,21 @@ const HomeBottomSections = () => {
 
     // 4. Cities Filter State
     const [citySearch, setCitySearch] = useState('');
+
+    // Admin editable text/settings for the Top Rated Partners section
+    const [partnersSection, setPartnersSection] = useState(null);
+
+    useEffect(() => {
+        const fetchSection = async () => {
+            try {
+                const { data } = await axios.get(`${API_BASE_URL}/info/platform/top-rated-section`, { timeout: 15000 });
+                setPartnersSection(data);
+            } catch (err) {
+                console.error('Failed to fetch partners section settings:', err);
+            }
+        };
+        fetchSection();
+    }, []);
 
     useEffect(() => {
         const fetchPartners = async () => {
@@ -155,57 +172,9 @@ const HomeBottomSections = () => {
         };
     };
 
-    // Fallback/demo partners if backend API returns less items
-    const displayPartners = (partners.length > 0 ? partners : [
-        {
-            _id: 'p1',
-            name: 'Seed Partner',
-            profileImage: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&q=80&w=400',
-            plan: { name: 'ELITE GOLD PACK', tier: 'gold', hasVerifiedTag: true },
-            experienceYears: 0.5,
-            totalListings: 13,
-            tagline: 'Trusted partner with complete knowledge about locality',
-            rating: '5.0',
-            reviewsCount: 120,
-            address: { city: 'Indore', locality: 'AB Road' }
-        },
-        {
-            _id: 'p3',
-            name: 'Horizon BuildMart & Estates',
-            profileImage: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80',
-            plan: { name: 'ELITE DIAMOND PACK', tier: 'diamond', hasVerifiedTag: true },
-            experienceYears: 15,
-            totalListings: 72,
-            tagline: 'Trusted developers of gated plot communities & premium luxury villas.',
-            rating: '5.0',
-            reviewsCount: 240,
-            address: { city: 'Pune', locality: 'Hinjewadi' }
-        },
-        {
-            _id: 'p4',
-            name: 'Summit Real Estate Partners',
-            profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80',
-            plan: { name: 'PLATINUM PACK', tier: 'platinum', hasVerifiedTag: true },
-            experienceYears: 8,
-            totalListings: 29,
-            tagline: 'Verified land titles and fast legal clearing services for commercial plots.',
-            rating: '4.9',
-            reviewsCount: 98,
-            address: { city: 'Hyderabad', locality: 'Gachibowli' }
-        },
-        {
-            _id: 'p2',
-            name: 'Asif mansoori',
-            profileImage: '',
-            plan: { name: 'STARTER SILVER PACK', tier: 'silver', hasVerifiedTag: true },
-            experienceYears: 10,
-            totalListings: 24,
-            tagline: 'Professional guidance for verified plots & premium properties across prime city zones.',
-            rating: '4.9',
-            reviewsCount: 120,
-            address: { city: 'Indore', locality: 'Malipura' }
-        }
-    ]).slice(0, 6);
+    // Only partners added by the admin (Top Rated Partners) are shown
+    const displayPartners = partners.slice(0, partnersSection?.maxPartners || 6);
+    const showPartnersSection = displayPartners.length > 0 && partnersSection?.enabled !== false;
 
     // Fallback/Default News & Updates Data if backend is unreachable
     const DEFAULT_NEWS_ARTICLES = [
@@ -274,27 +243,34 @@ const HomeBottomSections = () => {
             {/* =========================================================
                 SECTION 1: ⭐ TOP RATED HOMEZO PARTNERS
             ========================================================= */}
+            {showPartnersSection && (
             <section className="w-full">
                 <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-4 sm:mb-10 md:mb-14">
                     <div>
+                        {partnersSection?.badgeText && (
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-extrabold tracking-wide uppercase mb-3 border border-amber-200/60 shadow-xs">
                             <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                            Verified Excellence
+                            {partnersSection.badgeText}
                         </div>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-                            Top Rated HomeZo Partners
+                        )}
+                        <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+                            {partnersSection?.title || 'Top Rated HomeZo Partners'}
                         </h2>
-                        <p className="text-sm sm:text-base text-slate-500 font-medium mt-2 max-w-2xl leading-relaxed">
-                            Collaborate with our highest-performing locality experts and trusted land advisors with proven track records and verified titles.
+                        {partnersSection?.subtitle && (
+                        <p className="text-xs sm:text-base text-slate-500 font-medium mt-1.5 max-w-2xl leading-relaxed">
+                            {partnersSection.subtitle}
                         </p>
+                        )}
                     </div>
+                    {(partnersSection ? partnersSection.buttonText : 'View All Partners') && (
                     <button 
                         onClick={() => window.location.href = '#/partners'} 
-                        className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-slate-900 text-white font-bold text-sm sm:text-base hover:bg-blue-600 active:scale-[0.98] transition-all shadow-md hover:shadow-xl shrink-0 group"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 sm:px-6 sm:py-3.5 rounded-xl sm:rounded-2xl bg-slate-900 text-white font-bold text-xs sm:text-base hover:bg-blue-600 active:scale-[0.98] transition-all shadow-md hover:shadow-xl shrink-0 group"
                     >
-                        <span>View All Partners</span>
+                        <span>{partnersSection ? partnersSection.buttonText : 'View All Partners'}</span>
                         <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
                     </button>
+                    )}
                 </div>
 
                 <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 pb-4 md:pb-0 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -308,7 +284,7 @@ const HomeBottomSections = () => {
                                     whileHover={{ y: -6 }}
                                     transition={{ duration: 0.25, ease: "easeOut" }}
                                     onClick={() => window.location.href = `#/partners/${partner._id}`}
-                                    className="group relative w-[85vw] max-w-[340px] sm:max-w-[420px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start rounded-[16px] p-4 sm:p-5 border border-[#FFE173] bg-gradient-to-br from-[#E8AE2E] via-[#FCE38A] to-[#D59821] shadow-[0_15px_40px_-10px_rgba(213,152,33,0.55)] hover:shadow-[0_20px_50px_-10px_rgba(213,152,33,0.7)] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md"
+                                    className="group relative w-[72vw] max-w-[270px] sm:max-w-[320px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start rounded-[16px] p-3 sm:p-4 border border-[#FFE173] bg-gradient-to-br from-[#E8AE2E] via-[#FCE38A] to-[#D59821] shadow-[0_15px_40px_-10px_rgba(213,152,33,0.55)] hover:shadow-[0_20px_50px_-10px_rgba(213,152,33,0.7)] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md"
                                 >
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-2xl rounded-full rounded-tr-none"></div>
                                     <div className="absolute bottom-0 left-0 w-40 h-20 bg-white/20 blur-2xl rounded-t-full"></div>
@@ -391,8 +367,8 @@ const HomeBottomSections = () => {
                                 whileHover={{ y: -6 }}
                                 transition={{ duration: 0.25, ease: "easeOut" }}
                                 onClick={() => window.location.href = `#/partners/${partner._id}`}
-                                className={`group relative w-[85vw] max-w-[340px] sm:max-w-[420px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start 
-                                    ${theme.cardRadius || 'rounded-[24px]'} p-4 sm:p-5 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
+                                className={`group relative w-[72vw] max-w-[270px] sm:max-w-[320px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start 
+                                    ${theme.cardRadius || 'rounded-[24px]'} p-3 sm:p-4 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
                                     transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md`}
                             >
                                 {/* Subtle Crystal/Diamond Grid Pattern for Diamond Pack */}
@@ -405,7 +381,7 @@ const HomeBottomSections = () => {
                                     <div className="flex items-start justify-between gap-2.5">
                                         <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
                                             {/* Profile Avatar */}
-                                            <div className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden ${theme.isDark ? 'bg-[#060B2D] border-2 border-[#E94CFF] shadow-[0_0_20px_rgba(233,76,255,0.6)]' : 'bg-white border-2 border-white shadow-md'} shrink-0 ring-4 ${theme.profileRing} transition-all duration-300`}>
+                                            <div className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden ${theme.isDark ? 'bg-[#060B2D] border-2 border-[#E94CFF] shadow-[0_0_20px_rgba(233,76,255,0.6)]' : 'bg-white border-2 border-white shadow-md'} shrink-0 ring-2 ${theme.profileRing} transition-all duration-300`}>
                                                 {partner.profileImage ? (
                                                     <img src={partner.profileImage} alt={partner.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                 ) : (
@@ -417,13 +393,13 @@ const HomeBottomSections = () => {
 
                                             {/* Partner Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className={`font-extrabold ${theme.isDark ? 'text-white group-hover:text-[#39D5FF]' : 'text-slate-900 group-hover:text-blue-600'} text-sm sm:text-base flex items-center gap-1.5 tracking-tight transition-colors`}>
+                                                <h3 className={`font-extrabold ${theme.isDark ? 'text-white group-hover:text-[#39D5FF]' : 'text-slate-900 group-hover:text-blue-600'} text-[13px] sm:text-sm flex items-center gap-1 tracking-tight transition-colors`}>
                                                     <span className="truncate">{partner.name}</span>
                                                     <BadgeCheck className={`w-4 h-4 ${theme.isDark ? 'text-[#39D5FF] fill-[#1C2F8F]' : 'text-blue-500 fill-blue-50'} shrink-0 inline-block`} />
                                                 </h3>
 
                                                 <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
+                                                    <span className={`text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
                                                         {theme.badgeLabel}
                                                     </span>
                                                     {(partner.address?.city || partner.address?.locality) && (
@@ -438,31 +414,31 @@ const HomeBottomSections = () => {
 
                                         {/* Top Right Rating Badge */}
                                         <div className="shrink-0">
-                                            <div className={`inline-flex items-center gap-1 ${theme.ratingBg || 'bg-amber-50/95 border-amber-200/80 text-amber-950'} backdrop-blur-md font-black text-[11px] sm:text-xs px-2.5 py-1 rounded-full border`}>
+                                            <div className={`inline-flex items-center gap-1 ${theme.ratingBg || 'bg-amber-50/95 border-amber-200/80 text-amber-950'} backdrop-blur-md font-black text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border`}>
                                                 <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
-                                                <span>{partner.rating || '4.9'}</span>
-                                                <span className={`${theme.ratingCountColor || 'text-slate-400'} font-medium text-[9px] sm:text-[10px]`}>({partner.reviewsCount || 120})</span>
+                                                <span>{partner.rating}</span>
+                                                <span className={`${theme.ratingCountColor || 'text-slate-400'} font-medium text-[9px] sm:text-[10px]`}>({partner.reviewsCount})</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Description / Quote Card */}
-                                    <div className={`mt-3.5 sm:mt-4 p-3 sm:p-3.5 rounded-2xl border ${theme.quoteBg} flex items-start gap-2 transition-colors duration-300`}>
+                                    <div className={`mt-2.5 p-2.5 rounded-xl border ${theme.quoteBg} flex items-start gap-2 transition-colors duration-300`}>
                                         <Quote className={`w-3.5 h-3.5 ${theme.quoteIconColor} shrink-0 mt-0.5 rotate-180`} />
-                                        <p className={`text-xs font-semibold ${theme.isDark ? 'text-white' : 'text-slate-700'} leading-relaxed italic line-clamp-2`}>
-                                            "{partner.tagline || 'Professional guidance for verified plots & premium properties across prime city zones.'}"
+                                        <p className={`text-[11px] font-semibold ${theme.isDark ? 'text-white' : 'text-slate-700'} leading-snug italic line-clamp-2`}>
+                                            "{partner.tagline || 'Trusted partner with complete knowledge about the locality.'}"
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Bottom Section: Experience + Listings + Explore Profile Button */}
-                                <div className={`mt-4 pt-3.5 border-t ${theme.dividerColor ? 'border-purple-600/40' : 'border-slate-200/70'} flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3`}>
+                                <div className={`mt-3 pt-2.5 border-t ${theme.dividerColor ? 'border-purple-600/40' : 'border-slate-200/70'} flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5`}>
                                     {/* Stats */}
                                     <div className="flex items-center gap-3 sm:gap-4 justify-between sm:justify-start">
                                         {/* Experience */}
                                         <div className="flex flex-col items-start">
                                             <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[9px]`}>Experience</span>
-                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-xs sm:text-sm mt-0.5`}>{partner.experienceYears || '10'}+ Years</span>
+                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-[11px] sm:text-xs mt-0.5`}>{partner.experienceYears || 0}+ Years</span>
                                         </div>
 
                                         {/* Divider */}
@@ -471,7 +447,7 @@ const HomeBottomSections = () => {
                                         {/* Active Listings */}
                                         <div className="flex flex-col items-start">
                                             <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[9px]`}>Listings</span>
-                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-xs sm:text-sm mt-0.5`}>{partner.totalListings || '13'} Properties</span>
+                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-[11px] sm:text-xs mt-0.5`}>{partner.totalListings || 0} Properties</span>
                                         </div>
                                     </div>
 
@@ -481,7 +457,7 @@ const HomeBottomSections = () => {
                                             e.stopPropagation();
                                             window.location.href = `#/partners/${partner._id}`;
                                         }}
-                                        className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-xs shadow-md transition-all duration-300 active:scale-95 group/btn shrink-0 w-full sm:w-auto`}
+                                        className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-[11px] shadow-md transition-all duration-300 active:scale-95 group/btn shrink-0 w-full sm:w-auto`}
                                     >
                                         <span className="whitespace-nowrap">Explore Profile</span>
                                         <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform shrink-0" />
@@ -492,6 +468,7 @@ const HomeBottomSections = () => {
                     })}
                 </div>
             </section>
+            )}
 
 
             {/* =========================================================

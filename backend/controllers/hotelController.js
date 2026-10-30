@@ -100,45 +100,102 @@ export const uploadImagesBase64 = async (req, res) => {
   }
 };
 
+// Fallback search using OpenStreetMap Nominatim
+const searchLocationOSM = async (query, { indiaOnly = false } = {}) => {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=10${indiaOnly ? '&countrycodes=in' : ''}`;
+    const { data } = await axios.get(url, {
+      headers: { 'User-Agent': 'HomeZoo-App/1.0 (contact@homezoo.com)' },
+      timeout: 6000,
+    });
+    if (Array.isArray(data) && data.length > 0) {
+      return data.map((r) => ({
+        name: r.display_name || r.name || query,
+        lat: parseFloat(r.lat),
+        lng: parseFloat(r.lon),
+        type: 'address'
+      }));
+    }
+  } catch (err) {
+    console.warn('[searchLocationOSM] Fallback error:', err.message);
+  }
+  return [];
+};
+
+// Fallback reverse geocode using OpenStreetMap Nominatim
+const getAddressFromCoordinatesOSM = async (lat, lng) => {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+    const { data } = await axios.get(url, {
+      headers: { 'User-Agent': 'HomeZoo-App/1.0 (contact@homezoo.com)' },
+      timeout: 6000,
+    });
+    if (data && data.address) {
+      const addr = data.address;
+      return {
+        country: addr.country || '',
+        state: addr.state || '',
+        city: addr.city || addr.town || addr.village || addr.county || addr.state_district || '',
+        area: addr.suburb || addr.neighbourhood || addr.city_district || addr.road || '',
+        fullAddress: data.display_name || '',
+        pincode: addr.postcode || '',
+        latitude: Number(lat),
+        longitude: Number(lng),
+      };
+    }
+  } catch (err) {
+    console.warn('[getAddressFromCoordinatesOSM] Fallback error:', err.message);
+  }
+  return null;
+};
+
 export const getAddressFromCoordinates = async (req, res) => {
   try {
     const { lat, lng } = req.body;
     if (typeof lat !== 'number' || typeof lng !== 'number') {
       return res.status(400).json({ message: 'lat and lng must be numbers' });
     }
+
     const key = getMapsApiKey();
-    if (!key) {
-      return res.status(500).json({
-        message: 'Maps API key not configured. Set GOOGLE_MAP_API_KEY in backend/.env and restart the server.',
+    if (key) {
+      try {
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`;
+        const { data } = await axios.get(url, { timeout: 6000 });
+
+        if (data.status === 'OK' && Array.isArray(data.results) && data.results.length > 0) {
+          const first = data.results[0];
+          const { country, state, city, area, pincode } = mapAddressComponents(first.address_components || []);
+          return res.json({
+            success: true,
+            country,
+            state,
+            city,
+            area,
+            fullAddress: first.formatted_address || '',
+            pincode,
+            latitude: lat,
+            longitude: lng
+          });
+        }
+        console.warn('[getAddressFromCoordinates] Google API status:', data.status, data.error_message);
+      } catch (googleErr) {
+        console.warn('[getAddressFromCoordinates] Google API failed, falling back to OSM:', googleErr.message);
+      }
+    }
+
+    // Fallback to OSM Nominatim
+    const osmResult = await getAddressFromCoordinatesOSM(lat, lng);
+    if (osmResult) {
+      return res.json({
+        success: true,
+        ...osmResult
       });
     }
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`;
-    const { data } = await axios.get(url);
 
-    if (data.status && data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      const errMsg = data.error_message || data.status;
-      console.error('[getAddressFromCoordinates] Google API error:', data.status, errMsg);
-      return res.status(400).json({
-        message: errMsg || 'Location fetch failed. Enable Geocoding API in Google Cloud Console.',
-      });
-    }
-
-    const first = Array.isArray(data.results) ? data.results[0] : null;
-    if (!first) return res.status(404).json({ message: 'Address not found for these coordinates' });
-    const { country, state, city, area, pincode } = mapAddressComponents(first.address_components || []);
-    res.json({
-      success: true,
-      country,
-      state,
-      city,
-      area,
-      fullAddress: first.formatted_address || '',
-      pincode,
-      latitude: lat,
-      longitude: lng
-    });
+    return res.status(404).json({ message: 'Address not found for these coordinates' });
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    console.error('[getAddressFromCoordinates] Error:', e.message);
+    res.status(500).json({ message: e.message || 'Location fetch failed' });
   }
 };
 
@@ -148,33 +205,48 @@ export const searchLocation = async (req, res) => {
     if (!query || !String(query).trim()) {
       return res.status(400).json({ message: 'query is required' });
     }
+
+    const q = String(query).trim();
     const key = getMapsApiKey();
-    if (!key) {
-      console.error('[searchLocation] GOOGLE_MAP_API_KEY is missing. Set it in backend/.env and restart.');
-      return res.status(500).json({
-        message: 'Maps API key not configured. Set GOOGLE_MAP_API_KEY in backend/.env and restart the server.',
-      });
-    }
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      query
-    )}&key=${key}`;
-    const { data } = await axios.get(url);
 
-    if (data.status && data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      const errMsg = data.error_message || data.status;
-      console.error('[searchLocation] Google API error:', data.status, errMsg);
-      return res.status(400).json({
-        message: errMsg || 'Location search failed. Enable Geocoding API for this key in Google Cloud Console.',
-      });
+    // India first: restrict to India, and only widen to the whole world if nothing matches
+    if (key) {
+      try {
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+          q
+        )}&key=${key}&components=country:IN`;
+        const { data } = await axios.get(url, { timeout: 6000 });
+
+        if (data.status === 'OK' && Array.isArray(data.results) && data.results.length > 0) {
+          const results = data.results.map((r) => ({
+            name: r.formatted_address || q,
+            lat: r.geometry?.location?.lat,
+            lng: r.geometry?.location?.lng,
+            type: 'address'
+          }));
+          return res.json({ success: true, results });
+        }
+
+        if (data.status !== 'ZERO_RESULTS') {
+          console.warn('[searchLocation] Google API non-OK status:', data.status, data.error_message);
+        }
+      } catch (googleErr) {
+        console.warn('[searchLocation] Google API error, falling back to OSM:', googleErr.message);
+      }
     }
 
-    const results = (data.results || []).map((r) => ({
-      name: r.formatted_address || query,
-      lat: r.geometry?.location?.lat,
-      lng: r.geometry?.location?.lng,
-      type: 'address'
-    }));
-    res.json({ success: true, results });
+    // OSM Nominatim: India first, then worldwide
+    const indiaResults = await searchLocationOSM(q, { indiaOnly: true });
+    if (indiaResults.length > 0) {
+      return res.json({ success: true, results: indiaResults });
+    }
+    const osmResults = await searchLocationOSM(q);
+    if (osmResults.length > 0) {
+      return res.json({ success: true, results: osmResults });
+    }
+
+    // Return empty results rather than throwing 400/500
+    return res.json({ success: true, results: [] });
   } catch (e) {
     const msg = e.response?.data?.error_message || e.response?.data?.message || e.message;
     console.error('[searchLocation] Error:', msg);

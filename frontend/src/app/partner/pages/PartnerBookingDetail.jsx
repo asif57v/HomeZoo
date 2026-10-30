@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Calendar, User, Phone, Mail, MapPin,
   CreditCard, CheckCircle, XCircle, Clock,
-  ChevronLeft, AlertTriangle, LogIn, LogOut
+  ChevronLeft, AlertTriangle, LogIn, LogOut,
+  Lock, Crown
 } from 'lucide-react';
 import { bookingService } from '../../../services/apiService';
 import toast from 'react-hot-toast';
@@ -191,20 +192,39 @@ const PartnerBookingDetail = () => {
               <p className="text-xs text-gray-500">Joined via App</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <a href={`tel:${user.phone}`} className="flex flex-col p-2.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-              <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">Phone</p>
-              <div className="flex items-center gap-1.5 font-semibold text-gray-900 text-xs">
-                <Phone size={12} className="text-gray-400" /> {user.phone || 'N/A'}
+          {booking.isLocked ? (
+            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200/80 mb-3">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-sm mb-1">
+                <Lock size={16} className="text-amber-600" />
+                <span>Contact Details Locked</span>
               </div>
-            </a>
-            <div className="flex flex-col p-2.5 bg-gray-50 rounded-xl">
-              <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">Email</p>
-              <div className="flex items-center gap-1.5 font-semibold text-gray-900 text-xs truncate">
-                <Mail size={12} className="text-gray-400" /> <span className="truncate">{user.email || 'N/A'}</span>
+              <p className="text-xs text-amber-800/90 leading-relaxed mb-3">
+                Full customer contact number and email are locked. An active partner subscription is required to unlock leads and communicate directly.
+              </p>
+              <button
+                onClick={() => navigate('/hotel/subscriptions')}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-xs py-2.5 px-4 rounded-xl hover:from-amber-600 hover:to-orange-600 active:scale-95 transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <Crown size={14} />
+                <span>Subscribe to Unlock Contact</span>
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <a href={`tel:${user.phone}`} className="flex flex-col p-2.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">Phone</p>
+                <div className="flex items-center gap-1.5 font-semibold text-gray-900 text-xs">
+                  <Phone size={12} className="text-gray-400" /> {user.phone || 'N/A'}
+                </div>
+              </a>
+              <div className="flex flex-col p-2.5 bg-gray-50 rounded-xl">
+                <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">Email</p>
+                <div className="flex items-center gap-1.5 font-semibold text-gray-900 text-xs truncate">
+                  <Mail size={12} className="text-gray-400" /> <span className="truncate">{user.email || 'N/A'}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="mt-3 p-3 bg-gray-50 rounded-xl flex items-center justify-between border border-gray-100">
             <div className="flex items-center gap-2">

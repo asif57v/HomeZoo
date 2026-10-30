@@ -18,6 +18,7 @@ import { Band, SectionHeader } from '../../components/user/home/HomeLayout';
 import { categoryService } from '../../services/categoryService';
 import homeService from '../../services/homeService';
 import { useFeatureFlags } from '../../store/featureFlagsStore';
+import { getStoredLocation, subscribeLocation } from '../../utils/userLocation';
 
 // Category Theme Map - Professional palettes inspired by Housing.com
 const THEME_MAP = {
@@ -83,30 +84,15 @@ const Home = () => {
   });
   const [homeLoading, setHomeLoading] = useState(true);
 
-  // Extract city from localStorage or default to Indore
-  const getSelectedCity = () => {
-    const rawLocation = localStorage.getItem('user_location') || 'Indore';
-    const parts = rawLocation.split(',');
-    return parts.length > 1 ? parts[parts.length - 1].trim() : rawLocation.trim();
-  };
+  // User location (auto-detected in HeroSection); feeds below show nearby properties
+  const [userLocation, setUserLocation] = useState(getStoredLocation);
+  const currentCity = userLocation.city;
+  const nearLocation = useMemo(
+    () => ({ lat: userLocation.lat, lng: userLocation.lng, city: userLocation.city }),
+    [userLocation.lat, userLocation.lng, userLocation.city]
+  );
 
-  const [currentCity, setCurrentCity] = useState(getSelectedCity());
-
-  // Listen to storage/location changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const city = getSelectedCity();
-      if (city !== currentCity) {
-        setCurrentCity(city);
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    const interval = setInterval(handleStorageChange, 2000);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, [currentCity]);
+  useEffect(() => subscribeLocation(setUserLocation), []);
 
   // Fetch Unified Home Data
   useEffect(() => {
@@ -338,10 +324,10 @@ const Home = () => {
             <Band tone="white" spacing="normal">
               <SectionHeader
                 title="Find your perfect stay"
-                subtitle="Top rated PGs and hostels near you"
+                subtitle={`Top rated PGs and hostels in ${currentCity}`}
                 onAction={() => openCategory(sectionIds.pg, 'PG/Co-Living')}
               />
-              <PropertyFeed selectedType={sectionIds.pg} viewMode="stay-carousel" limit={8} />
+              <PropertyFeed nearLocation={nearLocation} selectedType={sectionIds.pg} viewMode="stay-carousel" limit={8} />
             </Band>
           )}
 
@@ -360,10 +346,10 @@ const Home = () => {
             <Band tone="violet" spacing="normal" rounded>
               <SectionHeader
                 title="Properties for rent"
-                subtitle="Apartments, homes and villas"
+                subtitle={`Apartments, homes and villas in ${currentCity}`}
                 onAction={() => openCategory(sectionIds.rent, 'Rent')}
               />
-              <PropertyFeed selectedType={sectionIds.rent} viewMode="rent-grid" limit={8} />
+              <PropertyFeed nearLocation={nearLocation} selectedType={sectionIds.rent} viewMode="rent-grid" limit={8} />
             </Band>
           )}
 
@@ -372,10 +358,10 @@ const Home = () => {
             <Band tone="white" spacing="normal">
               <SectionHeader
                 title="Dream homes for sale"
-                subtitle="Buy your perfect home today"
+                subtitle={`Buy your perfect home in ${currentCity}`}
                 onAction={() => openCategory(sectionIds.buy, 'Buy')}
               />
-              <PropertyFeed selectedType={sectionIds.buy} viewMode="sale-grid" limit={8} />
+              <PropertyFeed nearLocation={nearLocation} selectedType={sectionIds.buy} viewMode="sale-grid" limit={8} />
             </Band>
           )}
 
@@ -384,10 +370,10 @@ const Home = () => {
             <Band tone="sand" spacing="normal" rounded>
               <SectionHeader
                 title="Premium plots & land"
-                subtitle="Invest in the best locations"
+                subtitle={`Invest in the best locations in ${currentCity}`}
                 onAction={() => openCategory(sectionIds.plot, 'Plot')}
               />
-              <PropertyFeed selectedType={sectionIds.plot} viewMode="plot-grid" limit={8} />
+              <PropertyFeed nearLocation={nearLocation} selectedType={sectionIds.plot} viewMode="plot-grid" limit={8} />
             </Band>
           )}
         </div>
@@ -417,7 +403,7 @@ const Home = () => {
           <ReelSection category={selectedType.label} />
 
           {/* 3. Main Property Feed */}
-          <PropertyFeed selectedType={selectedType.id} viewMode="grid" extraFilters={pgFilters} />
+          <PropertyFeed nearLocation={nearLocation} selectedType={selectedType.id} viewMode="grid" extraFilters={pgFilters} />
         </div>
       )}
 

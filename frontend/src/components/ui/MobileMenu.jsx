@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Wallet, Heart, Gift, HelpCircle, FileText, Shield, ChevronRight, LogOut, Settings, BookOpen, Building, Briefcase, Bell, Edit3, Video } from 'lucide-react';
+import { X, User, Wallet, Heart, Gift, HelpCircle, FileText, Shield, ChevronRight, LogOut, Settings, BookOpen, Building, Briefcase, Bell, Edit3, Video, LayoutDashboard } from 'lucide-react';
 import logo from '../../assets/rokologin-removebg-preview.png';
 import { userService, authService } from '../../services/apiService';
 import { detectPlatform } from '../../utils/firebase';
@@ -64,6 +64,8 @@ const MobileMenu = ({ isOpen, onClose }) => {
     ];
 
     const growthItems = [
+        { icon: Building, label: 'List Your Property', path: '/hotel/join' },
+        { icon: LayoutDashboard, label: 'Host Dashboard', path: '/hotel/partner-dashboard' },
         { icon: Gift, label: 'Refer & Earn', path: '/refer' },
     ];
 

@@ -229,7 +229,7 @@ const ReelCard = memo(function ReelCard({
 
   return (
     <div
-      className="relative w-full h-full min-h-dvh snap-start snap-always flex items-end justify-center bg-black overflow-hidden select-none"
+      className="relative w-full h-full snap-start snap-always flex items-end justify-center bg-black overflow-hidden select-none"
       onClick={handleVideoTap}
     >
       <video

@@ -58,6 +58,7 @@ const AdminUserDetail = React.lazy(() => import('./app/admin/pages/AdminUserDeta
 const AdminBookings = React.lazy(() => import('./app/admin/pages/AdminBookings'));
 const AdminBookingDetail = React.lazy(() => import('./app/admin/pages/AdminBookingDetail'));
 const AdminPartners = React.lazy(() => import('./app/admin/pages/AdminPartners'));
+const AdminTopRatedPartners = React.lazy(() => import('./app/admin/pages/AdminTopRatedPartners'));
 const AdminPartnerDetail = React.lazy(() => import('./app/admin/pages/AdminPartnerDetail'));
 const AdminReviews = React.lazy(() => import('./app/admin/pages/AdminReviews'));
 const AdminFinance = React.lazy(() => import('./pages/admin/FinanceAndPayoutsPage'));
@@ -273,43 +274,17 @@ const UserProtectedRoute = ({ children }) => {
   return children ? children : <Outlet />;
 };
 
-// Partner Protected Route
+// Partner Protected Route (Unified single-account experience)
 const PartnerProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  const userRaw = localStorage.getItem('user');
-  const user = userRaw ? JSON.parse(userRaw) : null;
   const location = useLocation();
 
-  // Allow access to login/register/join
-  const publicPartnerPaths = ['/hotel/login', '/hotel/register'];
-  if (publicPartnerPaths.some(p => location.pathname.startsWith(p))) {
-    return children ? children : <Outlet />;
+  // If user is not logged in, prompt standard user login
+  if (!token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!token || !user || user.role !== 'partner') {
-    return <Navigate to="/hotel/login" state={{ from: location }} replace />;
-  }
-
-  const isPending = user.partnerApprovalStatus !== 'approved';
-  if (isPending) {
-    const allowedPending = [
-      '/hotel/dashboard',
-      '/hotel/partner-dashboard',
-      '/hotel/join',
-      '/hotel/profile',
-      '/hotel/subscriptions',
-      '/hotel/join-hotel',
-      '/hotel/join-resort',
-      '/hotel/join-hostel',
-      '/hotel/join-villa',
-      '/hotel/join-pg',
-      '/hotel/join-homestay'
-    ];
-    if (!allowedPending.some(p => location.pathname.startsWith(p))) {
-      return <Navigate to="/hotel/dashboard" replace />;
-    }
-  }
-
+  // Any authenticated user can seamlessly access the wizard, properties, and partner dashboard
   return children ? children : <Outlet />;
 };
 
@@ -488,11 +463,11 @@ function App() {
             <Route path="/login/*" element={<Navigate to="/login" replace />} />
 
             {/* Hotel/Partner Module Routes */}
-            <Route path="/hotel/login" element={<HotelLogin />} />
-            <Route path="/hotel/register" element={<HotelSignup />} />
+            <Route path="/hotel/login" element={<Navigate to="/hotel/join" replace />} />
+            <Route path="/hotel/register" element={<Navigate to="/hotel/join" replace />} />
             <Route path="/hotel" element={<HotelLayout />}>
-              <Route index element={<Navigate to="/hotel/login" replace />} />
-              <Route path="partner" element={<Navigate to="/hotel" replace />} />
+              <Route index element={<Navigate to="/hotel/join" replace />} />
+              <Route path="partner" element={<Navigate to="/hotel/join" replace />} />
               {/* Wizard Route */}
               <Route element={<PartnerProtectedRoute />}>
                 <Route path="join" element={<PartnerJoinPropertyType />} />
@@ -545,6 +520,7 @@ function App() {
                 <Route path="bookings" element={<AdminBookings />} />
                 <Route path="bookings/:id" element={<AdminBookingDetail />} />
                 <Route path="partners" element={<AdminPartners />} />
+                <Route path="top-rated-partners" element={<AdminTopRatedPartners />} />
                 <Route path="partners/:id" element={<AdminPartnerDetail />} />
                 <Route path="reviews" element={<AdminReviews />} />
                 <Route path="finance" element={<AdminFinance />} />

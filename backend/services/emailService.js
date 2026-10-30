@@ -10,13 +10,18 @@ class EmailService {
 
   getTransporter() {
     if (!this.transporter) {
+      const { SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASSWORD } = process.env;
+      if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
+        throw new Error('SMTP is not configured: set SMTP_HOST, SMTP_USER and SMTP_PASSWORD in backend/.env');
+      }
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        secure: process.env.SMTP_SECURE === 'true',
+        host: SMTP_HOST,
+        port: Number(SMTP_PORT) || 587,
+        secure: SMTP_SECURE === 'true',
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD,
+          user: SMTP_USER.trim(),
+          // Gmail app passwords are shown with spaces; they must be removed
+          pass: SMTP_PASSWORD.replace(/\s+/g, ''),
         },
       });
     }

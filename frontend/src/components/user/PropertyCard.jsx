@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Star, IndianRupee, Heart, BadgeCheck, BedDouble, Sofa, Users, UtensilsCrossed, ChevronRight, Ruler, Compass, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { userService } from '../../services/apiService';
+import { userService, propertyService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 
 // Indian-style short price for sale/plot cards: 1,00,000 -> "1 Lac", 12,500,000 -> "1.25 Cr"
@@ -56,6 +56,12 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
       return;
     }
 
+    const targetId = _id || item?._id || item?.id;
+    if (!targetId) {
+      toast.error("Invalid property");
+      return;
+    }
+
     if (saveLoading) return;
 
     setSaveLoading(true);
@@ -63,13 +69,23 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
     setIsSaved(newState); // Optimistic update
 
     try {
-      await userService.toggleSavedHotel(_id || item.id);
+      await userService.toggleSavedHotel(targetId);
       toast.success(newState ? "Added to wishlist" : "Removed from wishlist");
     } catch (error) {
       setIsSaved(!newState); // Revert
-      toast.error("Failed to update wishlist");
+      const msg = error?.response?.data?.message || error?.message || "Failed to update wishlist";
+      toast.error(msg);
     } finally {
       setSaveLoading(false);
+    }
+  };
+
+  const handleView = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const targetId = _id || item._id || item.id;
+    if (targetId) {
+      propertyService.recordViewLead(targetId).catch(() => {});
+      navigate(`/hotel/${targetId}`);
     }
   };
 
@@ -165,7 +181,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
   if (variant === 'featured') {
     return (
       <div
-        onClick={() => navigate(`/hotel/${_id}`)}
+        onClick={handleView}
         className={`group relative h-48 md:h-72 rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer bg-gray-200 ${className}`}
       >
         <img
@@ -236,7 +252,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
     return (
       <div
-        onClick={() => navigate(`/hotel/${_id}`)}
+        onClick={handleView}
         className={`group bg-white rounded-2xl overflow-hidden cursor-pointer ring-1 ring-gray-100 shadow-[0_6px_20px_rgba(15,23,42,0.06)] active:scale-[0.98] transition-transform ${className}`}
       >
         <div className="relative h-32 md:h-40 overflow-hidden bg-gray-100">
@@ -317,7 +333,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
     return (
       <div
-        onClick={() => navigate(`/hotel/${_id}`)}
+        onClick={handleView}
         className={`group relative aspect-3/4 rounded-2xl overflow-hidden cursor-pointer bg-gray-200 shadow-[0_6px_16px_rgba(15,23,42,0.14)] active:scale-[0.97] transition-transform ${className}`}
       >
         <img
@@ -383,7 +399,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
     return (
       <div
-        onClick={() => navigate(`/hotel/${_id}`)}
+        onClick={handleView}
         className={`group relative aspect-4/5 rounded-3xl overflow-hidden cursor-pointer bg-gray-200 shadow-[0_10px_28px_rgba(15,23,42,0.18)] active:scale-[0.98] transition-transform ${className}`}
       >
         <img
@@ -451,7 +467,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
     return (
       <div
-        onClick={() => navigate(`/hotel/${_id}`)}
+        onClick={handleView}
         className={`group bg-white rounded-2xl overflow-hidden cursor-pointer ring-1 ring-amber-200 shadow-[0_4px_14px_rgba(180,83,9,0.10)] active:scale-[0.98] transition-transform ${className}`}
       >
         <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
@@ -514,7 +530,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
   if (variant === 'photo') {
     return (
-      <div onClick={() => navigate(`/hotel/${_id}`)} className={`group cursor-pointer ${className}`}>
+      <div onClick={handleView} className={`group cursor-pointer ${className}`}>
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100">
           <img
             src={imageSrc}
@@ -573,7 +589,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
     return (
       <div
-        onClick={() => navigate(`/hotel/${_id}`)}
+        onClick={handleView}
         className={`group relative flex items-center gap-2.5 py-2 md:gap-3 md:py-3 cursor-pointer ${className}`}
       >
         {/* Image */}
@@ -649,7 +665,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
   return (
     <div
-      onClick={() => navigate(`/hotel/${_id}`)}
+      onClick={handleView}
       className={`group bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 shadow-[0_2px_8px_rgba(15,23,42,0.08)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-200 hover:-translate-y-1 ${className}`}
     >
       {/* Image Container - Reduced height for compact look */}
@@ -786,8 +802,10 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Call button removed as per user request */}
-            <button className={`${compact ? 'px-2.5 py-1' : 'px-3 py-1.5'} text-[10px] font-bold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm`}>
+            <button
+              onClick={handleView}
+              className={`${compact ? 'px-2.5 py-1' : 'px-3 py-1.5'} text-[10px] font-bold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm active:scale-95`}
+            >
               View
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
             </button>

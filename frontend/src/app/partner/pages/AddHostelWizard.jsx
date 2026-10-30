@@ -94,6 +94,10 @@ const AddHostelWizard = () => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
+        if ((JSON.parse(saved).step || 0) >= 10) {
+          localStorage.removeItem(STORAGE_KEY);
+          return;
+        }
         const { step: savedStep, propertyForm: savedForm, roomTypes: savedRooms, createdProperty: savedProp } = JSON.parse(saved);
         if (savedForm?.contactNumber) {
           savedForm.contactNumber = sanitizePhoneNumber(savedForm.contactNumber);
@@ -110,7 +114,8 @@ const AddHostelWizard = () => {
 
   // 2. Save to localStorage
   useEffect(() => {
-    if (isEditMode) return;
+    // Never persist the "submitted" screen, or the next new property would reopen on it
+    if (isEditMode || step >= 10) return;
     const timeout = setTimeout(() => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, propertyForm, roomTypes, createdProperty }));
     }, 1000);
@@ -297,9 +302,13 @@ const AddHostelWizard = () => {
       setError('');
       if (!locationSearchQuery.trim()) return;
       const res = await hotelService.searchLocation(locationSearchQuery.trim());
-      setLocationResults(Array.isArray(res?.results) ? res.results : []);
-    } catch {
-      setError('Failed to search location');
+      const results = Array.isArray(res?.results) ? res.results : [];
+      setLocationResults(results);
+      if (results.length === 0) {
+        setError('No locations found. You can enter the address manually below.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Failed to search location');
     }
   };
 
@@ -319,8 +328,8 @@ const AddHostelWizard = () => {
         fullAddress: res.fullAddress || '',
         pincode: res.pincode || ''
       });
-    } catch {
-      setError('Failed to use selected location');
+    } catch (err) {
+      setError(err?.message || 'Failed to use selected location');
     }
   };
 
@@ -771,10 +780,27 @@ const AddHostelWizard = () => {
       setError(errMsg);
       const isSubLimit = e?.limitReached || e?.requiresSubscription || errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('subscription') || errMsg.toLowerCase().includes('upgrade');
       if (isSubLimit) {
-        toast.error(errMsg);
+        const savedDraft = e?.property || e?.response?.data?.property;
+        if (savedDraft?._id) {
+          setCreatedProperty(savedDraft);
+        }
+        localStorage.setItem('hoomzoo_pending_property_draft', JSON.stringify({
+          draftId: savedDraft?._id || createdProperty?._id || null,
+          wizardUrl: window.location.pathname,
+          propertyName: propertyForm.propertyName || 'Hostel Listing Draft',
+          timestamp: Date.now()
+        }));
+        toast.success("Hostel details saved as draft! Redirecting to choose a plan...", { duration: 4000 });
+        toast.error(errMsg, { duration: 4000 });
         setTimeout(() => {
-          navigate('/hotel/subscriptions');
-        }, 1500);
+          navigate('/hotel/subscriptions', {
+            state: {
+              returnUrl: window.location.pathname,
+              draftId: savedDraft?._id || createdProperty?._id || null,
+              propertyName: propertyForm.propertyName || 'Hostel Listing'
+            }
+          });
+        }, 1200);
       }
     } finally {
       setLoading(false);
@@ -782,6 +808,11 @@ const AddHostelWizard = () => {
   };
 
   const handleBack = () => {
+    // Already submitted: leave the wizard instead of stepping back into Review & Submit
+    if (step >= 10) {
+      navigate('/hotel/properties', { replace: true });
+      return;
+    }
     if (step > 1) {
       setStep(step - 1);
     } else {
@@ -1643,7 +1674,7 @@ const AddHostelWizard = () => {
               <p className="text-gray-500 max-w-sm mx-auto">Your hostel listing has been submitted for review. Our team will verify the details and documents within 24-48 hours.</p>
               <button
                 type="button"
-                onClick={() => navigate('/hotel/properties')}
+                onClick={() => navigate('/hotel/properties', { replace: true })}
                 className="btn-primary"
               >
                 Go to My Properties

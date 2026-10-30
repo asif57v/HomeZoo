@@ -19,6 +19,15 @@ export const propertyService = {
     }
   },
 
+  recordViewLead: async (propertyId) => {
+    try {
+      const response = await api.post('/bookings/view-lead', { propertyId });
+      return handleResponse(response);
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
   // Helper to get location
   getCurrentLocation: () => {
     return new Promise((resolve, reject) => {

@@ -125,7 +125,8 @@ const UserLogin = () => {
                 console.warn('FCM update failed', fcmError);
             }
 
-            navigate('/');
+            const dest = location.state?.from?.pathname || location.state?.from || '/';
+            navigate(dest);
         } catch (err) {
             // Check if error is due to account not found
             if (err.response?.data?.requiresRegistration ||

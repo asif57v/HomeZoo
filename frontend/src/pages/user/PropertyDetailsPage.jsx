@@ -204,6 +204,9 @@ const PropertyDetailsPage = () => {
 
   useEffect(() => {
     loadPropertyDetails();
+    if (id) {
+      propertyService.recordViewLead(id).catch(() => {});
+    }
   }, [id]);
 
   // Helper derived state for hooks (safe access)
@@ -257,21 +260,24 @@ const PropertyDetailsPage = () => {
   const handleToggleSave = async () => {
     if (!localStorage.getItem('token')) {
       toast.error("Please login to save properties");
-      // Optional: navigate to login
       return;
     }
+    const targetId = id || property?._id || property?.id;
+    if (!targetId) {
+      toast.error("Invalid property ID");
+      return;
+    }
+    const newState = !isSaved;
     try {
       // Optimistic update
-      const newState = !isSaved;
       setIsSaved(newState);
-
-      await userService.toggleSavedHotel(id);
-
+      await userService.toggleSavedHotel(targetId);
       toast.success(newState ? "Added to wishlist" : "Removed from wishlist");
     } catch (err) {
       // Revert on error
-      setIsSaved(!isSaved);
-      toast.error("Failed to update wishlist");
+      setIsSaved(!newState);
+      const msg = err?.response?.data?.message || err?.message || "Failed to update wishlist";
+      toast.error(msg);
     }
   };
 

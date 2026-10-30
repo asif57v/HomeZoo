@@ -736,7 +736,7 @@ export default function ReelsPage() {
                   <div
                     key={reel._id}
                     data-reel-index={index}
-                    className="h-dvh min-h-dvh snap-start snap-always"
+                    className="h-full snap-start snap-always"
                   >
                     <ReelCard
                       reel={reel}
@@ -996,7 +996,7 @@ export default function ReelsPage() {
             </button>
           </div>
 
-          <div className="w-full h-full">
+          <div className="w-full flex-1 min-h-0 pt-14">
             <ReelCard
               reel={selectedReelForModal}
               isActive={true}

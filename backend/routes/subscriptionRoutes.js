@@ -29,7 +29,7 @@ router.use('/admin', adminRouter);
 // --- PARTNER ROUTES ---
 const partnerRouter = express.Router();
 partnerRouter.use(protect);
-partnerRouter.use(authorizedRoles('partner'));
+partnerRouter.use(authorizedRoles('partner', 'user'));
 
 // Plans / checkout are blocked when the admin turns the subscription system OFF.
 // /current stays readable so existing subscription data is preserved.

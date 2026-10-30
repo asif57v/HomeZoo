@@ -1,3 +1,5 @@
+import SubscriptionPlan from '../models/SubscriptionPlan.js';
+import { resolvePartnerForUser } from '../utils/partnerResolver.js';
 import mongoose from 'mongoose';
 import Property from '../models/Property.js';
 import RoomType from '../models/RoomType.js';
@@ -10,6 +12,7 @@ import notificationService from '../services/notificationService.js';
 import User from '../models/User.js'; // Needed to find Admins? Or Admin model
 import Admin from '../models/Admin.js';
 import { getFeatureFlags } from '../middlewares/featureGuards.js';
+import PlatformSettings from '../models/PlatformSettings.js';
 
 const sanitizePhone = (phone) => {
   if (!phone) return phone;
@@ -38,7 +41,7 @@ const notifyAdminOfNewProperty = async (property) => {
 export const createProperty = async (req, res) => {
   try {
     // --- SUBSCRIPTION GUARD: Check if partner can add more properties ---
-    const partner = await Partner.findById(req.user._id).populate('subscription.planId');
+    const partner = await resolvePartnerForUser(req.user);
     if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
     const { subscription } = partner;
@@ -85,28 +88,19 @@ export const createProperty = async (req, res) => {
     const { subscriptionEnabled } = await getFeatureFlags();
 
     // Check if partner has reached property limit
-    // With an active plan, only properties added under this subscription count
+    // Note: Drafts must NOT count against the active published limit!
     const countQuery = {
-      partnerId: req.user._id,
-      status: { $ne: 'deleted' } // Don't count deleted properties
+      partnerId: partner._id,
+      status: { $nin: ['deleted', 'draft'] }
     };
     if (isSubscriptionActive && subscription.startDate) {
       countQuery.createdAt = { $gte: subscription.startDate };
     }
     const currentPropertyCount = await Property.countDocuments(countQuery);
 
-    // maxAllowed is already determined above based on subscription status
-
-    if (subscriptionEnabled && currentPropertyCount >= maxAllowed) {
-      return res.status(403).json({
-        message: maxAllowed === 0
-          ? 'Please purchase a subscription plan to add properties.'
-          : `Property limit reached. Your plan allows ${maxAllowed} properties. Please upgrade your subscription.`,
-        limitReached: true,
-        currentCount: currentPropertyCount,
-        maxAllowed: maxAllowed
-      });
-    }
+    const isDraftRequested = Boolean(req.body.isDraft);
+    const limitReached = Boolean(subscriptionEnabled && currentPropertyCount >= maxAllowed);
+    const saveAsDraft = isDraftRequested || limitReached;
 
     const { propertyName, contactNumber, propertyType, description, shortDescription, coverImage, propertyImages, amenities, address, location, nearbyPlaces, checkInTime, checkOutTime, cancellationPolicy, houseRules, documents, roomTypes, pgType, hostelType, hostLivesOnProperty, familyFriendly, resortType, activities, hotelCategory, starRating, dynamicCategory, pgDetails, rentDetails, plotDetails, buyDetails } = req.body;
     if (!propertyName || !propertyType || !coverImage) return res.status(400).json({ message: 'Missing required fields' });
@@ -116,13 +110,14 @@ export const createProperty = async (req, res) => {
     const propertyImagesArray = Array.isArray(propertyImages) ? propertyImages : [];
     const docsArray = Array.isArray(documents) ? documents : [];
     const dynamicCategoryId = dynamicCategory && mongoose.Types.ObjectId.isValid(dynamicCategory) ? new mongoose.Types.ObjectId(dynamicCategory) : undefined;
+    
     const doc = new Property({
       propertyName,
       contactNumber: sanitizePhone(contactNumber),
       propertyType: lowerType,
       description,
       shortDescription,
-      partnerId: req.user._id,
+      partnerId: partner._id,
       address,
       location,
       nearbyPlaces: nearbyPlacesArray,
@@ -145,10 +140,12 @@ export const createProperty = async (req, res) => {
       starRating: lowerType === 'hotel' ? starRating : undefined,
       rentDetails: lowerType === 'rent' ? rentDetails : undefined,
       plotDetails: lowerType === 'plot' ? plotDetails : undefined,
-      buyDetails: lowerType === 'buy' ? buyDetails : undefined
+      buyDetails: lowerType === 'buy' ? buyDetails : undefined,
+      status: saveAsDraft ? 'draft' : 'pending',
+      isLive: false
     });
-    // Pricing is now handled in RoomType for ALL types
     await doc.save();
+
     // Inline RoomTypes if provided
     if (Array.isArray(roomTypes) && roomTypes.length > 0) {
       await RoomType.insertMany(
@@ -178,28 +175,40 @@ export const createProperty = async (req, res) => {
         },
         { new: true, upsert: true }
       );
-      // Move property to pending for admin verification
-      doc.status = 'pending';
-      doc.isLive = false;
-      await doc.save();
     }
 
-    // AUTO-SUBMIT: If room types are provided, we consider it a full submission
-    if (Array.isArray(roomTypes) && roomTypes.length > 0 && doc.status === 'draft') {
-      doc.status = 'pending';
-      await doc.save();
+    if (saveAsDraft) {
+      if (limitReached && !isDraftRequested) {
+        return res.status(403).json({
+          message: maxAllowed === 0
+            ? 'Please purchase a subscription plan to publish properties. Your property has been saved to drafts.'
+            : `Property limit reached. Your plan allows ${maxAllowed} properties. Your property has been saved to drafts. Please upgrade your subscription to publish.`,
+          limitReached: true,
+          requiresSubscription: true,
+          draftSaved: true,
+          property: doc,
+          currentCount: currentPropertyCount,
+          maxAllowed
+        });
+      }
+      return res.status(201).json({
+        success: true,
+        isDraft: true,
+        message: 'Property saved as draft successfully',
+        property: doc
+      });
     }
 
-    // NOTIFICATION: Notify Admin & Partner only if pending
-    if (doc.status === 'pending') {
-      notifyAdminOfNewProperty(doc).catch(e => console.error(e));
-      notificationService.sendToUser(req.user._id, {
-        title: 'Property Submitted for Review 📋',
-        body: `"${doc.propertyName}" has been submitted for admin verification. You will be notified once it is live.`
-      }, { type: 'property_submitted', propertyId: doc._id, url: '/partner/properties' }, 'partner').catch(e => console.error(e));
-    }
+    // NORMAL PUBLISH (not draft, subscription active and not reached):
+    doc.status = 'pending';
+    await doc.save();
 
-    // INCREMENT SUBSCRIPTION COUNTER: Update propertiesAdded count
+    notifyAdminOfNewProperty(doc).catch(e => console.error(e));
+    notificationService.sendToUser(req.user._id, {
+      title: 'Property Submitted for Review 📋',
+      body: `"${doc.propertyName}" has been submitted for admin verification. You will be notified once it is live.`
+    }, { type: 'property_submitted', propertyId: doc._id, url: '/partner/properties' }, 'partner').catch(e => console.error(e));
+
     partner.subscription.propertiesAdded = (partner.subscription.propertiesAdded || 0) + 1;
     await partner.save();
 
@@ -216,7 +225,9 @@ export const updateProperty = async (req, res) => {
     const property = await Property.findById(id);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    if (String(property.partnerId) !== String(req.user._id) && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    const partner = await resolvePartnerForUser(req.user);
+    const partnerId = partner ? partner._id : req.user._id;
+    if (String(property.partnerId) !== String(partnerId) && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -370,7 +381,9 @@ export const updateRoomType = async (req, res) => {
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    if (String(property.partnerId) !== String(req.user._id) && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    const partner = await resolvePartnerForUser(req.user);
+    const partnerId = partner ? partner._id : req.user._id;
+    if (String(property.partnerId) !== String(partnerId) && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -448,7 +461,9 @@ export const deleteRoomType = async (req, res) => {
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    if (String(property.partnerId) !== String(req.user._id) && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    const partner = await resolvePartnerForUser(req.user);
+    const partnerId = partner ? partner._id : req.user._id;
+    if (String(property.partnerId) !== String(partnerId) && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -509,7 +524,7 @@ export const getPublicProperties = async (req, res) => {
       amenities,
       lat,
       lng,
-      radius = 50, // default 50km
+      radius, // km; defaults to the admin "Nearby search radius" setting
       guests,
       sort,
       // Rent specific
@@ -526,11 +541,16 @@ export const getPublicProperties = async (req, res) => {
 
     // 1. Geospatial Search (Must be first if used)
     if (lat && lng) {
+      let radiusKm = parseFloat(radius);
+      if (!(radiusKm > 0)) {
+        const settings = await PlatformSettings.getSettings();
+        radiusKm = Number(settings.nearbySearchRadiusKm) || 50;
+      }
       pipeline.push({
         $geoNear: {
           near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
           distanceField: "distance",
-          maxDistance: parseFloat(radius) * 1000, // convert km to meters
+          maxDistance: radiusKm * 1000, // convert km to meters
           spherical: true,
           query: { status: 'approved', isLive: true }
         }
@@ -799,14 +819,94 @@ export const getPublicProperties = async (req, res) => {
   }
 };
 
+
+export const publishDraftProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const property = await Property.findById(id);
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+
+    const partner = await resolvePartnerForUser(req.user);
+    const partnerId = partner ? partner._id : req.user._id;
+    if (String(property.partnerId) !== String(partnerId) && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+      return res.status(403).json({ message: 'Not allowed' });
+    }
+
+    if (property.status !== 'draft') {
+      return res.json({ success: true, message: 'Property is already submitted for review', property });
+    }
+
+    // Check subscription before publishing
+    const { subscriptionEnabled } = await getFeatureFlags();
+    const subscription = partner.subscription || {};
+    const isSubscriptionActive =
+      subscription.status === 'active' &&
+      subscription.expiryDate &&
+      new Date(subscription.expiryDate) > new Date();
+
+    let maxAllowed = 0;
+    if (isSubscriptionActive && subscription.planId) {
+      const plan = subscription.planId.maxProperties ? subscription.planId : await SubscriptionPlan.findById(subscription.planId);
+      maxAllowed = plan?.maxProperties || 0;
+    } else if (partner.freeTrial && typeof partner.freeTrial.granted === 'boolean') {
+      maxAllowed = partner.freeTrial.propertiesLimit || 0;
+    } else {
+      maxAllowed = 9999;
+    }
+
+    const countQuery = {
+      partnerId: partner._id,
+      status: { $nin: ['deleted', 'draft'] }
+    };
+    if (isSubscriptionActive && subscription.startDate) {
+      countQuery.createdAt = { $gte: subscription.startDate };
+    }
+    const currentPropertyCount = await Property.countDocuments(countQuery);
+
+    if (subscriptionEnabled && currentPropertyCount >= maxAllowed) {
+      return res.status(403).json({
+        message: maxAllowed === 0
+          ? 'Please purchase a subscription plan to publish properties.'
+          : `Property limit reached. Your plan allows ${maxAllowed} properties. Please upgrade your subscription.`,
+        limitReached: true,
+        requiresSubscription: true,
+        currentCount: currentPropertyCount,
+        maxAllowed
+      });
+    }
+
+    // Promote to pending for admin verification
+    property.status = 'pending';
+    property.isLive = false;
+    await property.save();
+
+    notifyAdminOfNewProperty(property).catch(e => console.error(e));
+    notificationService.sendToUser(req.user._id, {
+      title: 'Property Submitted for Review 📋',
+      body: `"${property.propertyName}" has been submitted for admin verification. You will be notified once it is live.`
+    }, { type: 'property_submitted', propertyId: property._id, url: '/partner/properties' }, 'partner').catch(e => console.error(e));
+
+    partner.subscription.propertiesAdded = (partner.subscription.propertiesAdded || 0) + 1;
+    await partner.save();
+
+    res.json({ success: true, message: 'Property submitted for review successfully', property });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
 export const getMyProperties = async (req, res) => {
   try {
-    const query = { partnerId: req.user._id, status: { $ne: 'draft' } };
+    const partner = await resolvePartnerForUser(req.user);
+    const partnerId = partner ? partner._id : req.user._id;
+    const query = { partnerId, status: { $ne: 'deleted' } };
     if (req.query.type) {
       query.propertyType = String(req.query.type).toLowerCase();
     }
-    const properties = await Property.find(query).sort({ createdAt: -1 });
-    res.json({ success: true, properties });
+    const all = await Property.find(query).sort({ createdAt: -1 });
+    const properties = all.filter(p => p.status !== 'draft');
+    const drafts = all.filter(p => p.status === 'draft');
+    res.json({ success: true, properties, drafts });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -828,8 +928,13 @@ export const getPropertyDetails = async (req, res) => {
 export const deleteProperty = async (req, res) => {
   try {
     const propertyId = req.params.id;
-    // Ensure the property belongs to the logged-in partner
-    const property = await Property.findOne({ _id: propertyId, partnerId: req.user._id });
+    const partner = await resolvePartnerForUser(req.user);
+    const partnerId = partner ? partner._id : req.user._id;
+    // Ensure the property belongs to the logged-in partner (or admin)
+    const property = await Property.findOne({
+      _id: propertyId,
+      ...(req.user.role === 'admin' || req.user.role === 'superadmin' ? {} : { partnerId })
+    });
 
     if (!property) {
       return res.status(404).json({ message: 'Property not found or unauthorized' });
@@ -923,9 +1028,9 @@ export const revealContact = async (req, res) => {
  */
 export const getRecommendedSellers = async (req, res) => {
   try {
-    // Admin-curated list wins; fall back to automatic ranking when none are picked
+    // Only partners the admin added under "Top Rated Partners" are shown (no automatic fallback)
     const curatedMatch = { isTopRated: true, partnerApprovalStatus: 'approved', isBlocked: { $ne: true } };
-    const curated = (await Partner.countDocuments(curatedMatch)) > 0;
+    const curated = true;
 
     const pipeline = [
       {

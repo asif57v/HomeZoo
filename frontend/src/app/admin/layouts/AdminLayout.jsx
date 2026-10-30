@@ -13,6 +13,7 @@ import adminService from '../../../services/adminService';
 
 const AdminLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [menuSearch, setMenuSearch] = useState('');
     const location = useLocation();
     const navigate = useNavigate();
     const logout = useAdminStore(state => state.logout);
@@ -71,6 +72,7 @@ const AdminLayout = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
         { icon: Users, label: 'User Management', path: '/admin/users' },
         { icon: Building2, label: 'Partner Management', path: '/admin/partners' },
+        { icon: Star, label: 'Top Rated Partners', path: '/admin/top-rated-partners' },
         { icon: Home, label: 'Property Management', path: '/admin/properties' },
         { icon: LayoutGrid, label: 'Categories', path: '/admin/categories' },
         { icon: Calendar, label: 'Bookings', path: '/admin/bookings' },
@@ -92,6 +94,10 @@ const AdminLayout = () => {
         { icon: Settings, label: 'Settings', path: '/admin/settings' },
     ];
 
+    const visibleMenuItems = MENU_ITEMS.filter((item) =>
+        item.label.toLowerCase().includes(menuSearch.trim().toLowerCase())
+    );
+
     return (
         <div className="flex h-screen bg-gray-100 font-sans text-gray-900 overflow-hidden">
 
@@ -111,9 +117,52 @@ const AdminLayout = () => {
                     </div>
                 </div>
 
+                {/* Sidebar menu search */}
+                {isSidebarOpen ? (
+                    <div className="px-3 pt-4">
+                        <div className="relative">
+                            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <input
+                                type="text"
+                                value={menuSearch}
+                                onChange={(e) => setMenuSearch(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && visibleMenuItems.length > 0) {
+                                        navigate(visibleMenuItems[0].path);
+                                        setMenuSearch('');
+                                    }
+                                    if (e.key === 'Escape') setMenuSearch('');
+                                }}
+                                placeholder="Search menu..."
+                                className="w-full pl-9 pr-8 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-white placeholder-gray-500 outline-none focus:border-gray-600"
+                            />
+                            {menuSearch && (
+                                <button
+                                    onClick={() => setMenuSearch('')}
+                                    aria-label="Clear search"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        aria-label="Search menu"
+                        className="mx-3 mt-4 p-2.5 rounded-lg hover:bg-gray-900 text-gray-400 hover:text-white flex justify-center"
+                    >
+                        <Search size={18} />
+                    </button>
+                )}
+
                 {/* Navigation */}
-                <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto custom-scrollbar">
-                    {MENU_ITEMS.map((item) => {
+                <nav className="flex-1 py-4 px-3 space-y-2 overflow-y-auto custom-scrollbar">
+                    {visibleMenuItems.length === 0 && isSidebarOpen && (
+                        <p className="px-4 py-6 text-center text-sm text-gray-500">No menu found</p>
+                    )}
+                    {visibleMenuItems.map((item) => {
                         const isActive = location.pathname.startsWith(item.path);
                         return (
                             <Link

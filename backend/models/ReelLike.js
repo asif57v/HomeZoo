@@ -30,11 +30,10 @@ reelLikeSchema.post('save', async function (doc) {
 
     // Get settings
     // Cannot access static method easily here without importing class, so query directly
-    let settings = await PlatformSettings.findOne();
-    if (!settings) return;
-
-    const target = settings.reelCouponTarget || 1000;
-    const discount = settings.reelCouponDiscount || 500;
+    // Fall back to the defaults when no settings document exists yet
+    const settings = await PlatformSettings.findOne();
+    const target = settings?.reelCouponTarget || 1000;
+    const discount = settings?.reelCouponDiscount || 500;
 
     // Count Likes
     const totalLikes = await mongoose.model('ReelLike').countDocuments({ reel: doc.reel });
@@ -58,9 +57,24 @@ reelLikeSchema.post('save', async function (doc) {
           usageLimit: 1,
           userLimit: 1,
           isActive: true,
-          allowedPropertyType: 'pg'
+          allowedPropertyType: 'pg',
+          ownerUserId: reel.user // personal coupon: only the reel creator can see/use it
         });
         console.log(`Coupon generated for user ${reel.user} on reel ${reel._id}`);
+
+        // Tell the creator they earned it (never block the like on a notification failure)
+        const { default: notificationService } = await import('../services/notificationService.js');
+        notificationService
+          .sendToUser(
+            reel.user,
+            {
+              title: 'You earned a Reel Star Reward!',
+              body: `Your reel hit ${target} likes. Flat ₹${discount} off your next PG stay: ${code}`
+            },
+            { type: 'reel_reward', code },
+            reel.creatorType === 'vendor' ? 'partner' : 'user'
+          )
+          .catch((err) => console.error('Failed to send reel reward notification:', err));
       }
     }
   } catch (e) {

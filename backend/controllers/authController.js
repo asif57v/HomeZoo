@@ -655,7 +655,9 @@ export const updateAdminProfile = async (req, res) => {
       return res.status(403).json({ message: 'Only admins can update this profile' });
     }
 
-    const { name, email, phone } = req.body;
+    const { name, phone } = req.body;
+    // Login looks up the lowercase email, so always store it lowercase
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
 
     const admin = await Admin.findById(req.user.id);
     if (!admin) {
@@ -667,6 +669,9 @@ export const updateAdminProfile = async (req, res) => {
     }
 
     if (email && email !== admin.email) {
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        return res.status(400).json({ message: 'Please enter a valid email address' });
+      }
       const existingEmail = await Admin.findOne({ email, _id: { $ne: admin._id } });
       if (existingEmail) {
         return res.status(409).json({ message: 'Email already in use' });
@@ -698,6 +703,48 @@ export const updateAdminProfile = async (req, res) => {
   } catch (error) {
     console.error('Update Admin Profile Error:', error);
     res.status(500).json({ message: 'Server error updating admin profile' });
+  }
+};
+
+/**
+ * @desc    Admin changes their own login password
+ * @route   PUT /api/auth/admin/change-password
+ * @access  Private (admin)
+ */
+export const changeAdminPassword = async (req, res) => {
+  try {
+    if (!req.user || !['admin', 'superadmin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Only admins can change this password' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+    if (String(newPassword).length < 8) {
+      return res.status(400).json({ message: 'New password must be at least 8 characters' });
+    }
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ message: 'New password must be different from the current password' });
+    }
+
+    const admin = await Admin.findById(req.user.id).select('+password');
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    const isMatched = await bcrypt.compare(currentPassword, admin.password);
+    if (!isMatched) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    admin.password = await bcrypt.hash(String(newPassword), 10);
+    await admin.save();
+
+    res.status(200).json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change Admin Password Error:', error);
+    res.status(500).json({ message: 'Server error changing password' });
   }
 };
 

@@ -1,6 +1,6 @@
 import useFeatureFlagsStore, { RAZORPAY_UNAVAILABLE_MESSAGE } from '../../../store/featureFlagsStore';
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     CheckCircle, ShieldCheck, Package, Clock,
     Crown, Zap, Star, Layout, MapPin, AlertCircle, Check,
@@ -178,11 +178,22 @@ export const getSubscriptionWeightTheme = (plan) => {
 
 const PartnerSubscriptions = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [plans, setPlans] = useState([]);
     const [currentSub, setCurrentSub] = useState(null);
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+
+    const pendingDraftRaw = localStorage.getItem('hoomzoo_pending_property_draft');
+    const pendingDraft = React.useMemo(() => {
+        try {
+            return pendingDraftRaw ? JSON.parse(pendingDraftRaw) : null;
+        } catch {
+            return null;
+        }
+    }, [pendingDraftRaw]);
+    const returnUrl = location.state?.returnUrl || pendingDraft?.wizardUrl;
 
     useEffect(() => {
         fetchData();
@@ -253,6 +264,19 @@ const PartnerSubscriptions = () => {
                             toast.success("Subscription Activated!", { id: toastId });
                             setCurrentSub(verifyRes.subscription);
                             fetchData();
+
+                            if (returnUrl) {
+                                toast.success("Resuming your property listing...", { duration: 3000 });
+                                setTimeout(() => {
+                                    navigate(returnUrl, {
+                                        state: {
+                                            resumeDraft: true,
+                                            draftId: location.state?.draftId || pendingDraft?.draftId,
+                                            categoryId: location.state?.categoryId || pendingDraft?.categoryId
+                                        }
+                                    });
+                                }, 1500);
+                            }
                         } else {
                             toast.error("Verification Failed", { id: toastId });
                         }
@@ -318,6 +342,34 @@ const PartnerSubscriptions = () => {
                     <span className="px-2 py-0.5 rounded-md font-extrabold bg-purple-100 text-purple-900">5x Diamond</span>
                 </div>
             </div>
+
+            {/* Draft Resume Alert Banner */}
+            {returnUrl && (
+                <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-900 flex items-center justify-center font-black shrink-0 mt-0.5">
+                            <Sparkles size={20} />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                                Property Draft Saved: <span className="text-amber-800 underline font-extrabold">{location.state?.propertyName || pendingDraft?.propertyName || 'Your Property'}</span>
+                            </h4>
+                            <p className="text-xs text-slate-600 mt-0.5">
+                                Your listing details are safe. Choose an active plan below to publish it, or return to edit your draft.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => navigate(returnUrl, { state: { resumeDraft: true } })}
+                            className="px-3.5 py-2 rounded-xl bg-white border border-amber-300 text-slate-800 text-xs font-bold hover:bg-amber-50 transition active:scale-95 shadow-xs"
+                        >
+                            Return to Draft
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-24 space-y-3">

@@ -14,12 +14,12 @@ import upload from '../utils/multer.js';
 const router = express.Router();
 
 // Upload routes
-router.post('/upload', protect, authorizedRoles('partner', 'admin', 'superadmin'), upload.array('images', 10), uploadImages);
-router.post('/upload-base64', protect, authorizedRoles('partner', 'admin', 'superadmin'), uploadImagesBase64);
-router.post('/delete-image', protect, authorizedRoles('partner', 'admin', 'superadmin'), deleteImage);
-router.post('/location/address', protect, authorizedRoles('partner', 'admin', 'superadmin'), getAddressFromCoordinates);
-router.get('/location/search', protect, authorizedRoles('partner', 'admin', 'superadmin'), searchLocation);
-router.get('/location/distance', protect, authorizedRoles('partner', 'admin', 'superadmin'), calculateDistance);
+router.post('/upload', protect, authorizedRoles('partner', 'admin', 'superadmin', 'user'), upload.array('images', 10), uploadImages);
+router.post('/upload-base64', protect, authorizedRoles('partner', 'admin', 'superadmin', 'user'), uploadImagesBase64);
+router.post('/delete-image', protect, authorizedRoles('partner', 'admin', 'superadmin', 'user'), deleteImage);
+router.post('/location/address', protect, authorizedRoles('partner', 'admin', 'superadmin', 'user'), getAddressFromCoordinates);
+router.get('/location/search', protect, authorizedRoles('partner', 'admin', 'superadmin', 'user'), searchLocation);
+router.get('/location/distance', protect, authorizedRoles('partner', 'admin', 'superadmin', 'user'), calculateDistance);
 
 // Notification Routes (Reusing userController logic as it handles 'partner' role check)
 import { getNotifications, markNotificationRead, deleteNotifications, markAllNotificationsRead, sendTestNotification } from '../controllers/userController.js';

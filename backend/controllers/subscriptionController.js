@@ -1,3 +1,4 @@
+import { resolvePartnerForUser } from '../utils/partnerResolver.js';
 import SubscriptionPlan from '../models/SubscriptionPlan.js';
 import Partner from '../models/Partner.js';
 import Property from '../models/Property.js';
@@ -141,8 +142,7 @@ export const getActivePlans = async (req, res) => {
  */
 export const getCurrentSubscription = async (req, res) => {
     try {
-        const partnerId = req.user._id || req.user.id;
-        const partner = await Partner.findById(partnerId).populate('subscription.planId');
+        const partner = await resolvePartnerForUser(req.user);
 
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
@@ -173,7 +173,8 @@ export const getCurrentSubscription = async (req, res) => {
 export const createSubscriptionOrder = async (req, res) => {
     try {
         const { planId } = req.body;
-        const partnerId = req.user._id || req.user.id;
+        const partner = await resolvePartnerForUser(req.user);
+        const partnerId = partner ? partner._id : (req.user._id || req.user.id);
 
         const plan = await SubscriptionPlan.findById(planId);
         if (!plan) return res.status(404).json({ message: 'Plan not found' });
@@ -245,7 +246,7 @@ export const verifySubscription = async (req, res) => {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + plan.durationDays);
 
-        const partner = await Partner.findById(partnerId);
+        const partner = await resolvePartnerForUser(req.user) || await Partner.findById(partnerId);
 
         // Logic: Reset properties count or carry over? 
         // Usually, upgrading/renewing gives fresh capacity for that tier, 

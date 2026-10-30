@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Menu, Bell, Wallet, X } from 'lucide-react';
+import { Search, Menu, Bell, Wallet, X, MapPin, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/rokologin-removebg-preview.png';
 import MobileMenu from '../../components/ui/MobileMenu';
 import { useNavigate } from 'react-router-dom';
 import walletService from '../../services/walletService';
 import { fetchIndianPlaces, rankLocations } from '../../utils/placeSuggestions';
+import { setStoredLocation } from '../../utils/userLocation';
 
 const HeroSection = ({ theme, selectedType }) => {
     const accentColor = theme?.accent || '#10B981';
@@ -167,117 +168,126 @@ const HeroSection = ({ theme, selectedType }) => {
         "Search near Red Square..."
     ];
 
-    // Helper for multi-provider reverse geocoding
+    // Builds "Area, City" (e.g. "Vijay Nagar, Indore"); just "City" if no area is known
+    const joinAreaCity = (area, city) => {
+        if (area && city && area.toLowerCase() !== city.toLowerCase()) return `${area}, ${city}`;
+        return city || area || null;
+    };
+
+    // Reverse geocode coordinates into an exact "Area, City" label
     const reverseGeocode = async (latitude, longitude) => {
-        // 1. Google Maps Geocoding API if key is available
+        // 1. Google Maps Geocoding API (map key)
         const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
         if (apiKey) {
             try {
                 const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`);
                 const data = await response.json();
                 if (data.status === 'OK' && data.results.length > 0) {
-                    const addressComponents = data.results[0].address_components;
-                    const locality = addressComponents.find(c => c.types.includes('locality'));
-                    const sublocality = addressComponents.find(c => c.types.includes('sublocality') || c.types.includes('sublocality_level_1'));
-                    const adminArea = addressComponents.find(c => c.types.includes('administrative_area_level_2'));
-                    
-                    const city = locality?.long_name || sublocality?.long_name || adminArea?.long_name || data.results[0].formatted_address.split(',')[0];
-                    if (city) return city;
+                    // Look across all results: the first one is often just a street/plus code
+                    const components = data.results.flatMap(r => r.address_components);
+                    const pick = (...types) => {
+                        for (const t of types) {
+                            const c = components.find(comp => comp.types.includes(t));
+                            if (c) return c.long_name;
+                        }
+                        return null;
+                    };
+                    const city = pick('locality', 'administrative_area_level_3', 'administrative_area_level_2');
+                    const area = pick('sublocality_level_1', 'sublocality', 'neighborhood', 'sublocality_level_2', 'route');
+                    const label = joinAreaCity(area, city);
+                    if (label) return label;
+                } else {
+                    console.warn('Google Geocoding status:', data.status, data.error_message);
                 }
             } catch (e) {
                 console.warn("Google Geocoding failed, falling back...", e);
             }
         }
 
-        // 2. BigDataCloud free client reverse geocoding API (Fast, free & CORS friendly)
+        // 2. OpenStreetMap Nominatim (good area-level detail)
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&addressdetails=1&lat=${latitude}&lon=${longitude}`);
+            const data = await response.json();
+            const addr = data.address || {};
+            const city = addr.city || addr.town || addr.village || addr.state_district || addr.county;
+            const area = addr.suburb || addr.neighbourhood || addr.quarter || addr.residential || addr.city_district || addr.road;
+            const label = joinAreaCity(area, city);
+            if (label) return label;
+        } catch (e) {
+            console.warn("Nominatim Geocoding failed, falling back...", e);
+        }
+
+        // 3. BigDataCloud free client API
         try {
             const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
             const data = await response.json();
-            const city = data.city || data.locality || data.principalSubdivision;
-            if (city) return city;
+            const city = data.city || data.principalSubdivision;
+            const label = joinAreaCity(data.locality, city);
+            if (label) return label;
         } catch (e) {
-            console.warn("BigDataCloud Geocoding failed, falling back...", e);
-        }
-
-        // 3. OpenStreetMap Nominatim fallback
-        try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-            const data = await response.json();
-            const addr = data.address || {};
-            const city = addr.city || addr.town || addr.village || addr.suburb || addr.state_district || addr.county;
-            if (city) return city;
-        } catch (e) {
-            console.warn("Nominatim Geocoding failed...", e);
+            console.warn("BigDataCloud Geocoding failed...", e);
         }
 
         return null;
     };
 
-    // Auto-detect live location as soon as page/app opens without clicking
+    // Auto-detect live location as soon as the page opens.
+    // 1) Browser GPS (accurate)  2) Google Geolocation API via the map key (network/IP based)
     useEffect(() => {
-        const fetchSilentLocation = async () => {
-            const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
-            
-            // If API key is present, try silent IP-based geolocation first
-            if (apiKey) {
-                try {
-                    setIsLocating(true);
-                    const geoRes = await fetch(`https://www.googleapis.com/geolocation/v1/geolocate?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ considerIp: true })
-                    });
-                    const geoData = await geoRes.json();
-                    
-                    if (geoData.location) {
-                        const { lat, lng } = geoData.location;
-                        const detectedCity = await reverseGeocode(lat, lng);
-                        if (detectedCity) {
-                            setSelectedLocation(detectedCity);
-                            setSearchQuery(prev => prev ? prev : detectedCity);
-                            localStorage.setItem('user_location', detectedCity);
-                            localStorage.setItem('user_coords', JSON.stringify({ lat, lng }));
-                            setIsLocating(false);
-                            return; // Success, exit
-                        }
-                    }
-                } catch (err) {
-                    console.warn("Silent geolocation failed, falling back to browser GPS:", err);
-                }
-            }
+        let cancelled = false;
 
-            // Fallback to browser geolocation
-            if (!navigator.geolocation) {
-                setIsLocating(false);
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    try {
-                        const { latitude, longitude } = position.coords;
-                        const detectedCity = await reverseGeocode(latitude, longitude);
-                        if (detectedCity) {
-                            setSelectedLocation(detectedCity);
-                            setSearchQuery(prev => prev ? prev : detectedCity);
-                            localStorage.setItem('user_location', detectedCity);
-                            localStorage.setItem('user_coords', JSON.stringify({ lat: latitude, lng: longitude }));
-                        }
-                    } catch (err) {
-                        console.error("Auto detect location error:", err);
-                    } finally {
-                        setIsLocating(false);
-                    }
-                },
-                (error) => {
-                    console.warn("Geolocation auto-detect denied or error:", error);
-                    setIsLocating(false);
-                },
-                { timeout: 10000, enableHighAccuracy: true }
-            );
+        const applyLocation = async (lat, lng) => {
+            const detectedCity = await reverseGeocode(lat, lng);
+            if (cancelled) return;
+            const label = detectedCity || localStorage.getItem('user_location') || 'Indore';
+            setSelectedLocation(label);
+            setStoredLocation(label, { lat, lng });
         };
 
-        fetchSilentLocation();
+        const tryGoogleGeolocate = async () => {
+            const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
+            if (!apiKey) return;
+            try {
+                const geoRes = await fetch(`https://www.googleapis.com/geolocation/v1/geolocate?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ considerIp: true })
+                });
+                const geoData = await geoRes.json();
+                if (geoData.location) {
+                    await applyLocation(geoData.location.lat, geoData.location.lng);
+                } else {
+                    console.warn('Google geolocation returned no location:', geoData.error?.message);
+                }
+            } catch (err) {
+                console.warn('Google geolocation failed:', err);
+            }
+        };
+
+        const getBrowserPosition = () => new Promise((resolve, reject) => {
+            if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
+            navigator.geolocation.getCurrentPosition(
+                (pos) => resolve(pos.coords),
+                reject,
+                { timeout: 10000, enableHighAccuracy: true, maximumAge: 5 * 60 * 1000 }
+            );
+        });
+
+        const detect = async () => {
+            setIsLocating(true);
+            try {
+                const coords = await getBrowserPosition();
+                await applyLocation(coords.latitude, coords.longitude);
+            } catch (err) {
+                console.warn('Browser GPS unavailable, using map key geolocation:', err?.message || err);
+                await tryGoogleGeolocate();
+            } finally {
+                if (!cancelled) setIsLocating(false);
+            }
+        };
+
+        detect();
+        return () => { cancelled = true; };
     }, []);
 
     useEffect(() => {
@@ -344,7 +354,8 @@ const HeroSection = ({ theme, selectedType }) => {
         setIsSearchFocused(false);
     };
 
-    const handleDetectLocation = async (e) => {
+    // goToSearch=false just refreshes the location and stays on the page
+    const handleDetectLocation = async (e, goToSearch = true) => {
         if (e && e.stopPropagation) e.stopPropagation();
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser");
@@ -360,15 +371,15 @@ const HeroSection = ({ theme, selectedType }) => {
                     
                     if (detectedCity) {
                         setSelectedLocation(detectedCity);
-                        localStorage.setItem('user_location', detectedCity);
-                        localStorage.setItem('user_coords', JSON.stringify({ lat: latitude, lng: longitude }));
-                        let url = `/search?search=${detectedCity}`;
+                        setStoredLocation(detectedCity, { lat: latitude, lng: longitude });
+                        if (!goToSearch) return;
+                        let url = `/search?search=${encodeURIComponent(detectedCity.split(',').pop().trim())}`;
                         if (selectedType && selectedType.id && selectedType.label !== 'All') {
                             url += `&type=${selectedType.id}`;
                         }
                         navigate(url);
                         setIsSearchFocused(false);
-                    } else {
+                    } else if (goToSearch) {
                         navigate(`/search?lat=${latitude}&lng=${longitude}`);
                         setIsSearchFocused(false);
                     }
@@ -415,7 +426,23 @@ const HeroSection = ({ theme, selectedType }) => {
                     />
                 </div>
 
-                <div className="flex-1" />
+                {/* Current location (auto-detected) */}
+                <div className="flex-1 min-w-0 flex justify-center px-2">
+                    <button
+                        onClick={(e) => handleDetectLocation(e, false)}
+                        className="flex items-center gap-1 max-w-full px-2 py-1 rounded-full bg-white/15 border border-white/25 backdrop-blur-md active:scale-95 transition"
+                        aria-label="Detect current location"
+                    >
+                        {isLocating ? (
+                            <Loader2 size={12} className="text-white animate-spin shrink-0" />
+                        ) : (
+                            <MapPin size={12} className="text-white shrink-0" />
+                        )}
+                        <span className="text-[11px] font-semibold text-white truncate">
+                            {isLocating ? 'Locating...' : selectedLocation}
+                        </span>
+                    </button>
+                </div>
 
                 {/* Wallet Balance Display */}
                 <button
@@ -496,7 +523,7 @@ const HeroSection = ({ theme, selectedType }) => {
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                             <circle cx="12" cy="10" r="3"></circle>
                         </svg>
-                        <span className="font-semibold text-gray-800 text-sm max-w-[100px] truncate">{selectedLocation}</span>
+                        <span className="font-semibold text-gray-800 text-sm max-w-45 truncate" title={selectedLocation}>{selectedLocation}</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -634,7 +661,7 @@ const HeroSection = ({ theme, selectedType }) => {
                                                          e.stopPropagation();
                                                          setSelectedLocation(loc);
                                                          setSearchQuery(loc);
-                                                         localStorage.setItem('user_location', loc);
+                                                         setStoredLocation(loc, null);
                                                          handleSearchClick(loc);
                                                      }}
                                                 >

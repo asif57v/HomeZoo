@@ -115,7 +115,7 @@ const BottomNavbar = () => {
     const navItems = [
         { name: 'Home', icon: HomeIcon, route: '/' },
         { name: 'Reels', icon: ReelsIcon, route: '/reels' },
-        { name: 'Add Property', icon: Plus, route: '/hotel/login', isCenter: true },
+        { name: 'Add Property', icon: Plus, route: '/hotel/join', isCenter: true },
         { name: 'Bookings', icon: BookingsIcon, route: '/bookings' },
         { name: 'Profile', icon: ProfileIcon, route: '/profile/edit' },
     ];
@@ -131,6 +131,15 @@ const BottomNavbar = () => {
     const activeTab = getActiveTab(location.pathname);
 
     const handleNavClick = (item) => {
+        if (item.name === 'Add Property') {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/login', { state: { from: { pathname: '/hotel/join' } } });
+                return;
+            }
+            navigate('/hotel/join');
+            return;
+        }
         navigate(item.route);
     };
 

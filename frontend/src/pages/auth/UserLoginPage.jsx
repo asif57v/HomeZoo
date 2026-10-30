@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Phone, Mail, ArrowRight, Shield } from 'lucide-react';
 import { authService } from '../../services/apiService';
 
 const UserLoginPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [loginMethod, setLoginMethod] = useState('phone'); // phone | email
     const [step, setStep] = useState('input'); // input | otp
     const [phone, setPhone] = useState('');
@@ -70,7 +71,8 @@ const UserLoginPage = () => {
 
         try {
             await authService.verifyOtp({ phone, otp: otpValue });
-            navigate('/');
+            const dest = location.state?.from?.pathname || location.state?.from || '/';
+            navigate(dest);
         } catch (err) {
             setError(err.message || 'Invalid OTP');
         } finally {

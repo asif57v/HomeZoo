@@ -103,18 +103,6 @@ const AdminPartners = () => {
         }
     };
 
-    const handleTopRated = async (user) => {
-        try {
-            const res = await adminService.updatePartnerTopRated(user._id, !user.isTopRated);
-            if (res.success) {
-                toast.success(res.message);
-                fetchUsers(currentPage, filters);
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update top rated status');
-        }
-    };
-
     const handleApproval = async (userId, status) => {
         try {
             const res = await adminService.updatePartnerApproval(userId, status);
@@ -369,11 +357,6 @@ const AdminPartners = () => {
                                                             <Link to={`/admin/partners/${user._id}`} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-[10px] font-bold uppercase text-gray-700">
                                                                 <Eye size={14} /> View Details
                                                             </Link>
-                                                            {user.partnerApprovalStatus === 'approved' && (
-                                                                <button onClick={() => { setActiveDropdown(null); handleTopRated(user); }} className="w-full flex items-center gap-2 px-4 py-2 hover:bg-amber-50 text-[10px] font-bold uppercase text-amber-700">
-                                                                    <Star size={14} className={user.isTopRated ? 'fill-amber-500' : ''} /> {user.isTopRated ? 'Remove Top Rated' : 'Add to Top Rated'}
-                                                                </button>
-                                                            )}
                                                             {user.partnerApprovalStatus !== 'approved' && (
                                                                 <button onClick={() => handleAction('approve', user)} className="w-full flex items-center gap-2 px-4 py-2 hover:bg-green-50 text-[10px] font-bold uppercase text-green-700">
                                                                     <CheckCircle size={14} /> Approve

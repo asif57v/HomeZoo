@@ -58,11 +58,32 @@ export const getFinancialSettings = async (req, res) => {
 };
 
 // Public: global feature switches (subscription / Razorpay) shared by the User App and Hotel Panel
+export const getTopRatedSectionConfig = async (req, res) => {
+  try {
+    const settings = await PlatformSettings.getSettings();
+    const c = settings.topRatedPartnersSection || {};
+    res.set('Cache-Control', 'no-store');
+    res.status(200).json({
+      success: true,
+      enabled: c.enabled !== false,
+      badgeText: c.badgeText ?? 'Verified Excellence',
+      title: c.title || 'Top Rated HomeZo Partners',
+      subtitle: c.subtitle ?? '',
+      buttonText: c.buttonText ?? 'View All Partners',
+      maxPartners: c.maxPartners || 6
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error fetching section settings' });
+  }
+};
+
 export const getPublicFeatureFlags = async (req, res) => {
   try {
     const { subscriptionEnabled, razorpayEnabled } = await getFeatureFlags();
+    const settings = await PlatformSettings.getSettings();
+    const nearbySearchRadiusKm = Number(settings.nearbySearchRadiusKm) || 50;
     res.set('Cache-Control', 'no-store');
-    res.status(200).json({ success: true, subscriptionEnabled, razorpayEnabled });
+    res.status(200).json({ success: true, subscriptionEnabled, razorpayEnabled, nearbySearchRadiusKm });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching feature flags' });
   }

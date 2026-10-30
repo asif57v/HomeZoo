@@ -1,3 +1,4 @@
+import { resolvePartnerForUser } from '../utils/partnerResolver.js';
 import Property from '../models/Property.js';
 import RoomType from '../models/RoomType.js';
 import Booking from '../models/Booking.js';
@@ -14,6 +15,59 @@ import emailService from '../services/emailService.js';
 import notificationService from '../services/notificationService.js';
 import referralService from '../services/referralService.js';
 import User from '../models/User.js';
+import Partner from '../models/Partner.js';
+import SubscriptionPlan from '../models/SubscriptionPlan.js';
+
+/**
+ * Helper: Check if a partner has a valid subscription or free trial lead allowance
+ */
+export const checkPartnerSubscriptionValid = async (partnerId) => {
+  try {
+    const { subscriptionEnabled } = await getFeatureFlags();
+    if (!subscriptionEnabled) {
+      return { isValid: true, reason: 'subscription_disabled' };
+    }
+
+    const partner = await Partner.findById(partnerId).populate('subscription.planId');
+    if (!partner) {
+      return { isValid: false, reason: 'partner_not_found' };
+    }
+
+    const sub = partner.subscription;
+    const plan = sub?.planId;
+
+    // 1. Check Active Paid Subscription
+    if (sub && sub.status === 'active' && !sub.isPaused) {
+      const isNotExpired = !sub.expiryDate || new Date(sub.expiryDate) > new Date();
+      if (isNotExpired) {
+        // If tier has leadCap, check monthly limit
+        if (plan && plan.leadCap > 0 && (sub.leadsUsedThisMonth || 0) >= plan.leadCap) {
+          return { isValid: false, reason: 'lead_cap_reached', partner, plan };
+        }
+        return { isValid: true, reason: 'active_subscription', partner, plan };
+      }
+    }
+
+    // 2. Check Free Trial leads
+    if (partner.freeTrial && partner.freeTrial.granted === true) {
+      const leadsLimit = partner.freeTrial.leadsLimit || 0;
+      const leadsUsed = partner.freeTrial.leadsUsed || 0;
+      if (leadsUsed < leadsLimit) {
+        return { 
+          isValid: true, 
+          reason: 'free_trial', 
+          partner, 
+          remainingLeads: leadsLimit - leadsUsed 
+        };
+      }
+    }
+
+    return { isValid: false, reason: 'no_active_subscription', partner };
+  } catch (error) {
+    console.error('Check Partner Subscription Error:', error);
+    return { isValid: false, reason: 'error_checking_subscription' };
+  }
+};
 
 // Helper: Trigger Notifications
 const triggerBookingNotifications = async (booking) => {
@@ -252,13 +306,16 @@ export const createBooking = async (req, res) => {
           bookingStatus: { $nin: ['cancelled', 'rejected'] }
         });
         const isUnderUserLimit = userUsageCount < (offer.userLimit || 1);
+        // Total limit + personal-coupon owner (validate endpoint enforces these, booking must too)
+        const isUnderTotalLimit = !offer.usageLimit || (offer.usageCount || 0) < offer.usageLimit;
+        const isOwnerAllowed = offer.isUsableBy(req.user._id);
 
         // --- ENFORCE PROPERTY TYPE RESTRICTION ---
         const isAllowedType = !offer.allowedPropertyType ||
           offer.allowedPropertyType === 'all' ||
           offer.allowedPropertyType === pType;
 
-        if (isValidDate && isValidAmount && isUnderUserLimit && isAllowedType) {
+        if (isValidDate && isValidAmount && isUnderUserLimit && isUnderTotalLimit && isOwnerAllowed && isAllowedType) {
           if (offer.discountType === 'percentage') {
             discountAmount = (grossAmount * offer.discountValue) / 100;
             if (offer.maxDiscount) {
@@ -612,8 +669,16 @@ export const getBookingDetail = async (req, res) => {
 
 export const getPartnerBookings = async (req, res) => {
   try {
+    const partner = await resolvePartnerForUser(req.user);
+    const partnerId = partner ? partner._id : req.user._id;
+
+    // Check Partner's subscription status (admin always has full access)
+    const subCheck = req.user.role === 'admin'
+      ? { isValid: true, reason: 'admin' }
+      : await checkPartnerSubscriptionValid(partnerId);
+
     // 1. Find all properties owned by this partner
-    const properties = await Property.find({ partnerId: req.user._id }).select('_id');
+    const properties = await Property.find({ partnerId }).select('_id');
     const propertyIds = properties.map(p => p._id);
 
     // 2. Find bookings for these properties
@@ -622,7 +687,7 @@ export const getPartnerBookings = async (req, res) => {
 
     if (status) {
       if (status === 'upcoming') {
-        // Upcoming: Confirmed guests arriving or New Inquiries
+        // Upcoming: Confirmed guests arriving or New Inquiries / Leads
         query.$or = [
           { bookingStatus: 'confirmed', isInquiry: false },
           { bookingStatus: 'pending', isInquiry: true }, // New Inquiries
@@ -651,13 +716,45 @@ export const getPartnerBookings = async (req, res) => {
       }
     }
 
-    const bookings = await Booking.find(query)
+    const rawBookings = await Booking.find(query)
       .populate('userId', 'name email phone avatar')
       .populate('propertyId', 'propertyName address location coverImage')
       .populate('roomTypeId', 'name')
       .sort({ createdAt: -1 });
 
-    res.json(bookings);
+    // 3. Subscription gating & contact masking
+    const bookings = rawBookings.map(b => {
+      const bObj = b.toObject();
+      const isLeadInquiry = bObj.isInquiry === true;
+
+      // If it's an inquiry/lead and partner does NOT have a valid subscription, lock & mask contact details
+      if (isLeadInquiry && !subCheck.isValid) {
+        bObj.isLocked = true;
+        bObj.hasValidSubscription = false;
+        if (bObj.userId) {
+          const rawPhone = bObj.userId.phone || '';
+          bObj.userId.phone = rawPhone.length > 4
+            ? `${rawPhone.slice(0, 3)}••••••${rawPhone.slice(-2)}`
+            : '••••••••••';
+          const rawEmail = bObj.userId.email || '';
+          bObj.userId.email = rawEmail.includes('@')
+            ? `${rawEmail.slice(0, 2)}••••@••••`
+            : '••••@••••';
+        }
+      } else {
+        bObj.isLocked = false;
+        bObj.hasValidSubscription = true;
+      }
+
+      return bObj;
+    });
+
+    res.json({
+      success: true,
+      hasValidSubscription: subCheck.isValid,
+      subscriptionReason: subCheck.reason,
+      bookings
+    });
   } catch (error) {
     console.error('Get Partner Bookings Error:', error);
     res.status(500).json({ message: 'Server error fetching bookings' });
@@ -676,20 +773,154 @@ export const getPartnerBookingDetail = async (req, res) => {
     }
 
     // Verify ownership
-    // Ensure propertyId is populated and has partnerId
     if (!booking.propertyId || !booking.propertyId.partnerId) {
-      // Fallback or error if data consistency issue
       return res.status(403).json({ message: 'Booking data invalid (property link missing)' });
     }
 
-    if (booking.propertyId.partnerId.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin' && booking.propertyId.partnerId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to view this booking' });
     }
 
-    res.json(booking);
+    const bObj = booking.toObject();
+
+    // Check subscription if inquiry
+    if (bObj.isInquiry) {
+      const subCheck = req.user.role === 'admin'
+        ? { isValid: true, reason: 'admin' }
+        : await checkPartnerSubscriptionValid(req.user._id);
+
+      if (!subCheck.isValid) {
+        bObj.isLocked = true;
+        bObj.hasValidSubscription = false;
+        if (bObj.userId) {
+          const rawPhone = bObj.userId.phone || '';
+          bObj.userId.phone = rawPhone.length > 4
+            ? `${rawPhone.slice(0, 3)}••••••${rawPhone.slice(-2)}`
+            : '••••••••••';
+          const rawEmail = bObj.userId.email || '';
+          bObj.userId.email = rawEmail.includes('@')
+            ? `${rawEmail.slice(0, 2)}••••@••••`
+            : '••••@••••';
+        }
+      } else {
+        bObj.isLocked = false;
+        bObj.hasValidSubscription = true;
+      }
+    }
+
+    res.json(bObj);
   } catch (error) {
     console.error('Get Partner Booking Detail Error:', error);
     res.status(500).json({ message: 'Server error fetching booking details' });
+  }
+};
+
+/**
+ * @desc    Generate a view lead when a user views a property listing
+ * @route   POST /api/bookings/view-lead
+ * @access  Public / Optional Protect
+ */
+export const generateViewLead = async (req, res) => {
+  try {
+    const { propertyId } = req.body;
+    if (!propertyId) {
+      return res.status(400).json({ success: false, message: 'Property ID is required' });
+    }
+
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({ success: false, message: 'Property not found' });
+    }
+
+    // 1. Identify User or fallback to guest user
+    let user = req.user;
+    let userModel = 'User';
+
+    if (user) {
+      userModel = user.constructor.modelName || (user.isPartner ? 'Partner' : 'User');
+
+      // Prevent self-lead if owner views their own property
+      if (property.partnerId && property.partnerId.toString() === user._id.toString()) {
+        return res.json({ success: true, message: 'Owner viewing own property, lead skipped', skipped: true });
+      }
+    } else {
+      // Find or create fallback system guest user
+      user = await User.findOne({ phone: '9999999999' });
+      if (!user) {
+        user = await User.create({
+          name: 'Interested Guest',
+          phone: '9999999999',
+          email: 'guest@hoomzo.com',
+          password: 'GuestUser12345!'
+        });
+      }
+      userModel = 'User';
+    }
+
+    // 2. Deduplication check: Has this user viewed this property in the last 4 hours?
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
+    const recentLead = await Booking.findOne({
+      userId: user._id,
+      propertyId: property._id,
+      isInquiry: true,
+      createdAt: { $gte: fourHoursAgo }
+    });
+
+    if (recentLead) {
+      return res.json({
+        success: true,
+        message: 'Lead already generated recently',
+        booking: recentLead,
+        deduplicated: true
+      });
+    }
+
+    // 3. Create lead as Booking inquiry
+    const pType = (property.propertyType || 'pg').toLowerCase();
+    const bookingId = `LEAD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const leadBudget = pType === 'buy'
+      ? (property.buyDetails?.expectedPrice || 0)
+      : (pType === 'rent'
+        ? (property.rentDetails?.monthlyRent || 0)
+        : (property.pgDetails?.monthlyRent || property.startingPrice || 0));
+
+    const lead = new Booking({
+      bookingId,
+      userModel,
+      userId: user._id,
+      propertyId: property._id,
+      propertyType: pType,
+      isInquiry: true,
+      bookingStatus: 'pending',
+      guests: { adults: 1, children: 0 },
+      inquiryMetadata: {
+        preferredDate: new Date(),
+        message: `Viewed property on Hoomzo (${new Date().toLocaleDateString('en-GB')})`,
+        budget: leadBudget,
+        status: 'new'
+      }
+    });
+
+    await lead.save();
+
+    // 4. Real-time Notification to Partner
+    if (property.partnerId) {
+      notificationService.sendToUser(property.partnerId, {
+        title: 'New Lead Generated! 🎯',
+        body: `${user.name || 'A customer'} viewed ${property.propertyName || 'your property'}. Check your enquiries!`
+      }, { type: 'new_lead', bookingId: lead._id, url: '/hotel/bookings' }, 'partner').catch(e => console.error('Partner lead notification error:', e));
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Lead generated successfully',
+      booking: lead
+    });
+
+  } catch (error) {
+    console.error('Generate View Lead Error:', error);
+    res.status(500).json({ success: false, message: 'Server error generating lead' });
   }
 };
 

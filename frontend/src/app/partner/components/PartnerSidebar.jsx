@@ -42,7 +42,7 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
         await authService.logout(detectPlatform());
         usePartnerStore.getState().resetForm();
         onClose();
-        navigate('/hotel/login');
+        navigate('/');
     };
 
     const MenuItem = ({ icon: Icon, label, path, badge }) => (
@@ -170,6 +170,16 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="px-5 mb-4">
+                            <button
+                                onClick={() => handleNavigation('/')}
+                                className="w-full py-2.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 border border-amber-500/20 transition-all active:scale-95"
+                            >
+                                <Building size={14} />
+                                Switch to Guest View (Home)
+                            </button>
                         </div>
 
                         <div className="px-5 space-y-5 pb-32">

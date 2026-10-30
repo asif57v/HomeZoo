@@ -42,6 +42,10 @@ const partnerSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  savedHotels: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Property'
+  }],
   // Owner Details
   ownerName: { type: String, trim: true },
   aadhaarNumber: { type: String, trim: true },

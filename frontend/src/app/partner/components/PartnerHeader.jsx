@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Wallet, Bell } from 'lucide-react';
+import { Menu, Wallet, Bell, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../assets/rokologin-removebg-preview.png';
 import PartnerSidebar from './PartnerSidebar';
@@ -50,7 +50,11 @@ const PartnerHeader = ({ title, subtitle }) => {
                     <Menu size={18} className="text-gray-700 hover:text-[#005CA8]" />
                 </button>
 
-                <div className="flex flex-col items-start pt-1 ml-4">
+                <div 
+                    onClick={() => navigate('/')} 
+                    className="flex flex-col items-start pt-1 ml-4 cursor-pointer hover:opacity-80 transition-opacity"
+                    title="Go to Home"
+                >
                     <div className="font-black tracking-tighter flex items-center text-xl">
                         <span className="text-slate-900">HOOM</span>
                         <span className="text-amber-600">ZO</span>
@@ -61,6 +65,14 @@ const PartnerHeader = ({ title, subtitle }) => {
                 <div className="flex-1" />
 
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors active:scale-95"
+                        title="Switch to Guest View"
+                    >
+                        <Home size={13} />
+                        <span className="hidden sm:inline">Guest View</span>
+                    </button>
                     <button
                         onClick={() => navigate('/hotel/notifications')}
                         className="relative p-1.5 rounded-full bg-white hover:bg-gray-100 transition shadow-sm border border-gray-100"

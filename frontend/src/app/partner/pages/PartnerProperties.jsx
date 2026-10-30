@@ -17,6 +17,7 @@ const PartnerProperties = () => {
   const [subscription, setSubscription] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [drafts, setDrafts] = useState([]);
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -30,6 +31,7 @@ const PartnerProperties = () => {
         grouped[type].push(p);
       });
       setPropertiesByType(grouped);
+      setDrafts(res.drafts || []);
     } catch (e) {
       setError(e?.message || 'Failed to load properties');
     } finally {
@@ -128,6 +130,7 @@ const PartnerProperties = () => {
         }
       }
       setPropertiesByType(updatedGroups);
+      setDrafts(prev => prev.filter(p => p._id !== propertyToDelete._id));
       setPropertyToDelete(null);
     } catch (e) {
       setError(e?.message || 'Failed to delete property');
@@ -159,6 +162,66 @@ const PartnerProperties = () => {
             </button>
           </div>
         </div>
+
+        {/* Draft Listings Section */}
+        {drafts.length > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-300 rounded-2xl p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Unfinished Drafts ({drafts.length})
+                </h3>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                Not Published
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 mb-3">
+              These listings were saved as drafts. You can resume editing and publish them whenever you're ready!
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {drafts.map((draft) => (
+                <div key={draft._id} className="bg-white rounded-xl p-3 border border-amber-200/80 flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+                      {draft.coverImage ? (
+                        <img src={draft.coverImage} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px] font-bold">
+                          Draft
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-xs text-slate-900 truncate">
+                        {draft.propertyName || 'Untitled Draft'}
+                      </h4>
+                      <p className="text-[10px] text-gray-500 uppercase font-semibold truncate">
+                        {draft.propertyType} • {draft.address?.city || 'No Location'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => handleEditProperty(draft)}
+                      className="px-3 py-1.5 rounded-lg bg-[#005CA8] hover:bg-[#004b8a] text-white text-xs font-bold active:scale-95 transition"
+                    >
+                      Resume
+                    </button>
+                    <button
+                      onClick={() => setPropertyToDelete(draft)}
+                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
+                      title="Delete Draft"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Filter Tabs */}
         {sections.length > 0 && (

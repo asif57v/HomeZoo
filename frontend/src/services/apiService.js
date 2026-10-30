@@ -48,7 +48,7 @@ api.interceptors.response.use(
       if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/otp')) {
         console.warn("Session expired or account blocked. Redirecting to login...");
         if (window.location.pathname.includes('/hotel/')) {
-          window.location.href = '/hotel/login';
+          window.location.href = '/login';
         } else {
           window.location.href = '/';
         }
@@ -256,12 +256,22 @@ export const bookingService = {
       throw error.response?.data || error.message;
     }
   },
-
-
+  recordViewLead: async (propertyId) => {
+    try {
+      const response = await api.post('/bookings/view-lead', { propertyId });
+      return response.data;
+    } catch (error) {
+      console.warn('View lead record skipped/failed:', error?.message);
+      return { success: false, error: error?.message };
+    }
+  }
 };
 
 // Property Services (New)
 export const propertyService = {
+  recordViewLead: async (propertyId) => {
+    return bookingService.recordViewLead(propertyId);
+  },
   createProperty: async (propertyData) => {
     try {
       // Ensure structureDetails is included if present
@@ -294,6 +304,14 @@ export const propertyService = {
   delete: async (id) => {
     try {
       const response = await api.delete(`/properties/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+  publishDraft: async (id, data = {}) => {
+    try {
+      const response = await api.post(`/properties/${id}/publish`, data);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

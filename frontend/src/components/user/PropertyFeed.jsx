@@ -10,7 +10,7 @@ const TILE_CONFIG = {
   'plot-grid': { variant: 'plot', width: 'w-[52vw] min-w-[52vw] max-w-56 md:w-56 md:min-w-56', ratio: 'aspect-4/5' }
 };
 
-const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, extraFilters = {} }) => {
+const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'grid', limit, extraFilters = {} }) => {
   const [properties, setProperties] = useState([]);
   const [savedHotelIds, setSavedHotelIds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +34,26 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
           filters.type = selectedType;
         }
 
+        // Location: nearby (lat/lng) first, then fall back to matching the city name
+        const nearLat = nearLocation?.lat;
+        const nearLng = nearLocation?.lng;
+        const nearCity = nearLocation?.city;
+        const fetchByLocation = async () => {
+          if (nearLat != null && nearLng != null) {
+            const nearby = await propertyService.getPublic({
+              // No radius sent: the backend uses the admin "Nearby search radius" setting
+              ...filters, lat: nearLat, lng: nearLng, sort: 'distance'
+            });
+            if (Array.isArray(nearby) && nearby.length > 0) return nearby;
+          }
+          if (nearCity) {
+            return propertyService.getPublic({ ...filters, search: nearCity });
+          }
+          return propertyService.getPublic(filters);
+        };
+
         // Fetch properties and saved status in parallel if logged in
-        const promises = [propertyService.getPublic(filters)];
+        const promises = [nearLocation ? fetchByLocation() : propertyService.getPublic(filters)];
         if (localStorage.getItem('token')) {
           promises.push(userService.getSavedHotels());
         }
@@ -62,7 +80,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
     };
 
     fetchPropertiesAndSaved();
-  }, [selectedType, selectedCity, JSON.stringify(extraFilters)]);
+  }, [selectedType, selectedCity, nearLocation?.lat, nearLocation?.lng, nearLocation?.city, JSON.stringify(extraFilters)]);
 
   if (loading) {
     if (viewMode === 'list') {
@@ -138,7 +156,7 @@ const PropertyFeed = ({ selectedType, selectedCity, viewMode = 'grid', limit, ex
   if (properties.length === 0) {
     return (
       <div className={`text-center text-gray-500 ${viewMode === 'grid' ? 'py-20' : 'py-8 text-sm'}`}>
-        <p>No properties found in this category.</p>
+        <p>{nearLocation?.city ? `No properties found near ${nearLocation.city}.` : 'No properties found in this category.'}</p>
       </div>
     );
   }

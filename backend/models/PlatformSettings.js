@@ -30,6 +30,26 @@ const platformSettingsSchema = new mongoose.Schema(
       type: Number,
       default: 12 // Percentage (GST)
     },
+    /** Home page "Top Rated Partners" section: all text is admin editable */
+    topRatedPartnersSection: {
+      enabled: { type: Boolean, default: true },
+      badgeText: { type: String, default: 'Verified Excellence', maxlength: 60 },
+      title: { type: String, default: 'Top Rated HomeZo Partners', maxlength: 120 },
+      subtitle: {
+        type: String,
+        default: 'Collaborate with our highest-performing locality experts and trusted land advisors with proven track records and verified titles.',
+        maxlength: 400
+      },
+      buttonText: { type: String, default: 'View All Partners', maxlength: 40 },
+      maxPartners: { type: Number, default: 6, min: 1, max: 10 }
+    },
+    /** User app: show properties within this many km of the user's live location */
+    nearbySearchRadiusKm: {
+      type: Number,
+      default: 50,
+      min: 1,
+      max: 1000
+    },
     /** Admin "Platform Feature Controls": global switches read by both apps and enforced in the APIs */
     featureControls: {
       subscriptionEnabled: { type: Boolean, default: true },

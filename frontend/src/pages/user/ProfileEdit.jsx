@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera, Bell, Lock } from 'lucide-react';
+import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera, Bell, Lock, Building } from 'lucide-react';
 import { authService, userService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 import { isFlutterApp, openFlutterCamera, uploadBase64Image } from '../../utils/flutterBridge';
@@ -520,6 +520,26 @@ const ProfileEdit = () => {
               >
                 {testNotifLoading ? <Loader2 size={12} className="animate-spin" /> : <Bell size={12} />}
                 Send Test
+              </button>
+            </div>
+          </div>
+
+          {/* Host & Listings Hub Card */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-4 text-white shadow-lg border border-indigo-500/20 mt-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                  <Building size={12} /> Host / Partner Hub
+                </div>
+                <h4 className="text-sm font-bold text-white mt-0.5 truncate">Post & Manage Properties</h4>
+                <p className="text-[11px] text-white/70 line-clamp-1">View enquiries, bookings, listings & analytics</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/hotel/partner-dashboard')}
+                className="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all shrink-0"
+              >
+                Dashboard
               </button>
             </div>
           </div>

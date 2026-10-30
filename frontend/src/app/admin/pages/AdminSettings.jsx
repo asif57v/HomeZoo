@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Settings, Shield, Bell, CreditCard, ToggleLeft,
-    ToggleRight, Save, Globe, Lock
+    ToggleRight, Save, Globe, Lock, MapPin
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAdminStore from '../store/adminStore';
@@ -51,9 +51,12 @@ const AdminSettings = () => {
     const [trialEnabled, setTrialEnabled] = useState(true);
     const [freeProperties, setFreeProperties] = useState(1);
     const [freeLeads, setFreeLeads] = useState(5);
+    const [nearbyRadiusKm, setNearbyRadiusKm] = useState(50);
 
     const [loadingSettings, setLoadingSettings] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
+    const [passwords, setPasswords] = useState({ current: '', next: '', confirm: '' });
+    const [savingPassword, setSavingPassword] = useState(false);
     const [savingSettings, setSavingSettings] = useState(false);
 
     const [autoPayout, setAutoPayout] = useState(false);
@@ -81,6 +84,7 @@ const AdminSettings = () => {
                     setMaintenanceMessage(res.settings.maintenanceMessage || '');
                     setCommission(res.settings.defaultCommission || 10);
                     setTaxRate(res.settings.taxRate || 12);
+                    setNearbyRadiusKm(res.settings.nearbySearchRadiusKm ?? 50);
                     if (res.settings.partnerFreeTrial) {
                         setTrialEnabled(res.settings.partnerFreeTrial.enabled !== false);
                         setFreeProperties(res.settings.partnerFreeTrial.freeProperties ?? 1);
@@ -119,6 +123,34 @@ const AdminSettings = () => {
         }
     };
 
+    const handleChangePassword = async () => {
+        if (!passwords.current || !passwords.next) {
+            toast.error('Enter your current and new password');
+            return;
+        }
+        if (passwords.next.length < 8) {
+            toast.error('New password must be at least 8 characters');
+            return;
+        }
+        if (passwords.next !== passwords.confirm) {
+            toast.error('New password and confirm password do not match');
+            return;
+        }
+        try {
+            setSavingPassword(true);
+            await adminService.changeAdminPassword({
+                currentPassword: passwords.current,
+                newPassword: passwords.next
+            });
+            toast.success('Password changed successfully');
+            setPasswords({ current: '', next: '', confirm: '' });
+        } catch (error) {
+            toast.error(error.response?.data?.message || error.message || 'Failed to change password');
+        } finally {
+            setSavingPassword(false);
+        }
+    };
+
     const handleSavePlatformSettings = async () => {
         try {
             setSavingSettings(true);
@@ -134,7 +166,8 @@ const AdminSettings = () => {
                     enabled: trialEnabled,
                     freeProperties: Number(freeProperties) || 0,
                     freeLeads: Number(freeLeads) || 0
-                }
+                },
+                nearbySearchRadiusKm: Number(nearbyRadiusKm)
             });
             toast.success('Platform settings updated');
         } catch (error) {
@@ -167,7 +200,7 @@ const AdminSettings = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Email (login ID)</label>
                         <input
                             type="email"
                             value={profile.email}
@@ -196,6 +229,55 @@ const AdminSettings = () => {
                     >
                         <Save size={16} />
                         {savingProfile ? 'Saving...' : 'Save Profile'}
+                    </button>
+                </div>
+            </Section>
+
+            <Section title="Change Password" icon={Lock}>
+                <p className="text-xs text-gray-500">
+                    Your email above is your login ID. Use this to set a new password for it.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Current Password</label>
+                        <input
+                            type="password"
+                            autoComplete="current-password"
+                            value={passwords.current}
+                            onChange={(e) => setPasswords(p => ({ ...p, current: e.target.value }))}
+                            className="w-full p-2.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black text-sm"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">New Password (min 8 characters)</label>
+                        <input
+                            type="password"
+                            autoComplete="new-password"
+                            value={passwords.next}
+                            onChange={(e) => setPasswords(p => ({ ...p, next: e.target.value }))}
+                            className="w-full p-2.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black text-sm"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Confirm New Password</label>
+                        <input
+                            type="password"
+                            autoComplete="new-password"
+                            value={passwords.confirm}
+                            onChange={(e) => setPasswords(p => ({ ...p, confirm: e.target.value }))}
+                            className="w-full p-2.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black text-sm"
+                        />
+                    </div>
+                </div>
+                <div className="flex justify-end pt-2">
+                    <button
+                        type="button"
+                        onClick={handleChangePassword}
+                        disabled={savingPassword}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-bold rounded-xl shadow-md hover:bg-gray-900 active:scale-95 disabled:opacity-60"
+                    >
+                        <Lock size={16} />
+                        {savingPassword ? 'Updating...' : 'Change Password'}
                     </button>
                 </div>
             </Section>
@@ -298,6 +380,26 @@ const AdminSettings = () => {
                                     onChange={(e) => setFreeLeads(e.target.value)}
                                     className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
                                 />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="pt-6">
+                        <div className="pb-2 font-bold text-lg flex items-center gap-4"><MapPin size={18} />Nearby Properties</div>
+                        <p className="text-sm text-gray-500 mb-4">
+                            The user app shows properties within this distance of the user's live location (home sections and the PG, Rent, Buy and Plot tabs). If nothing is found in range, it shows properties from the user's city.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Search Radius (km)</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="1000"
+                                    value={nearbyRadiusKm}
+                                    onChange={(e) => setNearbyRadiusKm(e.target.value)}
+                                    className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Between 1 and 1000 km. Default 50 km.</p>
                             </div>
                         </div>
                     </div>

@@ -44,7 +44,7 @@ const AddDynamicWizard = () => {
   const [step, setStep] = useState(initialStep);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [createdProperty, setCreatedProperty] = useState(null);
+  const [createdProperty, setCreatedProperty] = useState(existingProperty);
   const [nearbySearchQuery, setNearbySearchQuery] = useState('');
   const [nearbyResults, setNearbyResults] = useState([]);
   const [editingNearbyIndex, setEditingNearbyIndex] = useState(null);
@@ -213,11 +213,20 @@ const AddDynamicWizard = () => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
+        if ((JSON.parse(saved).step || 0) >= 10) {
+          localStorage.removeItem(STORAGE_KEY);
+          return;
+        }
         const { step: savedStep, propertyForm: savedForm, roomTypes: savedRooms, createdProperty: savedProp } = JSON.parse(saved);
         if (savedForm?.contactNumber) {
           savedForm.contactNumber = sanitizePhoneNumber(savedForm.contactNumber);
         }
-        setStep(savedStep);
+        if (location.state?.resumeDraft) {
+          setStep(9);
+          toast.success("Draft restored! Review your details and click 'Submit Property'.", { duration: 4500 });
+        } else {
+          setStep(savedStep);
+        }
         setPropertyForm(savedForm);
         setRoomTypes(savedRooms);
         if (savedProp) setCreatedProperty(savedProp);
@@ -229,7 +238,8 @@ const AddDynamicWizard = () => {
 
   // 2. Save to localStorage whenever state changes
   useEffect(() => {
-    if (isEditMode) return;
+    // Never persist the "submitted" screen, or the next new property would reopen on it
+    if (isEditMode || step >= 10) return;
     const timeout = setTimeout(() => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, propertyForm, roomTypes, createdProperty }));
     }, 1000);
@@ -343,9 +353,13 @@ const AddDynamicWizard = () => {
       setError('');
       if (!locationSearchQuery.trim()) return;
       const res = await hotelService.searchLocation(locationSearchQuery.trim());
-      setLocationResults(Array.isArray(res?.results) ? res.results : []);
-    } catch {
-      setError('Failed to search location');
+      const results = Array.isArray(res?.results) ? res.results : [];
+      setLocationResults(results);
+      if (results.length === 0) {
+        setError('No locations found. You can enter the address manually below.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Failed to search location');
     }
   };
 
@@ -366,8 +380,8 @@ const AddDynamicWizard = () => {
         fullAddress: res.fullAddress || '',
         pincode: res.pincode || ''
       });
-    } catch {
-      setError('Failed to use selected location');
+    } catch (err) {
+      setError(err?.message || 'Failed to use selected location');
     }
   };
 
@@ -885,6 +899,9 @@ const AddDynamicWizard = () => {
             await propertyService.deleteRoomType(propId, id);
           }
         }
+        if (createdProperty?.status === 'draft' || existingProperty?.status === 'draft') {
+          await propertyService.publishDraft(propId);
+        }
       } else {
         // Atomic Create
         propertyPayload.roomTypes = roomTypes.map(rt => ({
@@ -906,16 +923,36 @@ const AddDynamicWizard = () => {
         setCreatedProperty(res.property);
       }
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('hoomzoo_pending_property_draft');
       setStep(10);
     } catch (e) {
       const errMsg = e?.message || (typeof e === 'string' ? e : 'Failed to submit property');
       setError(errMsg);
       const isSubLimit = e?.limitReached || e?.requiresSubscription || errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('subscription') || errMsg.toLowerCase().includes('upgrade');
       if (isSubLimit) {
-        toast.error(errMsg);
+        const savedDraft = e?.property || e?.response?.data?.property;
+        if (savedDraft?._id) {
+          setCreatedProperty(savedDraft);
+        }
+        localStorage.setItem('hoomzoo_pending_property_draft', JSON.stringify({
+          draftId: savedDraft?._id || createdProperty?._id || null,
+          wizardUrl: window.location.pathname,
+          categoryId: categoryId || null,
+          propertyName: propertyForm.propertyName || 'Property Draft',
+          timestamp: Date.now()
+        }));
+        toast.success("Property details saved as draft! Redirecting to choose a plan...", { duration: 4000 });
+        toast.error(errMsg, { duration: 4000 });
         setTimeout(() => {
-          navigate('/hotel/subscriptions');
-        }, 1500);
+          navigate('/hotel/subscriptions', {
+            state: {
+              returnUrl: window.location.pathname,
+              draftId: savedDraft?._id || createdProperty?._id || null,
+              propertyName: propertyForm.propertyName || 'Property Draft',
+              categoryId: categoryId || null
+            }
+          });
+        }, 1200);
       }
     } finally {
       setLoading(false);
@@ -1005,6 +1042,11 @@ const AddDynamicWizard = () => {
   };
 
   const handleBack = () => {
+    // Already submitted: leave the wizard instead of stepping back into Review & Submit
+    if (step >= 10) {
+      navigate('/hotel/properties', { replace: true });
+      return;
+    }
     if (step > 1) {
       setStep(step - 1);
     } else {
@@ -2312,7 +2354,7 @@ const AddDynamicWizard = () => {
                   <p className="text-gray-500 max-w-sm mx-auto">Your property registration has been sent for verification. Our team will review it and get back to you shortly.</p>
                 </div>
                 <button
-                  onClick={() => navigate('/hotel/properties')}
+                  onClick={() => navigate('/hotel/properties', { replace: true })}
                   className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95"
                 >
                   Go to My Properties

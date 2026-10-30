@@ -79,6 +79,9 @@ export const getHomeData = async (req, res) => {
       .sort({ createdAt: -1 })
       .select('-__v');
 
+    // Personal coupons (Reel Star Reward) are visible only to their owner
+    offers = offers.filter((o) => o.isUsableBy(req.user?._id));
+
     // If user is authenticated, filter by userLimit
     if (req.user) {
       const filteredOffers = [];

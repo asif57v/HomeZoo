@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Partner from '../models/Partner.js';
 import bcrypt from 'bcryptjs';
@@ -105,21 +106,30 @@ export const updateUserProfile = async (req, res) => {
  */
 export const getSavedHotels = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate({
+    let account = await User.findById(req.user._id).populate({
       path: 'savedHotels',
       select: 'propertyName address coverImage avgRating totalReviews minPrice propertyType status isLive',
       match: { status: 'approved' } // Only return approved hotels
     });
 
-    if (!user) {
+    if (!account) {
+      account = await Partner.findById(req.user._id).populate({
+        path: 'savedHotels',
+        select: 'propertyName address coverImage avgRating totalReviews minPrice propertyType status isLive',
+        match: { status: 'approved' }
+      });
+    }
+
+    if (!account || !account.savedHotels || account.savedHotels.length === 0) {
       return res.json({
         success: true,
         savedHotels: []
       });
     }
 
-    // Get minimum prices for these properties
-    const savedHotelIds = user.savedHotels.map(h => h._id);
+    // Filter out nulls from populate (e.g. if unapproved or deleted)
+    const validHotels = account.savedHotels.filter(Boolean);
+    const savedHotelIds = validHotels.map(h => h._id);
     const RoomType = (await import('../models/RoomType.js')).default;
 
     const priceMap = await RoomType.aggregate([
@@ -133,7 +143,7 @@ export const getSavedHotels = async (req, res) => {
     });
 
     // Format the response to match PropertyCard expectations
-    const savedHotels = user.savedHotels.map(hotel => ({
+    const savedHotels = validHotels.map(hotel => ({
       _id: hotel._id,
       propertyName: hotel.propertyName,
       address: hotel.address, // Pass full address object
@@ -164,34 +174,48 @@ export const getSavedHotels = async (req, res) => {
 export const toggleSavedHotel = async (req, res) => {
   try {
     const hotelId = req.params.id;
-    const user = await User.findById(req.user._id);
+    if (!hotelId || !mongoose.Types.ObjectId.isValid(hotelId)) {
+      return res.status(400).json({ message: 'Invalid property ID' });
+    }
 
-    if (!user) {
-      return res.status(403).json({ message: 'Only standard users can save properties' });
+    let account = await User.findById(req.user._id);
+    if (!account) {
+      account = await Partner.findById(req.user._id);
+    }
+
+    if (!account) {
+      return res.status(404).json({ message: 'Account not found' });
+    }
+
+    if (!Array.isArray(account.savedHotels)) {
+      account.savedHotels = [];
     }
 
     // Check if hotel is already saved
-    const isSaved = user.savedHotels.some(id => id.toString() === hotelId);
+    const isSaved = account.savedHotels.some(id => id && id.toString() === hotelId.toString());
 
     if (isSaved) {
       // Remove
-      user.savedHotels = user.savedHotels.filter(id => id.toString() !== hotelId);
+      account.savedHotels = account.savedHotels.filter(id => id && id.toString() !== hotelId.toString());
     } else {
       // Add
-      user.savedHotels.push(hotelId);
+      account.savedHotels.push(hotelId);
     }
 
-    await user.save();
+    if (typeof account.markModified === 'function') {
+      account.markModified('savedHotels');
+    }
+    await account.save();
 
     res.json({
       success: true,
       message: isSaved ? 'Removed from saved' : 'Added to saved',
-      savedHotels: user.savedHotels
+      savedHotels: account.savedHotels
     });
 
   } catch (error) {
     console.error('Toggle Saved Hotel Error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
   }
 };
 

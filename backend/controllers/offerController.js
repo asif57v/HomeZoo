@@ -76,6 +76,9 @@ export const getActiveOffers = async (req, res) => {
       return res.json(freshOffers);
     }
 
+    // Personal coupons (Reel Star Reward) are visible only to their owner
+    offers = offers.filter((o) => o.isUsableBy(req.user?._id));
+
     // Filter by userLimit if user is logged in
     if (req.user) {
       const filteredOffers = [];
@@ -117,6 +120,11 @@ export const validateOffer = async (req, res) => {
     });
 
     if (!offer) {
+      return res.status(404).json({ message: "Invalid coupon code or expired" });
+    }
+
+    // 0. Personal coupon check (Reel Star Reward belongs to the reel creator only)
+    if (!offer.isUsableBy(req.user._id)) {
       return res.status(404).json({ message: "Invalid coupon code or expired" });
     }
 

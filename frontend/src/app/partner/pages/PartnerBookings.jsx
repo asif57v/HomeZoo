@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Calendar, User, Phone,
-    Clock, MapPin, ChevronRight, BedDouble
+    Clock, MapPin, ChevronRight, BedDouble,
+    Lock, Crown
 } from 'lucide-react';
 import { bookingService } from '../../../services/apiService';
 import PartnerHeader from '../components/PartnerHeader';
@@ -17,6 +18,7 @@ const BookingCard = ({ booking }) => {
     const isRent = pType === 'rent';
     const isBuyPlot = ['buy', 'plot'].includes(pType);
     const isInquiry = booking.isInquiry === true;
+    const isLocked = booking.isLocked === true;
 
     // Status Logic
     const rawStatus = (booking.bookingStatus || booking.status || 'pending').toLowerCase().trim();
@@ -97,7 +99,16 @@ const BookingCard = ({ booking }) => {
                         </h3>
                         <ChevronRight size={20} className="text-[#005CA8] group-hover:translate-x-1 transition-transform" strokeWidth={3} />
                     </div>
-                    {booking.userId?.phone && (
+                    {isLocked ? (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); navigate('/hotel/subscriptions'); }}
+                            title="Active subscription required to view contact"
+                            className="px-2.5 py-1 rounded-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-white flex items-center gap-1 text-[11px] font-bold shadow-sm transition-all flex-shrink-0"
+                        >
+                            <Lock size={11} />
+                            <span>Unlock</span>
+                        </button>
+                    ) : booking.userId?.phone ? (
                         <a
                             href={`tel:${booking.userId.phone}`}
                             onClick={(e) => e.stopPropagation()}
@@ -105,8 +116,14 @@ const BookingCard = ({ booking }) => {
                         >
                             <Phone size={14} />
                         </a>
-                    )}
+                    ) : null}
                 </div>
+                {isLocked && (
+                    <div className="flex items-center gap-1.5 mt-1 text-[11px] font-semibold text-amber-800 bg-amber-50/90 px-2.5 py-1 rounded-lg border border-amber-200/70 inline-flex">
+                        <Lock size={12} className="text-amber-600 shrink-0" />
+                        <span>Contact locked • Active subscription required</span>
+                    </div>
+                )}
                 <p className="text-[13px] text-gray-500 font-medium tracking-wide mt-1">
                     {hotelName} • <span className="uppercase">{pType}</span>
                 </p>
@@ -151,8 +168,11 @@ const BookingCard = ({ booking }) => {
 
 // --- Main Component ---
 const PartnerBookings = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('upcoming');
     const [bookings, setBookings] = useState([]);
+    const [hasValidSubscription, setHasValidSubscription] = useState(true);
+    const [subscriptionReason, setSubscriptionReason] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -161,7 +181,12 @@ const PartnerBookings = () => {
                 setLoading(true);
                 // Fetch with server-side filtering
                 const data = await bookingService.getPartnerBookings(activeTab);
-                setBookings(data);
+                const list = Array.isArray(data) ? data : (data?.bookings || []);
+                setBookings(list);
+                if (data && typeof data.hasValidSubscription === 'boolean') {
+                    setHasValidSubscription(data.hasValidSubscription);
+                    setSubscriptionReason(data.subscriptionReason);
+                }
             } catch (error) {
                 console.error('Failed to fetch partner bookings:', error);
             } finally {
@@ -171,7 +196,6 @@ const PartnerBookings = () => {
         fetchBookings();
     }, [activeTab]);
 
-    // Client-side filtering removed as backend handles it
     const filteredBookings = bookings;
 
     const tabs = [
@@ -202,6 +226,30 @@ const PartnerBookings = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Subscription Alert Banner when partner has no valid subscription */}
+            {!hasValidSubscription && (
+                <div className="mx-4 mb-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl p-4 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shrink-0">
+                            <Crown size={22} className="text-white" />
+                        </div>
+                        <div>
+                            <h4 className="font-extrabold text-sm leading-tight">Unlock Your Customer Leads</h4>
+                            <p className="text-xs text-amber-100 mt-1 leading-snug">
+                                You have enquiries from interested customers. Get an active subscription to access verified phone numbers, direct calls, and close bookings faster!
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => navigate('/hotel/subscriptions')}
+                        className="shrink-0 bg-white text-amber-800 font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-amber-50 active:scale-95 transition-all shadow-md flex items-center gap-1.5"
+                    >
+                        <span>View Plans</span>
+                        <ChevronRight size={15} strokeWidth={2.5} />
+                    </button>
+                </div>
+            )}
 
             {/* List Content */}
             <div className="px-4 mt-2">

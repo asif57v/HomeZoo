@@ -103,8 +103,29 @@ const offerSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+
+  // Personal coupon: only this user can see/use it (e.g. Reel Star Reward). Empty = public.
+  ownerUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null
   }
 }, { timestamps: true });
+
+// Owner of a personal coupon. Older reel rewards have no ownerUserId, but their code is
+// REELWINNER_<ownerId>_<reelId>, so the owner can still be recovered from it.
+offerSchema.methods.getOwnerId = function () {
+  if (this.ownerUserId) return String(this.ownerUserId);
+  const match = /^REELWINNER_([0-9a-f]{24})_/i.exec(this.code || '');
+  // codes are stored uppercase, ObjectIds are lowercase hex
+  return match ? match[1].toLowerCase() : null;
+};
+
+// True if `userId` (may be undefined for guests) is allowed to see/use this coupon
+offerSchema.methods.isUsableBy = function (userId) {
+  const ownerId = this.getOwnerId();
+  return !ownerId || (!!userId && String(userId) === ownerId);
+};
 
 // Indexes for performance
 offerSchema.index({ code: 1 });

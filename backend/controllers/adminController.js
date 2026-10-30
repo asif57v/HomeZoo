@@ -995,9 +995,40 @@ export const updatePlatformSettings = async (req, res) => {
       reelDurationTiers,
       reelPricing,
       partnerFreeTrial,
+      nearbySearchRadiusKm,
+      topRatedPartnersSection,
     } = req.body;
 
     const settings = await PlatformSettings.getSettings();
+
+    if (topRatedPartnersSection && typeof topRatedPartnersSection === 'object') {
+      const t = topRatedPartnersSection;
+      const clean = (v, max) => String(v ?? '').trim().slice(0, max);
+      const title = clean(t.title, 120);
+      if (!title) {
+        return res.status(400).json({ success: false, message: 'Section heading cannot be empty' });
+      }
+      const max = Math.floor(Number(t.maxPartners));
+      if (!(max >= 1 && max <= 10)) {
+        return res.status(400).json({ success: false, message: 'Number of partners must be between 1 and 10' });
+      }
+      settings.topRatedPartnersSection = {
+        enabled: t.enabled !== false,
+        badgeText: clean(t.badgeText, 60),
+        title,
+        subtitle: clean(t.subtitle, 400),
+        buttonText: clean(t.buttonText, 40),
+        maxPartners: max
+      };
+    }
+
+    if (nearbySearchRadiusKm !== undefined) {
+      const radiusKm = Number(nearbySearchRadiusKm);
+      if (!Number.isFinite(radiusKm) || radiusKm < 1 || radiusKm > 1000) {
+        return res.status(400).json({ success: false, message: 'Nearby search radius must be between 1 and 1000 km' });
+      }
+      settings.nearbySearchRadiusKm = radiusKm;
+    }
 
     if (typeof platformOpen === 'boolean') settings.platformOpen = platformOpen;
     if (typeof maintenanceMode === 'boolean') settings.maintenanceMode = maintenanceMode;
