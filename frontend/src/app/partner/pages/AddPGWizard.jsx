@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
-import { searchPlaceResults, resolvePlaceDetails, parseSuggestionAddress } from '../../../utils/placeSuggestions';
+import { searchPlaceResults, resolvePlaceDetails, withoutCountryOnly, parseSuggestionAddress } from '../../../utils/placeSuggestions';
 import { categoryService } from '../../../services/categoryService';
 import toast from 'react-hot-toast';
 import { compressImage } from '../../../utils/imageCompressor';
@@ -410,7 +410,7 @@ const AddPGWizard = () => {
       let results = await searchPlaceResults(query.trim());
       if (results.length === 0) {
         const res = await hotelService.searchLocation(query.trim());
-        results = Array.isArray(res?.results) ? res.results : [];
+        results = withoutCountryOnly(Array.isArray(res?.results) ? res.results : []);
       }
       setLocationResults(results);
       if (results.length > 0) setError('');

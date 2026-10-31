@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
-import { searchPlaceResults, resolvePlaceDetails } from '../../../utils/placeSuggestions';
+import { searchPlaceResults, resolvePlaceDetails, withoutCountryOnly } from '../../../utils/placeSuggestions';
 import toast from 'react-hot-toast';
 import { compressImage } from '../../../utils/imageCompressor';
 import { CheckCircle, FileText, Home, Image, Plus, Trash2, MapPin, Search, BedDouble, Wifi, Tv, Snowflake, Coffee, ShowerHead, ArrowLeft, ArrowRight, Clock, Loader2, Camera, X } from 'lucide-react';
@@ -55,8 +55,12 @@ const AddHotelWizard = () => {
     let cancelled = false;
     const t = setTimeout(async () => {
       try {
-        const res = await hotelService.searchLocation(q);
-        if (!cancelled) setLocationResults(Array.isArray(res?.results) ? res.results : []);
+        let results = await searchPlaceResults(q);
+        if (!results.length) {
+          const res = await hotelService.searchLocation(q);
+          results = withoutCountryOnly(Array.isArray(res?.results) ? res.results : []);
+        }
+        if (!cancelled) setLocationResults(results);
       } catch {
         if (!cancelled) setLocationResults([]);
       }
@@ -264,7 +268,7 @@ const AddHotelWizard = () => {
       let results = await searchPlaceResults(query.trim());
       if (results.length === 0) {
         const res = await hotelService.searchLocation(query.trim());
-        results = Array.isArray(res?.results) ? res.results : [];
+        results = withoutCountryOnly(Array.isArray(res?.results) ? res.results : []);
       }
       setLocationResults(results);
       if (results.length > 0) setError('');

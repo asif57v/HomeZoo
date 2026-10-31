@@ -101,12 +101,7 @@ const fetchGooglePlaces = async (query, limit) => {
   }
 };
 
-/**
- * Google Places predictions (India only) shaped for the partner wizards' address search:
- * [{ name, display_name, placeId }]. Coordinates are fetched on selection via resolvePlaceDetails.
- * Resolves [] on failure so callers can fall back to the backend search.
- */
-export const searchPlaceResults = async (query, limit = 6) => {
+const fetchGooglePlaceResults = async (query, limit) => {
   try {
     const maps = await loadGoogleMaps();
     if (!maps?.places?.AutocompleteService) return [];
@@ -123,11 +118,15 @@ export const searchPlaceResults = async (query, limit = 6) => {
         (predictions, status) => {
           if (status !== maps.places.PlacesServiceStatus.OK || !predictions) return resolve([]);
           resolve(
-            predictions.slice(0, limit).map((p) => ({
-              name: p.structured_formatting?.main_text || p.description,
-              display_name: p.description,
-              placeId: p.place_id,
-            }))
+            predictions
+              .filter((p) => !p.types?.includes('country'))
+              .slice(0, limit)
+              .map((p) => ({
+                name: p.structured_formatting?.main_text || p.description,
+                display_name: p.description,
+                formatted_address: (p.structured_formatting?.secondary_text || '').replace(/,?\s*India$/, ''),
+                placeId: p.place_id,
+              }))
           );
         }
       );
@@ -137,6 +136,55 @@ export const searchPlaceResults = async (query, limit = 6) => {
     return [];
   }
 };
+
+// Nominatim fallback with coordinates, so a result can be selected without a Google place id
+const fetchNominatimPlaceResults = async (query, limit) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=in&limit=${limit}&q=${encodeURIComponent(query)}`
+    );
+    const data = await res.json();
+    return (Array.isArray(data) ? data : [])
+      .filter((item) => item.addresstype !== 'country' && item.type !== 'country')
+      .map((item) => {
+        const a = item.address || {};
+        const name = item.name || a.suburb || a.neighbourhood || a.village || a.town || a.city;
+        if (!name) return null;
+        const rest = [a.suburb, a.city || a.town || a.village || a.county, a.state, a.postcode]
+          .filter((part, i, arr) => part && part !== name && arr.indexOf(part) === i);
+        return {
+          name,
+          display_name: [name, ...rest].join(', '),
+          formatted_address: rest.join(', '),
+          lat: Number(item.lat),
+          lng: Number(item.lon),
+        };
+      })
+      .filter(Boolean);
+  } catch (err) {
+    console.warn('Nominatim place search failed', err);
+    return [];
+  }
+};
+
+/**
+ * India-only address suggestions for the partner wizards' address search:
+ * [{ name, display_name, formatted_address, placeId? , lat?, lng? }]. Google results carry a
+ * placeId (coordinates fetched on selection via resolvePlaceDetails); Nominatim results carry lat/lng.
+ * Never returns the bare country. Resolves [] on failure so callers can fall back to the backend search.
+ */
+export const searchPlaceResults = async (query, limit = 6) => {
+  const google = await fetchGooglePlaceResults(query, limit);
+  if (google.length) return google;
+  return fetchNominatimPlaceResults(query, limit);
+};
+
+/** Drops country-only hits (e.g. a bare "India") from backend location search results. */
+export const withoutCountryOnly = (results = []) =>
+  results.filter((r) => {
+    const label = String(r?.name || r?.display_name || r?.formatted_address || '').trim().toLowerCase();
+    return label && label !== 'india';
+  });
 
 const toPlaceDetails = (result) => {
   const loc = result?.geometry?.location;
