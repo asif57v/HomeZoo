@@ -8,7 +8,7 @@ import { CheckCircle, FileText, Home, Image, Bed, MapPin, Search, Plus, Trash2, 
 import logo from '../../../assets/rokologin-removebg-preview.png';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
 import draftStore from '../../../utils/draftStore';
-import { pickImageSource, pickGalleryFiles, useKeyboardOpen } from '../../../utils/imageSource';
+import { pickImageSource, pickGalleryFiles, pickFlutterImages, useKeyboardOpen } from '../../../utils/imageSource';
 import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
 
 const REQUIRED_DOCS_HOSTEL = [
@@ -466,6 +466,21 @@ const AddHostelWizard = () => {
     if (!source) return;
     if (source === 'gallery') {
       const single = type === 'cover' || type === 'room' || type.startsWith('doc');
+      const nativeImages = await pickFlutterImages(!single);
+      if (nativeImages) {
+        try {
+          setUploading(type);
+          setError('');
+          const res = await hotelService.uploadImagesBase64(nativeImages);
+          if (!res?.success || !res.files?.length) throw new Error('Upload failed');
+          onDone(single ? res.files[0].url : res.files.map(file => file.url));
+        } catch (err) {
+          setError(err.message || 'Upload failed');
+        } finally {
+          setUploading(null);
+        }
+        return;
+      }
       const files = await pickGalleryFiles(!single);
       if (!files.length) return;
       return uploadImages(files, type, urls => onDone(single ? urls[0] : urls));

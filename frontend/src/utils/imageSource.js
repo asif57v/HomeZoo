@@ -45,6 +45,24 @@ export const pickImageSource = () =>
     document.body.appendChild(overlay);
   });
 
+/**
+ * Ask the Flutter app to open its native gallery (multi-select when `multiple`).
+ * Resolves with [{base64, mimeType, fileName}], or null when the app has no
+ * `pickImages` handler / the user cancelled, so callers can fall back to a web input.
+ */
+export const pickFlutterImages = async (multiple = false) => {
+  const bridge = typeof window !== 'undefined' ? window.flutter_inappwebview : null;
+  if (!bridge?.callHandler) return null;
+  try {
+    const result = await bridge.callHandler('pickImages', { multiple });
+    if (!result?.success || !Array.isArray(result.images) || !result.images.length) return null;
+    const images = result.images.filter((img) => img?.base64);
+    return images.length ? (multiple ? images : images.slice(0, 1)) : null;
+  } catch {
+    return null;
+  }
+};
+
 /** Open the device gallery/file picker. Resolves with an array of Files (empty if cancelled). */
 export const pickGalleryFiles = (multiple = false) =>
   new Promise((resolve) => {
@@ -53,15 +71,21 @@ export const pickGalleryFiles = (multiple = false) =>
     input.accept = 'image/*';
     input.multiple = multiple;
     input.style.display = 'none';
-    input.onchange = () => {
-      const files = Array.from(input.files || []);
+    // Disable every other file input while the picker is open, so a WebView
+    // file chooser can only hand the result to this one (not e.g. the cover input).
+    const others = Array.from(document.querySelectorAll('input[type="file"]')).filter((el) => !el.disabled);
+    others.forEach((el) => { el.disabled = true; });
+    const restore = () => others.forEach((el) => { el.disabled = false; });
+    // Safety net: some WebViews never fire change/cancel when the picker is dismissed.
+    const safety = setTimeout(restore, 60000);
+    const finish = (files) => {
+      clearTimeout(safety);
+      restore();
       input.remove();
       resolve(files);
     };
-    input.oncancel = () => {
-      input.remove();
-      resolve([]);
-    };
+    input.onchange = () => finish(Array.from(input.files || []));
+    input.oncancel = () => finish([]);
     // Prepend so this is the first file input in the document: some WebView
     // file choosers deliver the picked file to the first input they find,
     // which would otherwise be the cover image input.
