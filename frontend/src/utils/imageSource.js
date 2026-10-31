@@ -6,7 +6,10 @@ import { useEffect, useState } from 'react';
  */
 export const pickImageSource = () =>
   new Promise((resolve) => {
+    // Never stack two sheets (a double tap would otherwise open two).
+    document.querySelectorAll('[data-image-source-sheet]').forEach((el) => el.remove());
     const overlay = document.createElement('div');
+    overlay.setAttribute('data-image-source-sheet', 'true');
     overlay.style.cssText =
       'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;';
 
@@ -59,7 +62,10 @@ export const pickGalleryFiles = (multiple = false) =>
       input.remove();
       resolve([]);
     };
-    document.body.appendChild(input);
+    // Prepend so this is the first file input in the document: some WebView
+    // file choosers deliver the picked file to the first input they find,
+    // which would otherwise be the cover image input.
+    document.body.prepend(input);
     input.click();
   });
 
