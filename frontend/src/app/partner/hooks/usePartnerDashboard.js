@@ -14,6 +14,7 @@ const usePartnerDashboard = () => {
   });
 
   const [recentBookings, setRecentBookings] = useState([]);
+  const [activeList, setActiveList] = useState([]);
   const [actionItems, setActionItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,7 +40,9 @@ const usePartnerDashboard = () => {
         // 1. Process Properties
         const properties = propertiesData.properties || [];
         // Fix: Backend uses 'status': 'approved' and 'isLive': true
-        const activeProperties = properties.filter(p => p.status === 'approved' && p.isLive).length;
+        const activePropertyList = properties.filter(p => p.status === 'approved' && p.isLive);
+        const activeProperties = activePropertyList.length;
+        setActiveList(activePropertyList.slice(0, 5));
 
         // 2. Process Bookings
         // API returns an array directly for bookings
@@ -110,7 +113,7 @@ const usePartnerDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  return { stats, recentBookings, actionItems, loading, error, user };
+  return { stats, recentBookings, activeProperties: activeList, actionItems, loading, error, user };
 };
 
 export default usePartnerDashboard;

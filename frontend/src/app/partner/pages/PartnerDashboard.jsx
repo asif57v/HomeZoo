@@ -5,6 +5,7 @@ import PartnerHeader from '../components/PartnerHeader';
 import usePartnerDashboard from '../hooks/usePartnerDashboard';
 import DashboardStatCard from '../components/dashboard/DashboardStatCard';
 import RecentBookingsTable from '../components/dashboard/RecentBookingsTable';
+import ActivePropertiesList from '../components/dashboard/ActivePropertiesList';
 import ActionRequired from '../components/dashboard/ActionRequired';
 import { Calendar, Wallet, Building2, Star, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 const PartnerDashboard = () => {
     // Lenis handled globally
     const navigate = useNavigate();
-    const { stats, recentBookings, actionItems, loading, user } = usePartnerDashboard();
+    const { stats, recentBookings, activeProperties, actionItems, loading, user } = usePartnerDashboard();
 
     // Init Notifications
     React.useEffect(() => {
@@ -124,6 +125,9 @@ const PartnerDashboard = () => {
                         tone="orange"
                     />
                 </div>
+
+                {/* Live listings */}
+                <ActivePropertiesList properties={activeProperties} />
 
                 {/* Recent Activity Section */}
                 <RecentBookingsTable bookings={recentBookings} />

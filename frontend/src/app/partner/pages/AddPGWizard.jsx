@@ -1,17 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
+import { searchPlaceResults, resolvePlaceDetails, parseSuggestionAddress } from '../../../utils/placeSuggestions';
 import { categoryService } from '../../../services/categoryService';
 import toast from 'react-hot-toast';
 import { compressImage } from '../../../utils/imageCompressor';
 import {
-  CheckCircle, FileText, Home, Image, Bed, MapPin, Search, Plus, Trash2,
+  AlertCircle, CheckCircle, FileText, Home, Image, Bed, MapPin, Search, Plus, Trash2,
   ChevronLeft, ChevronRight, Upload, X, ArrowLeft, ArrowRight, Wifi, Clock,
   Loader2, Camera, Wind, Droplets, Zap, Thermometer, Shirt,
   Sparkles, Shield, Car, Dumbbell, Box, Flame, ArrowUpCircle, Tv, Utensils, User, Users,
   Lock, Fan, Bath, Sofa, Armchair, Monitor
 } from 'lucide-react';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
+import { pickImageSource, pickGalleryFiles, useKeyboardOpen } from '../../../utils/imageSource';
 import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
 
 const REQUIRED_DOCS_PG = [
@@ -81,6 +83,7 @@ const AddPGWizard = () => {
   const [uploading, setUploading] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [isFlutter, setIsFlutter] = useState(false);
+  const keyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     setIsFlutter(isFlutterApp());
@@ -387,9 +390,13 @@ const AddPGWizard = () => {
         setLocationResults([]);
         return;
       }
-      const res = await hotelService.searchLocation(query.trim());
-      const results = Array.isArray(res?.results) ? res.results : [];
+      let results = await searchPlaceResults(query.trim());
+      if (results.length === 0) {
+        const res = await hotelService.searchLocation(query.trim());
+        results = Array.isArray(res?.results) ? res.results : [];
+      }
       setLocationResults(results);
+      if (results.length > 0) setError('');
       if (results.length === 0) {
         setError('No locations found. You can enter the address manually below.');
       }
@@ -401,17 +408,51 @@ const AddPGWizard = () => {
   const selectLocationResult = async (place) => {
     try {
       setError('');
-      const lat = place.lat;
-      const lng = place.lng;
-      if (typeof lat !== 'number' || typeof lng !== 'number') return;
-      const res = await hotelService.getAddressFromCoordinates(lat, lng);
+      // Fill the fields right away from the suggestion text; precise details override below
+      const prefill = parseSuggestionAddress(place.display_name || place.name);
+      updatePropertyForm('address', { ...prefill, pincode: '' });
+      let { lat, lng } = place;
+      let res = null;
+      if (place.placeId) {
+        res = await resolvePlaceDetails(place.placeId);
+        if (!res) {
+          // Google lookup failed: resolve the suggestion text through the backend search instead
+          const fallback = await hotelService.searchLocation(place.display_name || place.name);
+          const first = Array.isArray(fallback?.results) ? fallback.results[0] : null;
+          lat = first?.lat;
+          lng = first?.lng;
+        } else {
+          ({ lat, lng } = res);
+        }
+      }
+      if (typeof lat !== 'number' || typeof lng !== 'number') {
+        setError('Could not get exact coordinates for this place. Please verify the address below.');
+        return;
+      }
+      if (!res || !res.pincode) {
+        // Place lookups for a locality often lack a pincode: reverse-geocode its coordinates to fill the gaps
+        try {
+          const rev = await hotelService.getAddressFromCoordinates(lat, lng);
+          res = {
+            country: res?.country || rev.country,
+            state: res?.state || rev.state,
+            city: res?.city || rev.city,
+            area: res?.area || rev.area,
+            fullAddress: res?.fullAddress || rev.fullAddress,
+            pincode: res?.pincode || rev.pincode,
+          };
+        } catch {
+          // keep whatever we already have
+        }
+      }
+      res = res || {};
       updatePropertyForm(['location', 'coordinates'], [String(lng), String(lat)]);
       updatePropertyForm('address', {
-        country: res.country || '',
-        state: res.state || '',
-        city: res.city || '',
-        area: res.area || '',
-        fullAddress: res.fullAddress || '',
+        country: res.country || prefill.country,
+        state: res.state || prefill.state,
+        city: res.city || prefill.city,
+        area: res.area || prefill.area,
+        fullAddress: res.fullAddress || prefill.fullAddress,
         pincode: res.pincode || ''
       });
     } catch (err) {
@@ -512,6 +553,14 @@ const AddPGWizard = () => {
   }, []);
 
   const handleCameraUpload = async (type, onDone) => {
+    const source = await pickImageSource();
+    if (!source) return;
+    if (source === 'gallery') {
+      const single = type === 'cover' || type === 'room' || type.startsWith('doc');
+      const files = await pickGalleryFiles(!single);
+      if (!files.length) return;
+      return uploadImages(files, type, urls => onDone(single ? urls[0] : urls));
+    }
     try {
       setUploading(type);
       setError('');
@@ -1040,9 +1089,9 @@ const AddPGWizard = () => {
           {step === 1 && (
             <div className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
-                  <CheckCircle size={16} className="rotate-45 shrink-0" />
-                  {error}
+                <div role="alert" className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50/80 border border-red-100 border-l-4 border-l-red-500 shadow-sm">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={18} /></span>
+                  <p className="text-sm font-medium text-red-700 leading-snug pt-1">{error}</p>
                 </div>
               )}
               <div className="space-y-4">
@@ -1162,9 +1211,9 @@ const AddPGWizard = () => {
           {step === 2 && (
             <div className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
-                  <CheckCircle size={16} className="rotate-45 shrink-0" />
-                  {error}
+                <div role="alert" className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50/80 border border-red-100 border-l-4 border-l-red-500 shadow-sm">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={18} /></span>
+                  <p className="text-sm font-medium text-red-700 leading-snug pt-1">{error}</p>
                 </div>
               )}
               <div className="bg-white rounded-2xl p-1 relative z-20">
@@ -1248,9 +1297,9 @@ const AddPGWizard = () => {
           {step === 3 && (
             <div className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
-                  <CheckCircle size={16} className="rotate-45 shrink-0" />
-                  {error}
+                <div role="alert" className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50/80 border border-red-100 border-l-4 border-l-red-500 shadow-sm">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={18} /></span>
+                  <p className="text-sm font-medium text-red-700 leading-snug pt-1">{error}</p>
                 </div>
               )}
               <div className="flex justify-between items-center px-1">
@@ -1310,9 +1359,9 @@ const AddPGWizard = () => {
           {step === 5 && (
             <div className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
-                  <CheckCircle size={16} className="rotate-45 shrink-0" />
-                  {error}
+                <div role="alert" className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50/80 border border-red-100 border-l-4 border-l-red-500 shadow-sm">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={18} /></span>
+                  <p className="text-sm font-medium text-red-700 leading-snug pt-1">{error}</p>
                 </div>
               )}
               <div className="space-y-3">
@@ -1376,7 +1425,10 @@ const AddPGWizard = () => {
 
           {step === 4 && (
             <div className="space-y-6">
-              {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
+              {error && <div role="alert" className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50/80 border border-red-100 border-l-4 border-l-red-500 shadow-sm">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={18} /></span>
+                  <p className="text-sm font-medium text-red-700 leading-snug pt-1">{error}</p>
+                </div>}
 
               {!isEditingSubItem && (
                 <div className="space-y-4">
@@ -1535,9 +1587,9 @@ const AddPGWizard = () => {
           {step === 998 && (
             <div className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
-                  <CheckCircle size={16} className="rotate-45 shrink-0" />
-                  {error}
+                <div role="alert" className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50/80 border border-red-100 border-l-4 border-l-red-500 shadow-sm">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={18} /></span>
+                  <p className="text-sm font-medium text-red-700 leading-snug pt-1">{error}</p>
                 </div>
               )}
               <div className="space-y-1">
@@ -1601,7 +1653,10 @@ const AddPGWizard = () => {
 
           {step === 999 && (
             <div className="space-y-6">
-              {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
+              {error && <div role="alert" className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-50/80 border border-red-100 border-l-4 border-l-red-500 shadow-sm">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={18} /></span>
+                  <p className="text-sm font-medium text-red-700 leading-snug pt-1">{error}</p>
+                </div>}
               <div className="space-y-4">
                 <div className="text-sm font-semibold text-gray-700">Please provide the following documents</div>
                 <div className="grid gap-3">
@@ -1766,7 +1821,7 @@ const AddPGWizard = () => {
       </main >
 
       {step < 7 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40">
+        <div className={`fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40 ${keyboardOpen ? 'hidden' : ''}`}>
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
           <button
             onClick={handleBack}

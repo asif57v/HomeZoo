@@ -131,9 +131,9 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
                             <div className="flex items-center justify-between p-5 pb-2">
                                 <div className="flex flex-col items-start leading-none">
                                     <span className="text-xl font-black tracking-tighter text-slate-900 flex items-center gap-0.5">
-                                        HOOM<span className="text-amber-600">ZO</span>
+                                        HOOM<span className="text-[#005CA8]">ZO</span>
                                 </span>
-                                <div className="h-1 w-6 bg-amber-600 rounded-full mt-0.5"></div>
+                                <div className="h-1 w-6 bg-[#005CA8] rounded-full mt-0.5"></div>
                             </div>
                             <button onClick={onClose} className="p-2 rounded-full bg-gray-50 hover:bg-gray-100 transition border border-gray-100">
                                 <X size={20} className="text-gray-500" />
@@ -175,7 +175,7 @@ const PartnerSidebar = ({ isOpen, onClose }) => {
                         <div className="px-5 mb-4">
                             <button
                                 onClick={() => handleNavigation('/')}
-                                className="w-full py-2.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 border border-amber-500/20 transition-all active:scale-95"
+                                className="w-full py-2.5 px-3 bg-[#005CA8]/10 hover:bg-[#005CA8]/20 text-[#005CA8] font-bold text-xs rounded-xl flex items-center justify-center gap-2 border border-[#005CA8]/20 transition-all active:scale-95"
                             >
                                 <Building size={14} />
                                 Switch to Guest View (Home)

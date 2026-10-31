@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { propertyService, hotelService } from '../../../services/apiService';
+import { searchPlaceResults, resolvePlaceDetails } from '../../../utils/placeSuggestions';
 import toast from 'react-hot-toast';
 import { compressImage } from '../../../utils/imageCompressor';
 import { CheckCircle, FileText, Home, Image, Bed, MapPin, Search, Plus, Trash2, ChevronLeft, ChevronRight, Upload, X, ArrowLeft, ArrowRight, BedDouble, Users, Wifi, Clock, Loader2, Camera } from 'lucide-react';
 import logo from '../../../assets/rokologin-removebg-preview.png';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
+import { pickImageSource, pickGalleryFiles, useKeyboardOpen } from '../../../utils/imageSource';
 import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
 
 const REQUIRED_DOCS_HOSTEL = [
@@ -50,6 +52,7 @@ const AddHostelWizard = () => {
   const [uploading, setUploading] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [isFlutter, setIsFlutter] = useState(false);
+  const keyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     setIsFlutter(isFlutterApp());
@@ -297,13 +300,18 @@ const AddHostelWizard = () => {
     }
   };
 
-  const searchLocationForAddress = async () => {
+  const searchLocationForAddress = async (q) => {
     try {
       setError('');
-      if (!locationSearchQuery.trim()) return;
-      const res = await hotelService.searchLocation(locationSearchQuery.trim());
-      const results = Array.isArray(res?.results) ? res.results : [];
+      const query = typeof q === 'string' ? q : locationSearchQuery;
+      if (!query.trim()) return;
+      let results = await searchPlaceResults(query.trim());
+      if (results.length === 0) {
+        const res = await hotelService.searchLocation(query.trim());
+        results = Array.isArray(res?.results) ? res.results : [];
+      }
       setLocationResults(results);
+      if (results.length > 0) setError('');
       if (results.length === 0) {
         setError('No locations found. You can enter the address manually below.');
       }
@@ -315,10 +323,25 @@ const AddHostelWizard = () => {
   const selectLocationResult = async (place) => {
     try {
       setError('');
-      const lat = place.lat;
-      const lng = place.lng;
-      if (typeof lat !== 'number' || typeof lng !== 'number') return;
-      const res = await hotelService.getAddressFromCoordinates(lat, lng);
+      let { lat, lng } = place;
+      let res = null;
+      if (place.placeId) {
+        res = await resolvePlaceDetails(place.placeId);
+        if (!res) {
+          // Google lookup failed: resolve the suggestion text through the backend search instead
+          const fallback = await hotelService.searchLocation(place.display_name || place.name);
+          const first = Array.isArray(fallback?.results) ? fallback.results[0] : null;
+          lat = first?.lat;
+          lng = first?.lng;
+        } else {
+          ({ lat, lng } = res);
+        }
+      }
+      if (typeof lat !== 'number' || typeof lng !== 'number') {
+        setError('Could not get coordinates for this place. Please enter the address manually.');
+        return;
+      }
+      if (!res) res = await hotelService.getAddressFromCoordinates(lat, lng);
       updatePropertyForm(['location', 'coordinates'], [String(lng), String(lat)]);
       updatePropertyForm('address', {
         country: res.country || '',
@@ -422,6 +445,14 @@ const AddHostelWizard = () => {
   }, []);
 
   const handleCameraUpload = async (type, onDone) => {
+    const source = await pickImageSource();
+    if (!source) return;
+    if (source === 'gallery') {
+      const single = type === 'cover' || type === 'room' || type.startsWith('doc');
+      const files = await pickGalleryFiles(!single);
+      if (!files.length) return;
+      return uploadImages(files, type, urls => onDone(single ? urls[0] : urls));
+    }
     try {
       setUploading(type);
       setError('');
@@ -1012,7 +1043,7 @@ const AddHostelWizard = () => {
                     value={locationSearchQuery}
                     onChange={e => {
                       setLocationSearchQuery(e.target.value);
-                      if (e.target.value.length > 2) searchLocationForAddress();
+                      if (e.target.value.trim().length >= 2) searchLocationForAddress(e.target.value);
                     }}
                   />
                 </div>
@@ -1684,7 +1715,7 @@ const AddHostelWizard = () => {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40">
+      <footer className={`fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40 ${keyboardOpen ? 'hidden' : ''}`}>
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
           <button
             onClick={handleBack}

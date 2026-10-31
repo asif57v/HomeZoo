@@ -3,9 +3,9 @@ import { ChevronRight } from 'lucide-react';
 
 const TONES = {
   blue: { icon: 'bg-blue-50 text-[#005CA8]', action: 'text-[#005CA8]' },
-  sky: { icon: 'bg-sky-50 text-sky-600', action: 'text-sky-700' },
-  purple: { icon: 'bg-purple-50 text-purple-600', action: 'text-purple-700' },
-  orange: { icon: 'bg-orange-50 text-orange-500', action: 'text-orange-600' }
+  sky: { icon: 'bg-blue-50 text-[#005CA8]', action: 'text-[#005CA8]' },
+  purple: { icon: 'bg-blue-50 text-[#005CA8]', action: 'text-[#005CA8]' },
+  orange: { icon: 'bg-blue-50 text-[#005CA8]', action: 'text-[#005CA8]' }
 };
 
 /**

@@ -402,9 +402,12 @@ function App() {
       }
 
       // 2. Show in-app interactive toast
+      const toastTitle = (payload.notification?.title || 'HomeZoo')
+        .replace(/[🀀-🫿☀-➿️‍]/gu, '')
+        .trim() || 'HomeZoo';
       toast((t) => (
         <div
-          className="flex flex-col cursor-pointer p-1"
+          className={`flex items-center gap-2.5 w-full ${targetUrl ? 'cursor-pointer' : ''}`}
           onClick={() => {
             if (targetUrl) {
               window.location.href = targetUrl;
@@ -412,27 +415,41 @@ function App() {
             toast.dismiss(t.id);
           }}
         >
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-semibold text-white">{payload.notification?.title || 'HomeZoo'}</span>
-            <span className="text-[10px] text-teal-400 font-medium">Just now</span>
+          <div className="shrink-0 w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
           </div>
-          <span className="text-sm text-gray-200 mt-0.5">{payload.notification?.body}</span>
-          {targetUrl && (
-            <span className="text-xs text-teal-300 font-medium mt-1 inline-flex items-center gap-1 hover:underline">
-              View details →
-            </span>
-          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-[13px] font-semibold text-gray-900 leading-tight truncate">{toastTitle}</p>
+              <span className="shrink-0 text-[10px] text-gray-400">now</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5 leading-snug line-clamp-2">{payload.notification?.body}</p>
+          </div>
+          <button
+            type="button"
+            aria-label="Dismiss"
+            className="shrink-0 w-6 h-6 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 flex items-center justify-center text-base leading-none"
+            onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
+          >
+            ×
+          </button>
         </div>
       ), {
-        duration: 6000,
-        position: 'top-right',
+        duration: 4000,
+        position: 'top-center',
         style: {
-          background: '#0f172a',
-          color: '#fff',
-          borderRadius: '12px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          minWidth: '280px'
+          background: '#ffffff',
+          color: '#111827',
+          borderRadius: '14px',
+          boxShadow: '0 10px 30px -8px rgba(15, 23, 42, 0.25), 0 2px 6px rgba(15, 23, 42, 0.08)',
+          border: '1px solid #e5e7eb',
+          borderLeft: '4px solid #0d9488',
+          padding: '8px 10px',
+          width: 'calc(100vw - 32px)',
+          maxWidth: '340px'
         },
       });
     });

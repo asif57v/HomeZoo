@@ -53,12 +53,12 @@ const PartnerBottomNavbar = () => {
             <button
               key={item.name}
               onClick={() => handleNavClick(item)}
-              className="relative flex flex-col items-center justify-center h-full gap-1 p-1"
+              className="relative flex flex-col items-center justify-center h-full gap-1 py-1 px-0.5 min-w-0"
             >
               {isActive && (
                 <motion.div
                   layoutId="partner-active-pill"
-                  className="absolute inset-x-2 inset-y-1.5 bg-[#005CA8]/10 rounded-xl -z-10"
+                  className="absolute inset-x-0.5 inset-y-1.5 bg-[#005CA8]/10 rounded-xl -z-10"
                   initial={false}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
@@ -70,7 +70,7 @@ const PartnerBottomNavbar = () => {
                 strokeWidth={isActive ? 2.5 : 2}
               />
 
-              <span className={`text-[10px] font-bold tracking-wide transition-colors duration-200 ${isActive ? 'text-[#005CA8]' : 'text-gray-400'}`}>
+              <span className={`text-[10px] font-bold tracking-normal whitespace-nowrap transition-colors duration-200 ${isActive ? 'text-[#005CA8]' : 'text-gray-400'}`}>
                 {item.name}
               </span>
             </button>
