@@ -50,7 +50,8 @@ export const getFinancialSettings = async (req, res) => {
     // Frontend only needs taxRate for breakdown.
     res.status(200).json({
       success: true,
-      taxRate: settings.taxRate || 0
+      taxRate: settings.taxRate ?? 0,
+      categoryTaxRates: Object.fromEntries(settings.categoryTaxRates || [])
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching financial settings' });

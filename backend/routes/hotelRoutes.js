@@ -10,6 +10,7 @@ import {
   updatePartnerFcmToken
 } from '../controllers/hotelController.js';
 import upload from '../utils/multer.js';
+import { listDrafts, getDraft, saveDraft, deleteDraft } from '../controllers/propertyDraftController.js';
 
 const router = express.Router();
 
@@ -31,6 +32,12 @@ router.delete('/notifications', protect, authorizedRoles('partner', 'admin', 'su
 router.post('/test-notification', protect, authorizedRoles('partner', 'admin', 'superadmin'), sendTestNotification);
 
 // FCM Token Route - Partner Only
+// Property wizard drafts (resume after crash / app close)
+router.get('/property-drafts', protect, authorizedRoles('partner'), listDrafts);
+router.get('/property-drafts/:key', protect, authorizedRoles('partner'), getDraft);
+router.put('/property-drafts/:key', protect, authorizedRoles('partner'), saveDraft);
+router.delete('/property-drafts/:key', protect, authorizedRoles('partner'), deleteDraft);
+
 router.put('/fcm-token', protect, authorizedRoles('partner'), updatePartnerFcmToken);
 
 export default router;

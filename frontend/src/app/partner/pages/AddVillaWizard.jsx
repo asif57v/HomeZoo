@@ -7,6 +7,7 @@ import { compressImage } from '../../../utils/imageCompressor';
 import { AlertCircle, CheckCircle, FileText, Home, Image, Plus, Trash2, MapPin, Search, BedDouble, Wifi, Snowflake, Coffee, ShowerHead, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Upload, X, Clock, Loader2, Camera } from 'lucide-react';
 import logo from '../../../assets/rokologin-removebg-preview.png';
 import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
+import draftStore from '../../../utils/draftStore';
 import { pickImageSource, pickGalleryFiles, useKeyboardOpen } from '../../../utils/imageSource';
 import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
 
@@ -88,7 +89,7 @@ const AddVillaWizard = () => {
     if (saved) {
       try {
         if ((JSON.parse(saved).step || 0) >= 10) {
-          localStorage.removeItem(STORAGE_KEY);
+          draftStore.clear(STORAGE_KEY);
           return;
         }
         const { step: savedStep, propertyForm: savedForm, roomTypes: savedRooms, createdProperty: savedProp } = JSON.parse(saved);
@@ -110,10 +111,26 @@ const AddVillaWizard = () => {
     // Never persist the "submitted" screen, or the next new property would reopen on it
     if (isEditMode || step >= 10) return;
     const timeout = setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, propertyForm, roomTypes, createdProperty }));
+      draftStore.save(STORAGE_KEY, JSON.stringify({ step, propertyForm, roomTypes, createdProperty }));
     }, 1000);
     return () => clearTimeout(timeout);
   }, [step, propertyForm, roomTypes, createdProperty]);
+
+  // Restore from the server when this device has no local draft (cleared app data, new phone)
+  useEffect(() => {
+    if (isEditMode || localStorage.getItem(STORAGE_KEY)) return;
+    let cancelled = false;
+    draftStore.fetchRemote(STORAGE_KEY).then((d) => {
+      // Skip if the partner already started typing (that creates a local draft)
+      if (cancelled || localStorage.getItem(STORAGE_KEY)) return;
+      if (!d || !d.propertyForm || !(d.step >= 1)) return;
+      setStep(d.step);
+      setPropertyForm(d.propertyForm);
+      setRoomTypes(d.roomTypes || []);
+      if (d.createdProperty) setCreatedProperty(d.createdProperty);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const updatePropertyForm = (path, value) => {
     setPropertyForm(prev => {
@@ -838,7 +855,7 @@ const AddVillaWizard = () => {
         propId = res.property?._id;
         setCreatedProperty(res.property);
       }
-      localStorage.removeItem(STORAGE_KEY);
+      draftStore.clear(STORAGE_KEY);
       setStep(10);
     } catch (e) {
       const errMsg = e?.message || (typeof e === 'string' ? e : 'Failed to submit property');
@@ -881,7 +898,7 @@ const AddVillaWizard = () => {
       return;
     }
     if (step === 1) {
-      localStorage.removeItem(STORAGE_KEY);
+      draftStore.flushNow(); // keep the draft so the partner can continue later
       navigate(-1);
     } else {
       setStep(prev => prev - 1);
@@ -939,7 +956,7 @@ const AddVillaWizard = () => {
   };
 
   const handleExit = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    draftStore.flushNow(); // keep the draft so the partner can continue later
     navigate(-1);
   };
 

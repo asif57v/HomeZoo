@@ -48,6 +48,8 @@ const AdminSettings = () => {
     const [maintenanceMessage, setMaintenanceMessage] = useState('');
     const [commission, setCommission] = useState(10);
     const [taxRate, setTaxRate] = useState(12);
+    const TAX_CATEGORIES = ['pg', 'hostel', 'hotel', 'resort', 'villa', 'homestay', 'tent'];
+    const [categoryTaxRates, setCategoryTaxRates] = useState({});
     const [trialEnabled, setTrialEnabled] = useState(true);
     const [freeProperties, setFreeProperties] = useState(1);
     const [freeLeads, setFreeLeads] = useState(5);
@@ -83,7 +85,8 @@ const AdminSettings = () => {
                     setMaintenanceTitle(res.settings.maintenanceTitle || '');
                     setMaintenanceMessage(res.settings.maintenanceMessage || '');
                     setCommission(res.settings.defaultCommission || 10);
-                    setTaxRate(res.settings.taxRate || 12);
+                    setTaxRate(res.settings.taxRate ?? 12);
+                    setCategoryTaxRates(res.settings.categoryTaxRates || {});
                     setNearbyRadiusKm(res.settings.nearbySearchRadiusKm ?? 50);
                     if (res.settings.partnerFreeTrial) {
                         setTrialEnabled(res.settings.partnerFreeTrial.enabled !== false);
@@ -162,6 +165,7 @@ const AdminSettings = () => {
                 maintenanceMessage,
                 defaultCommission: Number(commission),
                 taxRate: Number(taxRate),
+                categoryTaxRates,
                 partnerFreeTrial: {
                     enabled: trialEnabled,
                     freeProperties: Number(freeProperties) || 0,
@@ -342,13 +346,35 @@ const AdminSettings = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">GST / Tax Rate (%)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Default GST / Tax Rate (%)</label>
                             <input
                                 type="number"
+                                min="0"
+                                max="100"
                                 value={taxRate}
                                 onChange={(e) => setTaxRate(e.target.value)}
                                 className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
                             />
+                        </div>
+                    </div>
+                    <div className="mt-6">
+                        <p className="font-medium text-gray-900">Tax Rate by Category (%)</p>
+                        <p className="text-sm text-gray-500 mb-3">Leave blank to use the default rate. Enter 0 for no tax.</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {TAX_CATEGORIES.map((cat) => (
+                                <div key={cat}>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1 capitalize">{cat === 'pg' ? 'PG' : cat}</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        placeholder={`${taxRate} (default)`}
+                                        value={categoryTaxRates[cat] ?? ''}
+                                        onChange={(e) => setCategoryTaxRates((prev) => ({ ...prev, [cat]: e.target.value }))}
+                                        className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
                     <div className="pt-6">

@@ -147,8 +147,14 @@ export const createBooking = async (req, res) => {
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    const pType = property.propertyType.toLowerCase();
-    const isInquiry = ['buy', 'plot', 'rent'].includes(pType);
+    let pType = property.propertyType.toLowerCase();
+    const BOOKABLE_TYPES = ['villa', 'resort', 'hotel', 'hostel', 'pg', 'homestay', 'tent'];
+    // Dynamic-category listings (e.g. Apartment for rent/sale) without room types are inquiries
+    const isDynamicListing = !['buy', 'plot', 'rent', ...BOOKABLE_TYPES].includes(pType) && !roomTypeId;
+    const isInquiry = ['buy', 'plot', 'rent'].includes(pType) || isDynamicListing;
+    if (isDynamicListing) {
+      pType = /sale|buy/i.test(property.transactionType || '') ? 'buy' : 'rent';
+    }
 
     // Basic Validation - different for inquiries
     if (!isInquiry) {
@@ -177,7 +183,7 @@ export const createBooking = async (req, res) => {
         inquiryMetadata: {
           preferredDate: checkInDate ? new Date(checkInDate) : new Date(),
           message: req.body.message || 'I am interested in this property.',
-          budget: req.body.budget || (pType === 'buy' ? property.buyDetails?.expectedPrice : (pType === 'rent' ? property.rentDetails?.monthlyRent : property.plotDetails?.expectedPrice)),
+          budget: req.body.budget || Number(property.dynamicData?.expectedPrice) || (pType === 'buy' ? property.buyDetails?.expectedPrice : (pType === 'rent' ? property.rentDetails?.monthlyRent : property.plotDetails?.expectedPrice)),
           status: 'new'
         }
       });
@@ -208,7 +214,7 @@ export const createBooking = async (req, res) => {
     // --- CONTINUE STANDARD BOOKING FLOW ---
     // Fetch Settings
     const settings = await PlatformSettings.getSettings();
-    const gstRate = settings.taxRate || 12;
+    const gstRate = settings.getTaxRateFor(pType);
 
     // Default commission from global settings
     let commissionRate = settings.defaultCommission || 10;

@@ -987,6 +987,7 @@ export const updatePlatformSettings = async (req, res) => {
       maintenanceMessage,
       defaultCommission,
       taxRate,
+      categoryTaxRates,
       reelCouponTarget,
       reelCouponDiscount,
       reelFreeDurationSec,
@@ -1037,7 +1038,26 @@ export const updatePlatformSettings = async (req, res) => {
     if (typeof maintenanceMessage === 'string') settings.maintenanceMessage = maintenanceMessage;
 
     if (defaultCommission !== undefined) settings.defaultCommission = Number(defaultCommission);
-    if (taxRate !== undefined) settings.taxRate = Number(taxRate);
+    if (taxRate !== undefined) {
+      const rate = Number(taxRate);
+      if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+        return res.status(400).json({ success: false, message: 'Tax rate must be between 0 and 100' });
+      }
+      settings.taxRate = rate;
+    }
+    if (categoryTaxRates && typeof categoryTaxRates === 'object') {
+      const cleaned = {};
+      for (const [key, val] of Object.entries(categoryTaxRates)) {
+        // Blank value = no override (falls back to the default tax rate)
+        if (val === '' || val === null || val === undefined) continue;
+        const rate = Number(val);
+        if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+          return res.status(400).json({ success: false, message: `Tax rate for ${key} must be between 0 and 100` });
+        }
+        cleaned[String(key).toLowerCase()] = rate;
+      }
+      settings.categoryTaxRates = cleaned;
+    }
     if (partnerFreeTrial && typeof partnerFreeTrial === 'object') {
       const props = Number(partnerFreeTrial.freeProperties);
       const leads = Number(partnerFreeTrial.freeLeads);

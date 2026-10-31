@@ -12,6 +12,11 @@ const PLACE_RANK = {
   locality: 1,
   borough: 1,
   district: 2,
+  village: 2,
+  hamlet: 3,
+  isolated_dwelling: 3,
+  city_block: 3,
+  county: 3,
 };
 
 const DEFAULT_CENTER = { lat: 22.97, lng: 78.65 }; // centre of India
@@ -81,7 +86,6 @@ const fetchGooglePlaces = async (query, limit) => {
         {
           input: query,
           componentRestrictions: { country: 'in' },
-          types: ['(regions)'],
           location: new maps.LatLng(lat, lng),
           radius: 50000,
         },
@@ -181,53 +185,95 @@ export const resolvePlaceDetails = async (placeId) => {
   }
 };
 
-/**
- * Live India-only place suggestions for `query`. Always resolves (empty array on failure).
- */
-export const fetchIndianPlaces = async (query, limit = 6) => {
-  const googlePlaces = await fetchGooglePlaces(query, limit);
-  if (googlePlaces.length > 0) return googlePlaces;
-
+const fetchPhotonPlaces = async (query, limit) => {
   const { lat, lng } = getBiasPoint();
-
   try {
     // Ask for many hits: most of the world's matches are filtered out below
     const res = await fetch(
-      `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=25&lang=en&lat=${lat}&lon=${lng}`
+      `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=30&lang=en&lat=${lat}&lon=${lng}`
     );
     const data = await res.json();
-    const places = (data?.features || [])
+    return (data?.features || [])
       .map((f) => f.properties || {})
-      .filter(
-        (p) => p.countrycode === 'IN' && p.name && p.osm_key === 'place' && p.osm_value in PLACE_RANK
-      )
+      .filter((p) => p.countrycode === 'IN' && p.name && p.osm_key === 'place' && p.osm_value in PLACE_RANK)
       .sort((a, b) => PLACE_RANK[a.osm_value] - PLACE_RANK[b.osm_value])
-      .map(formatPlace);
-    const unique = Array.from(new Set(places)).slice(0, limit);
-    if (unique.length > 0) return unique;
+      .map(formatPlace)
+      .slice(0, limit);
   } catch (err) {
     console.warn('Photon autocomplete failed', err);
+    return [];
   }
+};
 
-  // Fallback: Google Geocoding, India only
-  const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
-  if (apiKey) {
-    try {
-      const res = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}&components=country:in`
-      );
-      const data = await res.json();
-      if (data.status === 'OK' && data.results) {
-        return data.results
-          .map((item) => item.formatted_address)
-          .filter((addr) => addr && addr.toLowerCase() !== 'india') // bare country is not a useful suggestion
-          .slice(0, limit);
-      }
-    } catch (err) {
-      console.warn('Geocoding suggestions error', err);
-    }
+// OpenStreetMap Nominatim: good coverage of small localities and villages across India
+const fetchNominatimPlaces = async (query, limit) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=in&limit=${limit}&q=${encodeURIComponent(query)}`
+    );
+    const data = await res.json();
+    return (Array.isArray(data) ? data : [])
+      .map((item) => {
+        const a = item.address || {};
+        const name = item.name || a.suburb || a.neighbourhood || a.village || a.town || a.city;
+        if (!name) return null;
+        const area = a.city || a.town || a.village || a.county || a.state_district;
+        const parts = [name];
+        if (area && area.toLowerCase() !== name.toLowerCase()) parts.push(area);
+        if (a.state) parts.push(a.state);
+        return parts.join(', ');
+      })
+      .filter(Boolean);
+  } catch (err) {
+    console.warn('Nominatim autocomplete failed', err);
+    return [];
   }
-  return [];
+};
+
+const fetchGeocodePlaces = async (query, limit) => {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAP_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}&components=country:in`
+    );
+    const data = await res.json();
+    if (data.status !== 'OK' || !data.results) return [];
+    return data.results
+      .map((item) => item.formatted_address)
+      .filter((addr) => addr && addr.toLowerCase() !== 'india') // bare country is not a useful suggestion
+      .slice(0, limit);
+  } catch (err) {
+    console.warn('Geocoding suggestions error', err);
+    return [];
+  }
+};
+
+/**
+ * Live India-only place suggestions for `query`. Always resolves (empty array on failure).
+ * Results from several sources are merged so small localities (e.g. "Ranipura") still show up
+ * when one provider doesn't know them.
+ */
+export const fetchIndianPlaces = async (query, limit = 8) => {
+  const google = await fetchGooglePlaces(query, limit);
+  const all = [...google];
+
+  if (all.length < limit) {
+    const [photon, nominatim] = await Promise.all([
+      fetchPhotonPlaces(query, limit),
+      fetchNominatimPlaces(query, limit),
+    ]);
+    all.push(...photon, ...nominatim);
+  }
+  if (all.length === 0) all.push(...(await fetchGeocodePlaces(query, limit)));
+
+  const seen = new Set();
+  return all.filter((p) => {
+    const key = p.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, limit + 4);
 };
 
 const startsWithWord = (text, query) =>
@@ -240,7 +286,7 @@ const startsWithWord = (text, query) =>
  * 2. live India results,
  * 3. places that merely CONTAIN the typed text.
  */
-export const rankLocations = (rawQuery, { listings = [], curated = [], live = [] }, max = 8) => {
+export const rankLocations = (rawQuery, { listings = [], curated = [], live = [] }, max = 12) => {
   const query = (rawQuery || '').toLowerCase().trim();
   if (!query) return curated.slice(0, max);
 

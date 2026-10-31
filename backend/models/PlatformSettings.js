@@ -30,6 +30,12 @@ const platformSettingsSchema = new mongoose.Schema(
       type: Number,
       default: 12 // Percentage (GST)
     },
+    /** Per-category GST override keyed by lowercase propertyType (pg, hotel, ...). Missing key => taxRate */
+    categoryTaxRates: {
+      type: Map,
+      of: Number,
+      default: {}
+    },
     /** Home page "Top Rated Partners" section: all text is admin editable */
     topRatedPartnersSection: {
       enabled: { type: Boolean, default: true },
@@ -143,6 +149,13 @@ platformSettingsSchema.statics.getSettings = async function () {
     settings = await this.create({});
   }
   return settings;
+};
+
+platformSettingsSchema.methods.getTaxRateFor = function (propertyType) {
+  const key = String(propertyType || '').toLowerCase();
+  const override = this.categoryTaxRates?.get(key);
+  if (typeof override === 'number' && Number.isFinite(override)) return override;
+  return this.taxRate ?? 12;
 };
 
 const PlatformSettings = mongoose.model('PlatformSettings', platformSettingsSchema);

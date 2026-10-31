@@ -5,6 +5,7 @@ import { Building2, MapPin, Pencil, PlusCircle, Trash2, Eye, AlertCircle, Lock }
 import { propertyService } from '../../../services/apiService';
 import subscriptionService from '../../../services/subscriptionService';
 import PartnerHeader from '../components/PartnerHeader';
+import WizardDraftsBanner from '../components/WizardDraftsBanner';
 import { toast } from 'react-hot-toast';
 
 const PartnerProperties = () => {
@@ -162,6 +163,8 @@ const PartnerProperties = () => {
             </button>
           </div>
         </div>
+
+        <WizardDraftsBanner />
 
         {/* Draft Listings Section */}
         {drafts.length > 0 && (

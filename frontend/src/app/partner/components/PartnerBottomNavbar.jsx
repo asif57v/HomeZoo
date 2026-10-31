@@ -2,9 +2,11 @@ import { useFeatureFlags } from '../../../store/featureFlagsStore';
 import React from 'react';
 import { LayoutDashboard, Briefcase, UserCircle, Crown, Clapperboard } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useKeyboardOpen } from '../../../utils/imageSource';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const PartnerBottomNavbar = () => {
+    const keyboardOpen = useKeyboardOpen();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -33,7 +35,7 @@ const PartnerBottomNavbar = () => {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[100] print:hidden bg-white/95 backdrop-blur-md"
+      className={`fixed bottom-0 left-0 right-0 z-[100] print:hidden bg-white/95 backdrop-blur-md ${keyboardOpen ? 'hidden' : ''}`}
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 10px)' }}
     >
       <div className={`

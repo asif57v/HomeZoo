@@ -28,7 +28,9 @@ const PropertyDetailsPage = () => {
   const [guests, setGuests] = useState({ rooms: 1, adults: 2, children: 0 });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [taxRate, setTaxRate] = useState(0); // Fetched from backend
+  const [defaultTaxRate, setTaxRate] = useState(0); // Fetched from backend
+  const [categoryTaxRates, setCategoryTaxRates] = useState({});
+  const taxRate = categoryTaxRates[property?.propertyType?.toLowerCase()] ?? defaultTaxRate;
   const [availability, setAvailability] = useState(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [revealedNumber, setRevealedNumber] = useState(null);
@@ -136,7 +138,10 @@ const PropertyDetailsPage = () => {
   useEffect(() => {
     legalService.getFinancialSettings()
       .then(res => {
-        if (res.success) setTaxRate(res.taxRate || 0);
+        if (res.success) {
+          setTaxRate(res.taxRate ?? 0);
+          setCategoryTaxRates(res.categoryTaxRates || {});
+        }
       })
       .catch(err => console.error("Failed to fetch tax rate", err));
   }, []);
@@ -210,7 +215,16 @@ const PropertyDetailsPage = () => {
   }, [id]);
 
   // Helper derived state for hooks (safe access)
-  const propertyType = property?.propertyType;
+  // Dynamic-category listings (e.g. Apartment for rent/sale) have no room types to book,
+  // so they behave like Rent/Buy inquiry listings. `displayType` keeps the original label.
+  const displayType = property?.propertyType;
+  const BOOKABLE_TYPES = ['villa', 'resort', 'hotel', 'hostel', 'pg', 'homestay', 'tent', 'rent', 'buy', 'plot'];
+  const isDynamicListing = !!property && !!displayType
+    && !BOOKABLE_TYPES.includes(displayType.toLowerCase())
+    && !(property.inventory?.length > 0);
+  const propertyType = isDynamicListing
+    ? (/sale|buy/i.test(property.transactionType || '') ? 'Buy' : 'Rent')
+    : displayType;
   const isBedBased = ['hostel', 'pg'].includes(propertyType?.toLowerCase());
 
   // Update guests when rooms change to ensure valid state
@@ -587,13 +601,15 @@ const PropertyDetailsPage = () => {
 
   const pType = propertyType?.toLowerCase();
   if (!bookingBarPrice) {
-    if (pType === 'rent') bookingBarPrice = property.rentDetails?.monthlyRent;
+    const dynamicPrice = isDynamicListing ? Number(property.dynamicData?.expectedPrice) || undefined : undefined;
+    if (dynamicPrice) bookingBarPrice = dynamicPrice;
+    else if (pType === 'rent') bookingBarPrice = property.rentDetails?.monthlyRent;
     else if (pType === 'buy') bookingBarPrice = property.buyDetails?.expectedPrice;
     else if (pType === 'plot') bookingBarPrice = property.plotDetails?.expectedPrice;
     else if (pType === 'pg') bookingBarPrice = property.pgDetails?.monthlyRent || property.minPrice;
   }
 
-  const priceLabel = (['rent', 'pg', 'hostel'].includes(pType)) ? 'Monthly Rent' : (['buy', 'plot'].includes(pType)) ? 'Asking Price' : 'Price per night';
+  const priceLabel = isDynamicListing ? 'Expected Price' : (['rent', 'pg', 'hostel'].includes(pType)) ? 'Monthly Rent' : (['buy', 'plot'].includes(pType)) ? 'Asking Price' : 'Price per night';
 
   const priceBreakdown = getPriceBreakdown();
 
@@ -620,7 +636,7 @@ const PropertyDetailsPage = () => {
       const response = await bookingService.create({
         propertyId: id,
         message: `I am interested in this ${propertyType}. Please contact me.`,
-        budget: property.buyDetails?.expectedPrice || property.plotDetails?.expectedPrice || property.rentDetails?.monthlyRent || 0,
+        budget: property.buyDetails?.expectedPrice || property.plotDetails?.expectedPrice || property.rentDetails?.monthlyRent || Number(property.dynamicData?.expectedPrice) || 0,
         propertyType: pType,
         checkInDate: dates.checkIn || new Date()
       });
@@ -893,7 +909,7 @@ const PropertyDetailsPage = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="bg-surface/10 text-surface text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                      {propertyType}
+                      {displayType}
                     </span>
                     {isVerified && <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-100 flex items-center gap-1"><Shield size={10} className="fill-blue-600 text-blue-600" /> Verified</span>}
                     {isFeatured && <span className="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100 flex items-center gap-1"><Star size={10} className="fill-amber-600 text-amber-600" /> Featured</span>}
@@ -1997,7 +2013,7 @@ const PropertyDetailsPage = () => {
       </div>
 
       {/* Sticky Bottom Booking Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50 lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] shadow-lg z-50 lg:hidden">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div>
             <p className="text-xs text-gray-500">{priceBreakdown ? 'Total Amount' : priceLabel}</p>

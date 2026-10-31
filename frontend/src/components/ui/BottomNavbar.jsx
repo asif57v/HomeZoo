@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useKeyboardOpen } from '../../utils/imageSource';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // Premium SVG Icon Components with Active & Inactive States
@@ -109,6 +110,7 @@ const ProfileIcon = ({ isActive }) => (
 );
 
 const BottomNavbar = () => {
+    const keyboardOpen = useKeyboardOpen();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -145,7 +147,7 @@ const BottomNavbar = () => {
 
     return (
         <nav
-            className="md:hidden fixed bottom-0 left-0 right-0 z-[100] print:hidden select-none bg-white"
+            className={`md:hidden fixed bottom-0 left-0 right-0 z-[100] print:hidden select-none bg-white ${keyboardOpen ? 'hidden' : ''}`}
             style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 10px)' }}
         >
             <div className="bg-white rounded-t-[22px] shadow-[0_-4px_24px_rgba(0,0,0,0.07)] border-t border-slate-100/90 px-1 h-[62px] grid grid-cols-5 items-center relative">
