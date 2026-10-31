@@ -6,6 +6,7 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import PaymentConfig from '../config/payment.config.js';
 import notificationService from '../services/notificationService.js';
+import { getFeatureFlags } from '../middlewares/featureGuards.js';
 
 // Initialize Razorpay
 let razorpay;
@@ -146,18 +147,93 @@ export const getCurrentSubscription = async (req, res) => {
 
         if (!partner) return res.status(404).json({ message: 'Partner not found' });
 
+        const { subscriptionEnabled } = await getFeatureFlags();
+
         // Usage must reflect real listings, not a counter that never decrements
         const sub = partner.subscription?.toObject ? partner.subscription.toObject() : partner.subscription;
         if (sub) {
-            // Only properties uploaded under the current subscription
-            const q = { partnerId: partner._id, status: { $ne: 'deleted' } };
+            // Only non-draft, non-deleted properties uploaded under the current subscription
+            const q = { partnerId: partner._id, status: { $nin: ['deleted', 'draft'] } };
             if (sub.startDate) q.createdAt = { $gte: sub.startDate };
             sub.propertiesAdded = await Property.countDocuments(q);
         }
 
+        // Free allowance granted at registration (limits come from admin settings)
+        let freeTrial = null;
+        if (partner.freeTrial && (partner.freeTrial.granted !== false || (partner.freeTrial.propertiesLimit || 0) > 0)) {
+            const propertiesLimit = partner.freeTrial.propertiesLimit ?? 1;
+            const leadsLimit = partner.freeTrial.leadsLimit ?? 5;
+            const propertiesUsed = await Property.countDocuments({ partnerId: partner._id, status: { $nin: ['deleted', 'draft'] } });
+            const leadsUsed = partner.freeTrial.leadsUsed || 0;
+            freeTrial = {
+                granted: true,
+                propertiesLimit,
+                propertiesUsed,
+                leadsLimit,
+                leadsUsed,
+                propertiesExhausted: propertiesUsed >= propertiesLimit,
+                // Used up once both the free listings and the free leads are consumed
+                exhausted: propertiesUsed >= propertiesLimit && leadsUsed >= leadsLimit
+            };
+        }
+
+        // Determine if partner can add property
+        let canAddProperty = true;
+        let subscriptionStatus = 'active';
+        let reasonMessage = 'You can add properties';
+
+        if (!subscriptionEnabled) {
+            canAddProperty = true;
+            subscriptionStatus = 'disabled';
+            reasonMessage = 'Subscriptions are currently disabled';
+        } else {
+            const isSubActive =
+                sub?.status === 'active' &&
+                sub?.expiryDate &&
+                new Date(sub.expiryDate) > new Date();
+
+            if (sub?.planId) {
+                if (!isSubActive) {
+                    canAddProperty = false;
+                    subscriptionStatus = 'expired';
+                    reasonMessage = 'Your subscription has ended. Please choose a subscription plan to add properties.';
+                } else {
+                    const maxAllowed = sub.planId?.maxProperties;
+                    if (typeof maxAllowed === 'number' && maxAllowed > 0 && (sub.propertiesAdded || 0) >= maxAllowed) {
+                        canAddProperty = false;
+                        subscriptionStatus = 'limit_reached';
+                        reasonMessage = `Property limit reached! Your plan allows ${maxAllowed} ${maxAllowed === 1 ? 'property' : 'properties'}. Please upgrade your subscription to add more.`;
+                    } else {
+                        canAddProperty = true;
+                        subscriptionStatus = 'active';
+                    }
+                }
+            } else {
+                // Partner has no paid plan
+                if (freeTrial && freeTrial.propertiesLimit > 0) {
+                    if (freeTrial.propertiesUsed >= freeTrial.propertiesLimit) {
+                        canAddProperty = false;
+                        subscriptionStatus = 'free_exhausted';
+                        reasonMessage = 'Your free property limit has ended. Please choose a subscription plan to add properties.';
+                    } else {
+                        canAddProperty = true;
+                        subscriptionStatus = 'free_trial';
+                    }
+                } else {
+                    canAddProperty = false;
+                    subscriptionStatus = 'no_subscription';
+                    reasonMessage = 'Your subscription has ended. Please choose a subscription plan to add properties.';
+                }
+            }
+        }
+
         res.json({
             success: true,
-            subscription: sub
+            subscription: sub,
+            freeTrial,
+            canAddProperty,
+            subscriptionStatus,
+            reasonMessage
         });
     } catch (error) {
         console.error('Get Subscription Error:', error);

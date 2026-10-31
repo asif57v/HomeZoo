@@ -16,6 +16,7 @@ import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
 import draftStore from '../../../utils/draftStore';
 import { pickImageSource, pickGalleryFiles, pickFlutterImages, useKeyboardOpen } from '../../../utils/imageSource';
 import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
+import { checkPartnerCanAddProperty } from '../../../utils/subscriptionGuard';
 
 const REQUIRED_DOCS_PG = [
   { type: 'rent_agreement', name: 'Rent Agreement' },
@@ -82,6 +83,25 @@ const AddPGWizard = () => {
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [locationResults, setLocationResults] = useState([]);
   const [uploading, setUploading] = useState(null);
+
+  // Check if partner can add property (redirect if subscription or free properties ended)
+  useEffect(() => {
+    if (isEditMode) return;
+    let isMounted = true;
+    const verifySub = async () => {
+      const check = await checkPartnerCanAddProperty();
+      if (!isMounted) return;
+      if (!check.canAdd) {
+        toast.error(check.message, { id: 'sub-guard-toast', duration: 4000, icon: '🔒' });
+        navigate('/hotel/subscriptions', {
+          replace: true,
+          state: { reason: check.reason, alertMessage: check.message }
+        });
+      }
+    };
+    verifySub();
+    return () => { isMounted = false; };
+  }, [isEditMode, navigate]);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [isFlutter, setIsFlutter] = useState(false);
   const keyboardOpen = useKeyboardOpen();

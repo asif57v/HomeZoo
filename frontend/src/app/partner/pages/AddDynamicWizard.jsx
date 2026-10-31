@@ -11,6 +11,7 @@ import { isFlutterApp, openFlutterCamera } from '../../../utils/flutterBridge';
 import draftStore from '../../../utils/draftStore';
 import { pickImageSource, pickGalleryFiles, pickFlutterImages, useKeyboardOpen } from '../../../utils/imageSource';
 import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phoneUtils';
+import { checkPartnerCanAddProperty } from '../../../utils/subscriptionGuard';
 
 // Tent/Camping Specific Constants
 const TENT_TYPES = ["Luxury Swiss Tent", "Dome Tent", "Safari Tent", "Camping Tent", "Glamping Pod"];
@@ -54,6 +55,25 @@ const AddDynamicWizard = () => {
   const [tempNearbyPlace, setTempNearbyPlace] = useState({ name: '', type: 'tourist', distanceKm: '' });
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [locationResults, setLocationResults] = useState([]);
+
+  // Check if partner can add property (redirect if subscription or free properties ended)
+  useEffect(() => {
+    if (isEditMode) return;
+    let isMounted = true;
+    const verifySub = async () => {
+      const check = await checkPartnerCanAddProperty();
+      if (!isMounted) return;
+      if (!check.canAdd) {
+        toast.error(check.message, { id: 'sub-guard-toast', duration: 4000, icon: '🔒' });
+        navigate('/hotel/subscriptions', {
+          replace: true,
+          state: { reason: check.reason, alertMessage: check.message }
+        });
+      }
+    };
+    verifySub();
+    return () => { isMounted = false; };
+  }, [isEditMode, navigate]);
 
   // Live address suggestions while typing (debounced)
   useEffect(() => {

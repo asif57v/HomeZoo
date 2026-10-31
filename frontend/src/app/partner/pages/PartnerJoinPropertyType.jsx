@@ -7,6 +7,7 @@ import { categoryService } from '../../../services/categoryService';
 import { propertyService } from '../../../services/apiService';
 import subscriptionService from '../../../services/subscriptionService';
 import toast from 'react-hot-toast';
+import { evaluateSubscriptionCanAddProperty } from '../../../utils/subscriptionGuard';
 
 // Only these 4 options, in this order. No duplicates.
 const FOUR_OPTIONS = [
@@ -20,24 +21,55 @@ const PartnerJoinPropertyType = () => {
   const navigate = useNavigate();
   const [allTypes, setAllTypes] = useState(FOUR_OPTIONS);
   const [subscription, setSubscription] = useState(null);
+  const [freeTrial, setFreeTrial] = useState(null);
   const [propertyCount, setPropertyCount] = useState(0);
+  const [checkingAccess, setCheckingAccess] = useState(true);
+  const { subscriptionEnabled } = useFeatureFlags();
 
   useEffect(() => {
+    let isMounted = true;
     const fetchSubData = async () => {
       try {
         const subRes = await subscriptionService.getCurrentSubscription();
+        if (!isMounted) return;
+
         if (subRes?.subscription) {
           setSubscription(subRes.subscription);
         }
+        if (subRes?.freeTrial) {
+          setFreeTrial(subRes.freeTrial);
+        }
+
         const propRes = await propertyService.getPartnerProperties();
+        if (!isMounted) return;
         const list = Array.isArray(propRes) ? propRes : (propRes?.properties || []);
         setPropertyCount(list.length);
+
+        // Immediate check: if subscription or free property ended, notify and redirect directly
+        const check = evaluateSubscriptionCanAddProperty({
+          ...subRes,
+          subscription: subRes?.subscription,
+          freeTrial: subRes?.freeTrial,
+          subscriptionEnabled
+        });
+
+        if (!check.canAdd) {
+          toast.error(check.message, { id: 'sub-guard-toast', duration: 4000, icon: '🔒' });
+          navigate('/hotel/subscriptions', {
+            replace: true,
+            state: { reason: check.reason, alertMessage: check.message }
+          });
+          return;
+        }
       } catch (err) {
         console.error("Failed to check subscription status", err);
+      } finally {
+        if (isMounted) setCheckingAccess(false);
       }
     };
     fetchSubData();
-  }, []);
+    return () => { isMounted = false; };
+  }, [navigate, subscriptionEnabled]);
 
   useEffect(() => {
     const buildFourOptions = async () => {
@@ -98,35 +130,33 @@ const PartnerJoinPropertyType = () => {
     buildFourOptions();
   }, []);
 
-  const { subscriptionEnabled } = useFeatureFlags();
-
   const handleSelectType = (item) => {
     if (!item.route) return;
 
-    // Partners who never bought a plan (new / free trial) are checked by the server
-    if (subscriptionEnabled && subscription?.planId) {
-      const isActive =
-        subscription?.status === 'active' &&
-        subscription?.expiryDate &&
-        new Date(subscription.expiryDate) > new Date();
+    const check = evaluateSubscriptionCanAddProperty({
+      subscription,
+      freeTrial,
+      subscriptionEnabled
+    });
 
-      const maxAllowed = subscription?.planId?.maxProperties;
-
-      if (!isActive) {
-        toast.error("Your subscription plan has expired. Please choose a subscription plan.");
-        navigate('/hotel/subscriptions');
-        return;
-      }
-
-      if (maxAllowed && (subscription.propertiesAdded ?? propertyCount) >= maxAllowed) {
-        toast.error(`Property limit reached! Your plan allows ${maxAllowed} properties.`);
-        navigate('/hotel/subscriptions');
-        return;
-      }
+    if (!check.canAdd) {
+      toast.error(check.message, { id: 'sub-guard-toast', duration: 4000, icon: '🔒' });
+      navigate('/hotel/subscriptions', {
+        state: { reason: check.reason, alertMessage: check.message }
+      });
+      return;
     }
 
     navigate(item.route, { state: { categoryName: item.label, categoryId: item.categoryId } });
   };
+
+  if (checkingAccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-[#005CA8] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">

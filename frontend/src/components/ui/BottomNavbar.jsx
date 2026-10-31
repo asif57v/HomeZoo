@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useKeyboardOpen } from '../../utils/imageSource';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { handleNavigateToAddProperty } from '../../utils/subscriptionGuard';
 
 // Premium SVG Icon Components with Active & Inactive States
 const HomeIcon = ({ isActive }) => (
@@ -139,7 +140,7 @@ const BottomNavbar = () => {
                 navigate('/login', { state: { from: { pathname: '/hotel/join' } } });
                 return;
             }
-            navigate('/hotel/join');
+            handleNavigateToAddProperty(navigate);
             return;
         }
         navigate(item.route);

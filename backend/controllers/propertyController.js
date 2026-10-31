@@ -66,9 +66,12 @@ export const createProperty = async (req, res) => {
 
     if (isSubscriptionActive) {
       maxAllowed = subscription.planId?.maxProperties || 1;
-    } else if (partner.freeTrial && typeof partner.freeTrial.granted === 'boolean') {
+    } else if (subscription?.planId) {
+      // Plan expired or ended
+      maxAllowed = 0;
+    } else if (partner.freeTrial && (partner.freeTrial.granted !== false || (partner.freeTrial.propertiesLimit || 0) > 0)) {
       // Partner registered under the free-trial rules set by admin
-      maxAllowed = partner.freeTrial.propertiesLimit || 0;
+      maxAllowed = partner.freeTrial.propertiesLimit ?? 1;
     } else {
       // Legacy partner without a trial snapshot: unrestricted as before
       maxAllowed = 9999;
@@ -180,9 +183,11 @@ export const createProperty = async (req, res) => {
     if (saveAsDraft) {
       if (limitReached && !isDraftRequested) {
         return res.status(403).json({
-          message: maxAllowed === 0
-            ? 'Please purchase a subscription plan to publish properties. Your property has been saved to drafts.'
-            : `Property limit reached. Your plan allows ${maxAllowed} properties. Your property has been saved to drafts. Please upgrade your subscription to publish.`,
+          message: (!isSubscriptionActive && subscription?.planId)
+            ? 'Your subscription has ended. Please renew your subscription to publish properties. Your property has been saved to drafts.'
+            : (maxAllowed === 0
+              ? 'Please purchase a subscription plan to publish properties. Your property has been saved to drafts.'
+              : `Property limit reached. Your plan allows ${maxAllowed} properties. Your property has been saved to drafts. Please upgrade your subscription to publish.`),
           limitReached: true,
           requiresSubscription: true,
           draftSaved: true,
@@ -848,8 +853,11 @@ export const publishDraftProperty = async (req, res) => {
     if (isSubscriptionActive && subscription.planId) {
       const plan = subscription.planId.maxProperties ? subscription.planId : await SubscriptionPlan.findById(subscription.planId);
       maxAllowed = plan?.maxProperties || 0;
-    } else if (partner.freeTrial && typeof partner.freeTrial.granted === 'boolean') {
-      maxAllowed = partner.freeTrial.propertiesLimit || 0;
+    } else if (subscription?.planId) {
+      // Plan expired or ended
+      maxAllowed = 0;
+    } else if (partner.freeTrial && (partner.freeTrial.granted !== false || (partner.freeTrial.propertiesLimit || 0) > 0)) {
+      maxAllowed = partner.freeTrial.propertiesLimit ?? 1;
     } else {
       maxAllowed = 9999;
     }
@@ -865,9 +873,11 @@ export const publishDraftProperty = async (req, res) => {
 
     if (subscriptionEnabled && currentPropertyCount >= maxAllowed) {
       return res.status(403).json({
-        message: maxAllowed === 0
-          ? 'Please purchase a subscription plan to publish properties.'
-          : `Property limit reached. Your plan allows ${maxAllowed} properties. Please upgrade your subscription.`,
+        message: (!isSubscriptionActive && subscription?.planId)
+          ? 'Your subscription has ended. Please renew your subscription to publish properties.'
+          : (maxAllowed === 0
+            ? 'Please purchase a subscription plan to publish properties.'
+            : `Property limit reached. Your plan allows ${maxAllowed} properties. Please upgrade your subscription.`),
         limitReached: true,
         requiresSubscription: true,
         currentCount: currentPropertyCount,

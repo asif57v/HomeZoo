@@ -7,6 +7,7 @@ import subscriptionService from '../../../services/subscriptionService';
 import PartnerHeader from '../components/PartnerHeader';
 import WizardDraftsBanner from '../components/WizardDraftsBanner';
 import { toast } from 'react-hot-toast';
+import { evaluateSubscriptionCanAddProperty, handleNavigateToAddProperty } from '../../../utils/subscriptionGuard';
 
 const PartnerProperties = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const PartnerProperties = () => {
   const [propertyToDelete, setPropertyToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [subscription, setSubscription] = useState(null);
+  const [freeTrial, setFreeTrial] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [drafts, setDrafts] = useState([]);
@@ -45,6 +47,7 @@ const PartnerProperties = () => {
       const data = await subscriptionService.getCurrentSubscription();
       if (data.success) {
         setSubscription(data.subscription);
+        setFreeTrial(data.freeTrial || null);
       }
     } catch (e) {
       console.error('Failed to fetch subscription:', e);
@@ -59,35 +62,25 @@ const PartnerProperties = () => {
   const { subscriptionEnabled } = useFeatureFlags();
 
   const checkSubscriptionLimit = () => {
-    // Subscription system switched off by admin: nothing to buy, so no plan gate (server enforces the same)
-    if (!subscriptionEnabled) return true;
-    // Check if subscription exists and is active
-    const isActive =
-      subscription?.status === 'active' &&
-      subscription?.expiryDate &&
-      new Date(subscription.expiryDate) > new Date();
+    const result = evaluateSubscriptionCanAddProperty({
+      subscription,
+      freeTrial,
+      subscriptionEnabled
+    });
 
-    if (!isActive) {
-      setShowSubscriptionModal(true);
-      return false;
-    }
-
-    // Check property limit
-    const totalProperties = Object.values(propertiesByType).reduce((sum, list) => sum + list.length, 0);
-    const maxAllowed = subscription?.planId?.maxProperties || 0;
-
-    if (totalProperties >= maxAllowed) {
-      toast.error(`Property limit reached! Your plan allows ${maxAllowed} properties.`);
-      setShowSubscriptionModal(true);
+    if (!result.canAdd) {
+      toast.error(result.message, { id: 'sub-guard-toast', duration: 4000, icon: '🔒' });
+      navigate('/hotel/subscriptions', {
+        state: { reason: result.reason, alertMessage: result.message }
+      });
       return false;
     }
 
     return true;
   };
 
-  const handleAddProperty = () => {
-    if (!checkSubscriptionLimit()) return;
-    navigate('/hotel/join');
+  const handleAddProperty = async () => {
+    await handleNavigateToAddProperty(navigate);
   };
 
   const handleEditProperty = (property) => {

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authService } from '../../services/apiService';
 import { detectPlatform } from '../../utils/firebase';
+import { handleNavigateToAddProperty } from '../../utils/subscriptionGuard';
 
 const TopNavbar = () => {
     const navigate = useNavigate();
@@ -28,6 +29,10 @@ const TopNavbar = () => {
 
     const handleNavigation = (path) => {
         setIsSidebarOpen(false);
+        if (path === '/hotel/join') {
+            handleNavigateToAddProperty(navigate);
+            return;
+        }
         navigate(path);
     };
 
@@ -81,9 +86,13 @@ const TopNavbar = () => {
                     <Link to="/reels" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Reels
                     </Link>
-                    <Link to="/hotel/join" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                    <button
+                        type="button"
+                        onClick={() => handleNavigateToAddProperty(navigate)}
+                        className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight cursor-pointer"
+                    >
                         Add Property
-                    </Link>
+                    </button>
                     <Link to="/bookings" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Bookings
                     </Link>

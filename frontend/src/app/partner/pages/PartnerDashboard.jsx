@@ -9,6 +9,7 @@ import ActivePropertiesList from '../components/dashboard/ActivePropertiesList';
 import ActionRequired from '../components/dashboard/ActionRequired';
 import { Calendar, Wallet, Building2, Star, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { handleNavigateToAddProperty } from '../../../utils/subscriptionGuard';
 
 const PartnerDashboard = () => {
     // Lenis handled globally
@@ -71,7 +72,7 @@ const PartnerDashboard = () => {
                     </div>
 
                     <button
-                        onClick={() => navigate('/hotel/join')}
+                        onClick={() => handleNavigateToAddProperty(navigate)}
                         className="shrink-0 flex items-center gap-1.5 bg-[#005CA8] hover:bg-[#004b8a] text-white pl-3 pr-4 py-2 md:px-5 md:py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95"
                     >
                         <Plus size={16} />

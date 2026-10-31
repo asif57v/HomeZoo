@@ -183,6 +183,7 @@ const PartnerSubscriptions = () => {
     const [processing, setProcessing] = useState(false);
     const [plans, setPlans] = useState([]);
     const [currentSub, setCurrentSub] = useState(null);
+    const [freeTrial, setFreeTrial] = useState(null);
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
 
     const pendingDraftRaw = localStorage.getItem('hoomzoo_pending_property_draft');
@@ -219,6 +220,7 @@ const PartnerSubscriptions = () => {
             }
             if (subData.success) {
                 setCurrentSub(subData.subscription);
+                setFreeTrial(subData.freeTrial || null);
             }
         } catch (error) {
             console.error(error);
@@ -315,6 +317,11 @@ const PartnerSubscriptions = () => {
     const usagePercent = (used, cap) => (cap > 0 ? Math.min(100, Math.round((used / cap) * 100)) : 0);
 
     const activePlanTheme = currentSub?.planId ? getSubscriptionWeightTheme(currentSub.planId) : null;
+    const hasPaidPlan = isActive && !!currentSub?.planId;
+    const onFreePlan = !hasPaidPlan && !!freeTrial && !freeTrial.exhausted;
+    const paidPlanExpired = !!currentSub?.planId && isExpired;
+
+    const scrollToPlans = () => document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     return (
         <div className="px-4 py-5 md:p-8 max-w-7xl mx-auto space-y-8 pb-28 font-sans">
@@ -342,6 +349,29 @@ const PartnerSubscriptions = () => {
                     <span className="px-2 py-0.5 rounded-md font-extrabold bg-purple-100 text-purple-900">5x Diamond</span>
                 </div>
             </div>
+
+            {/* Subscription Expired / Limit Reached Alert Banner (only when not on active free plan) */}
+            {location.state?.alertMessage && !onFreePlan && (
+                <div className="bg-gradient-to-r from-red-500/10 via-amber-500/10 to-red-500/5 border-2 border-red-300 rounded-2xl p-4 flex items-start gap-3 shadow-sm animate-in fade-in duration-300">
+                    <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                        <AlertCircle size={22} />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-sm font-black text-red-900 flex items-center gap-2">
+                            Subscription Required
+                            <span className="text-[10px] uppercase font-extrabold bg-red-100 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
+                                Action Needed
+                            </span>
+                        </h4>
+                        <p className="text-xs text-red-800 font-semibold mt-1 leading-relaxed">
+                            {location.state.alertMessage}
+                        </p>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                            Choose one of the plans below to instantly activate or extend your listing allowance.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Draft Resume Alert Banner */}
             {returnUrl && (
@@ -378,8 +408,91 @@ const PartnerSubscriptions = () => {
                 </div>
             ) : (
                 <>
+                    {/* Free plan granted on registration (limits set by admin) */}
+                    {onFreePlan && (
+                        <section className="rounded-3xl bg-white border-2 border-emerald-200 shadow-md overflow-hidden">
+                            <div className="p-6 bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 text-white relative overflow-hidden">
+                                <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+                                <div className="flex items-center justify-between relative z-10">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/15 border border-white/25">
+                                        <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                        Free Plan Active
+                                    </span>
+                                    <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/15">
+                                        <Sparkles size={20} className="text-white" />
+                                    </div>
+                                </div>
+                                <div className="mt-5 relative z-10">
+                                    <p className="text-xs uppercase tracking-wider text-white/75 font-bold">Your Current Plan</p>
+                                    <h2 className="text-2xl md:text-3xl font-black mt-0.5 tracking-tight">Free Starter Plan</h2>
+                                    <p className="mt-1.5 text-xs text-white/85 leading-relaxed max-w-2xl">
+                                        Welcome to HoomZo! You get {freeTrial.propertiesLimit} free {freeTrial.propertiesLimit === 1 ? 'property listing' : 'property listings'} and {freeTrial.leadsLimit} free buyer {freeTrial.leadsLimit === 1 ? 'lead' : 'leads'} to get started.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
+                                <UsageRow
+                                    icon={Home}
+                                    label="Free Properties"
+                                    used={freeTrial.propertiesUsed}
+                                    cap={freeTrial.propertiesLimit}
+                                    percent={usagePercent(freeTrial.propertiesUsed, freeTrial.propertiesLimit)}
+                                    accentColor="bg-emerald-600"
+                                    finiteOnly
+                                />
+                                <UsageRow
+                                    icon={Users}
+                                    label="Free Buyer Leads"
+                                    used={freeTrial.leadsUsed}
+                                    cap={freeTrial.leadsLimit}
+                                    percent={usagePercent(freeTrial.leadsUsed, freeTrial.leadsLimit)}
+                                    accentColor="bg-emerald-600"
+                                    finiteOnly
+                                />
+                                <div className="flex flex-col justify-between p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+                                    <span className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                                        <Zap size={15} className="text-emerald-600" /> Want more reach?
+                                    </span>
+                                    <p className="text-[11px] text-emerald-900/80 mt-1 font-medium">Upgrade to list more properties, get more leads and rank higher in search.</p>
+                                    <button type="button" onClick={scrollToPlans} className="mt-3 self-start inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 active:scale-95 transition">
+                                        View Plans <ArrowRight size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* No active subscription (never bought, plan expired, or free plan used up) */}
+                    {!hasPaidPlan && !onFreePlan && (
+                        <section className="rounded-3xl border-2 border-dashed border-amber-300 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6 shadow-sm">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                                    <AlertCircle size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> No Active Subscription
+                                    </span>
+                                    <h2 className="text-lg md:text-xl font-black text-slate-900 mt-2 tracking-tight">
+                                        {paidPlanExpired
+                                            ? `Your ${currentSub.planId.name} expired on ${formatDate(currentSub.expiryDate)}`
+                                            : freeTrial?.exhausted
+                                                ? 'Your free plan has been used up'
+                                                : "You don't have a subscription yet"}
+                                    </h2>
+                                    <p className="text-xs text-slate-600 mt-1 leading-relaxed max-w-2xl">
+                                        Subscribe to a plan to keep listing properties, receive buyer leads and get your listings ranked higher in search results.
+                                    </p>
+                                </div>
+                                <button type="button" onClick={scrollToPlans} className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 active:scale-95 transition shadow-md">
+                                    Take a Subscription <ArrowRight size={16} />
+                                </button>
+                            </div>
+                        </section>
+                    )}
+
                     {/* Active Subscription Summary Box */}
-                    {currentSub && currentSub.planId && (
+                    {hasPaidPlan && (
                         <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-md overflow-hidden transition-all">
                             {/* Color header matching current plan's weight */}
                             <div className={`p-6 ${activePlanTheme?.headerBg || 'bg-slate-900'} text-white relative overflow-hidden`}>
@@ -460,7 +573,7 @@ const PartnerSubscriptions = () => {
                     )}
 
                     {/* Available Plans Section */}
-                    <div className="space-y-4">
+                    <div id="available-plans" className="space-y-4 scroll-mt-4">
                         <div>
                             <div className="flex items-center gap-2">
                                 <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">
@@ -716,7 +829,10 @@ const PartnerSubscriptions = () => {
     );
 };
 
-const UsageRow = ({ icon: Icon, label, used, cap, percent, accentColor }) => (
+// finiteOnly: a cap of 0 means "none" (free plan), not unlimited
+const UsageRow = ({ icon: Icon, label, used, cap, percent, accentColor, finiteOnly = false }) => {
+    const limited = cap > 0 || finiteOnly;
+    return (
     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
         <div className="flex items-center justify-between mb-2">
             <span className="flex items-center gap-2 text-xs font-bold text-slate-600">
@@ -724,7 +840,7 @@ const UsageRow = ({ icon: Icon, label, used, cap, percent, accentColor }) => (
             </span>
             <span className="text-xs font-black text-slate-900">
                 {used}
-                <span className="text-slate-400 font-medium"> / {cap > 0 ? cap : '∞'}</span>
+                <span className="text-slate-400 font-medium"> / {limited ? cap : '∞'}</span>
             </span>
         </div>
         <div className="space-y-1.5">
@@ -737,12 +853,13 @@ const UsageRow = ({ icon: Icon, label, used, cap, percent, accentColor }) => (
                 />
             </div>
             <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold">
-                <span>{cap > 0 ? `${percent}% utilized` : 'Unlimited quota'}</span>
-                {cap > 0 && <span>{Math.max(0, cap - used)} remaining</span>}
+                <span>{limited ? `${percent}% utilized` : 'Unlimited quota'}</span>
+                {limited && <span>{Math.max(0, cap - used)} remaining</span>}
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const FeatureRow = ({ checkBg, text, highlightTag = null, theme }) => (
     <li className="flex items-start gap-2.5">
