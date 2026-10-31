@@ -128,7 +128,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] md:hidden"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[110] md:hidden"
                         style={{ pointerEvents: 'auto' }}
                     />
 
@@ -137,7 +137,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
                         transition={{ type: 'tween', ease: 'circOut', duration: 0.35 }}
-                        className="fixed top-0 left-0 h-[100dvh] w-[85%] max-w-[310px] bg-white z-[101] flex flex-col md:hidden shadow-2xl"
+                        className="fixed top-0 left-0 h-[100dvh] w-[85%] max-w-[310px] bg-white z-[111] flex flex-col md:hidden shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header (Pinned at Top) */}
@@ -220,7 +220,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                                 <div className="flex flex-col gap-0.5">{settingItems.map((item, idx) => <MenuItem key={idx} {...item} />)}</div>
                             </div>
 
-                            <div className="pt-2 border-t border-gray-100 pb-16">
+                            <div className="pt-2 border-t border-gray-100 pb-8">
                                 {legalItems.map((item, idx) => (
                                     <button key={idx} onClick={() => handleNavigation(item.path)} className="flex items-center gap-3 w-full p-2 hover:text-surface transition-colors">
                                         <span className="text-xs font-medium text-gray-400 hover:text-surface">{item.label}</span>

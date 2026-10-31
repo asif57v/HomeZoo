@@ -10,8 +10,10 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ModernDatePicker from '../../components/ui/ModernDatePicker';
+import { useKeyboardOpen } from '../../utils/imageSource';
 
 const PropertyDetailsPage = () => {
+  const keyboardOpen = useKeyboardOpen();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -2013,7 +2015,7 @@ const PropertyDetailsPage = () => {
       </div>
 
       {/* Sticky Bottom Booking Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] shadow-lg z-50 lg:hidden">
+      <div className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] shadow-lg z-50 lg:hidden ${keyboardOpen ? 'hidden' : ''}`}>
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div>
             <p className="text-xs text-gray-500">{priceBreakdown ? 'Total Amount' : priceLabel}</p>

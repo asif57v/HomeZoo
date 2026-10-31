@@ -281,13 +281,15 @@ export const createBooking = async (req, res) => {
     // Calculate Base Amount
     const units = requiredUnits; // Use validated units
     const pricePerNight = roomType.pricePerNight || 0;
-    const baseAmount = pricePerNight * totalNights * units;
+    // PG / Hostel rooms are priced per month (pricePerNight holds the monthly rent), so bill 1 unit, not one per night
+    const billingPeriods = ["pg", "hostel"].includes(pType) ? 1 : totalNights;
+    const baseAmount = pricePerNight * billingPeriods * units;
 
     // Calculate Extra Charges
     const extraAdults = guests.extraAdults || 0;
     const extraChildren = guests.extraChildren || 0;
-    const extraAdultPrice = (roomType.extraAdultPrice || 0) * extraAdults * totalNights;
-    const extraChildPrice = (roomType.extraChildPrice || 0) * extraChildren * totalNights;
+    const extraAdultPrice = (roomType.extraAdultPrice || 0) * extraAdults * billingPeriods;
+    const extraChildPrice = (roomType.extraChildPrice || 0) * extraChildren * billingPeriods;
     const extraCharges = extraAdultPrice + extraChildPrice;
 
     // Gross Amount
@@ -516,8 +518,15 @@ export const createBooking = async (req, res) => {
             booking.bookingStatus = 'awaiting_payment';
             booking.paymentStatus = 'pending';
           } catch (error) {
-            console.error("Razorpay Order Creation Failed:", error);
-            return res.status(500).json({ message: "Failed to initiate payment gateway" });
+            console.error("Razorpay Order Creation Failed:", error?.error || error);
+            const reason = String(error?.error?.description || '');
+            if (/maximum amount/i.test(reason)) {
+              return res.status(400).json({
+                success: false,
+                message: `₹${Math.round(amountToPay).toLocaleString('en-IN')} is above the online payment limit. Please choose "Pay at Move-In" or pay part of it with your wallet.`
+              });
+            }
+            return res.status(500).json({ message: reason || "Failed to initiate payment gateway" });
           }
         } else {
           // Fully paid by wallet (Covered by loop above, but double check status)

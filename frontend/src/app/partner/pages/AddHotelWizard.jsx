@@ -502,7 +502,8 @@ const AddHotelWizard = () => {
 
       const result = await openFlutterCamera();
 
-      if (!result.success || !result.base64) {
+      const captured = Array.isArray(result.images) && result.images.length ? result.images : [result];
+      if (!result.success || !captured.every(img => img.base64)) {
         throw new Error('Camera capture failed');
       }
 
@@ -511,7 +512,7 @@ const AddHotelWizard = () => {
       // For single image upload (cover image, room, or documents)
       const isSingle = type === 'cover' || type === 'room' || type.startsWith('doc');
 
-      const res = await hotelService.uploadImagesBase64([result]);
+      const res = await hotelService.uploadImagesBase64(captured);
       console.log('[Camera] Upload success:', res);
 
       if (res && res.success && res.files && res.files.length > 0) {
@@ -521,7 +522,7 @@ const AddHotelWizard = () => {
           onDone(res.files[0].url);
         } else {
           // For gallery, it usually appends to list
-          onDone([res.files[0].url]);
+          onDone(res.files.map(file => file.url));
         }
       } else {
         throw new Error('Upload failed');
@@ -1774,7 +1775,7 @@ const AddHotelWizard = () => {
         </div>
       </main>
 
-      <footer className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 md:px-6 z-40 bg-white/80 backdrop-blur-md ${keyboardOpen ? 'hidden' : ''}`}>
+      <footer className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-10 md:px-6 md:pb-4 z-40 bg-white/80 backdrop-blur-md ${keyboardOpen ? 'hidden' : ''}`}>
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
           <button
             onClick={handleBack}
