@@ -14,7 +14,7 @@ export const isFlutterApp = () => {
  * Open Flutter native camera and get base64 image
  * @returns {Promise<Object>} {success, base64, mimeType, fileName}
  */
-export const openFlutterCamera = async () => {
+export const openFlutterCamera = async (options = {}) => {
   return new Promise((resolve, reject) => {
     try {
       if (!window.flutter_inappwebview) {
@@ -23,7 +23,7 @@ export const openFlutterCamera = async () => {
       }
 
       window.flutter_inappwebview
-        .callHandler('openCamera')
+        .callHandler('openCamera', options)
         .then((result) => {
           if (result && result.success) {
             // Handle both multiple image results and single image results

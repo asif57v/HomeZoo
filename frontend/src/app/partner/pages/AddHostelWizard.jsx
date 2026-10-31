@@ -490,7 +490,7 @@ const AddHostelWizard = () => {
       setError('');
       console.log('[Camera] Opening Flutter camera...');
 
-      const result = await openFlutterCamera();
+      const result = await openFlutterCamera({ allowGallery: true, multiple: !(type === 'cover' || type === 'room' || type.startsWith('doc')) });
 
       const captured = Array.isArray(result.images) && result.images.length ? result.images : [result];
       if (!result.success || !captured.every(img => img.base64)) {
