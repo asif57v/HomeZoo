@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Wallet, Heart, Gift, HelpCircle, FileText, Shield, ChevronRight, LogOut, Settings, BookOpen, Building, Briefcase, Bell, Edit3, Video, LayoutDashboard } from 'lucide-react';
 import logo from '../../assets/rokologin-removebg-preview.png';
@@ -118,7 +119,9 @@ const MobileMenu = ({ isOpen, onClose }) => {
         onClose();
     };
 
-    return (
+    // Portal to <body> so the drawer isn't trapped in the header's stacking context
+    // (otherwise the fixed bottom navbar is painted over it and hides Log Out).
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -128,7 +131,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[110] md:hidden"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[1000] md:hidden"
                         style={{ pointerEvents: 'auto' }}
                     />
 
@@ -137,7 +140,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
                         transition={{ type: 'tween', ease: 'circOut', duration: 0.35 }}
-                        className="fixed top-0 left-0 h-[100dvh] w-[85%] max-w-[310px] bg-white z-[111] flex flex-col md:hidden shadow-2xl"
+                        className="fixed top-0 left-0 h-[100dvh] w-[85%] max-w-[310px] bg-white z-[1001] flex flex-col md:hidden shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header (Pinned at Top) */}
@@ -220,7 +223,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
                                 <div className="flex flex-col gap-0.5">{settingItems.map((item, idx) => <MenuItem key={idx} {...item} />)}</div>
                             </div>
 
-                            <div className="pt-2 border-t border-gray-100 pb-8">
+                            <div className="pt-2 border-t border-gray-100 pb-[max(2rem,env(safe-area-inset-bottom))]">
                                 {legalItems.map((item, idx) => (
                                     <button key={idx} onClick={() => handleNavigation(item.path)} className="flex items-center gap-3 w-full p-2 hover:text-surface transition-colors">
                                         <span className="text-xs font-medium text-gray-400 hover:text-surface">{item.label}</span>
@@ -236,7 +239,8 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     </motion.div>
                 </>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };
 
