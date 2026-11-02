@@ -7,7 +7,7 @@ import DashboardStatCard from '../components/dashboard/DashboardStatCard';
 import RecentBookingsTable from '../components/dashboard/RecentBookingsTable';
 import ActivePropertiesList from '../components/dashboard/ActivePropertiesList';
 import ActionRequired from '../components/dashboard/ActionRequired';
-import { Calendar, Wallet, Building2, Star, Plus } from 'lucide-react';
+import { Briefcase, Wallet, Building2, Star, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { handleNavigateToAddProperty } from '../../../utils/subscriptionGuard';
 
@@ -86,10 +86,10 @@ const PartnerDashboard = () => {
                 {/* KPI Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                     <DashboardStatCard
-                        icon={Calendar}
-                        label="Total Bookings"
+                        icon={Briefcase}
+                        label="Total Enquiries"
                         value={stats.totalBookings}
-                        subtext={stats.bookingsThisWeek > 0 ? `+${stats.bookingsThisWeek} this week` : 'No new bookings this week'}
+                        subtext={stats.bookingsThisWeek > 0 ? `+${stats.bookingsThisWeek} this week` : 'No new enquiries this week'}
                         actionLabel="View all"
                         onAction={() => navigate('/hotel/bookings')}
                         tone="blue"

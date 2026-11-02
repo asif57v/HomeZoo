@@ -435,6 +435,12 @@ const PartnerPropertyDetails = () => {
                   <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Type</span>
                   <p className="text-sm font-semibold text-gray-900">{property.rentDetails.type || 'Apartment'}</p>
                 </div>
+                {property.rentDetails.furnishing && (
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Furnishing</span>
+                    <p className="text-sm font-semibold text-gray-900">{property.rentDetails.furnishing}</p>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Monthly Rent</span>
                   <p className="text-sm font-semibold text-emerald-700">₹{property.rentDetails.monthlyRent?.toLocaleString() || 'N/A'}</p>
@@ -445,10 +451,10 @@ const PartnerPropertyDetails = () => {
                     <p className="text-sm font-semibold text-gray-900">₹{(property.rentDetails.securityDeposit ?? property.rentDetails.maintenanceCharges)?.toLocaleString() || '0'}</p>
                   </div>
                 )}
-                {property.rentDetails.furnishing && (
+                {property.rentDetails.tenantPreference && (
                   <div className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Furnishing</span>
-                    <p className="text-sm font-semibold text-gray-900">{property.rentDetails.furnishing}</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Tenant Preference</span>
+                    <p className="text-sm font-semibold text-gray-900">{property.rentDetails.tenantPreference}</p>
                   </div>
                 )}
               </>

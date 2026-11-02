@@ -163,20 +163,20 @@ const OverviewTab = ({ hotel }) => (
         ) : hotel.propertyType === 'rent' ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white border border-gray-200 rounded-xl p-4">
-                    <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Monthly Rent</h4>
-                    <p className="text-sm font-bold text-gray-900">₹{hotel.rentDetails?.monthlyRent?.toLocaleString() || 'Not set'}</p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
-                    <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Security</h4>
-                    <p className="text-sm font-bold text-gray-900">₹{(hotel.rentDetails?.securityDeposit ?? hotel.rentDetails?.maintenanceCharges)?.toLocaleString() || '0'}</p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
                     <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Type</h4>
                     <p className="text-sm font-bold text-gray-900">{hotel.rentDetails?.type || 'Not specified'}</p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-4">
                     <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Furnishing</h4>
                     <p className="text-sm font-bold text-gray-900">{hotel.rentDetails?.furnishing || 'Not specified'}</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                    <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Monthly Rent</h4>
+                    <p className="text-sm font-bold text-gray-900">₹{hotel.rentDetails?.monthlyRent?.toLocaleString() || 'Not set'}</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                    <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Security</h4>
+                    <p className="text-sm font-bold text-gray-900">₹{(hotel.rentDetails?.securityDeposit ?? hotel.rentDetails?.maintenanceCharges)?.toLocaleString() || '0'}</p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-4">
                     <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Tenant Preference</h4>
