@@ -30,7 +30,7 @@ const RecentBookingsTable = ({ bookings }) => {
       <div className="md:hidden">
         {bookings.map((booking) => {
           const pType = (booking.propertyId?.propertyType || booking.propertyType || '').toLowerCase();
-          const isInquiry = ['buy', 'plot', 'rent'].includes(pType) || booking.isInquiry;
+          const isInquiry = ['buy', 'plot', 'rent', 'pg', 'hostel'].includes(pType) || booking.isInquiry;
 
           return (
             <div
@@ -108,7 +108,7 @@ const RecentBookingsTable = ({ bookings }) => {
           <tbody className="divide-y divide-gray-100">
             {bookings.map((booking) => {
               const pType = (booking.propertyId?.propertyType || booking.propertyType || '').toLowerCase();
-              const isInquiry = ['buy', 'plot', 'rent'].includes(pType) || booking.isInquiry;
+              const isInquiry = ['buy', 'plot', 'rent', 'pg', 'hostel'].includes(pType) || booking.isInquiry;
 
               return (
                 <tr key={booking._id} className="hover:bg-gray-50/50 transition-colors">

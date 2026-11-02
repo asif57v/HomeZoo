@@ -167,8 +167,8 @@ const OverviewTab = ({ hotel }) => (
                     <p className="text-sm font-bold text-gray-900">₹{hotel.rentDetails?.monthlyRent?.toLocaleString() || 'Not set'}</p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-4">
-                    <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Maintenance</h4>
-                    <p className="text-sm font-bold text-gray-900">₹{hotel.rentDetails?.maintenanceCharges?.toLocaleString() || '0'}</p>
+                    <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Security</h4>
+                    <p className="text-sm font-bold text-gray-900">₹{(hotel.rentDetails?.securityDeposit ?? hotel.rentDetails?.maintenanceCharges)?.toLocaleString() || '0'}</p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-4">
                     <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-2">Type</h4>

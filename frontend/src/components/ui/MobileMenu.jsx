@@ -60,7 +60,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
     const bookingItems = [
         { icon: BookOpen, label: 'My Bookings', path: '/bookings' },
         { icon: Video, label: 'Reels', path: '/reels' },
-        { icon: Heart, label: 'Saved Places', path: '/saved-places' },
+        { icon: Heart, label: 'Wishlist', path: '/wishlist' },
         { icon: Wallet, label: 'View Wallet', path: '/wallet' },
     ];
 

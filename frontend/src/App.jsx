@@ -583,6 +583,8 @@ function App() {
               <Route path="/booking/:id" element={<BookingConfirmationPage />} />
               <Route path="/refer" element={<ReferAndEarnPage />} />
               <Route path="/saved-places" element={<SavedPlacesPage />} />
+              <Route path="/wishlist" element={<SavedPlacesPage />} />
+              <Route path="/saved" element={<SavedPlacesPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/partner-landing" element={<PartnerLandingPage />} />

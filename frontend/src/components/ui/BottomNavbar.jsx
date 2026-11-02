@@ -55,34 +55,21 @@ const ReelsIcon = ({ isActive }) => (
     </div>
 );
 
-const BookingsIcon = ({ isActive }) => (
+const WishlistIcon = ({ isActive }) => (
     <div className="relative flex items-center justify-center">
         {isActive ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 drop-shadow-[0_2px_6px_rgba(26,86,219,0.3)]">
                 <defs>
-                    <linearGradient id="bookGrad" x1="3" y1="2" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+                    <linearGradient id="wishGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
                         <stop stopColor="#2563eb" />
                         <stop offset="1" stopColor="#1d4ed8" />
                     </linearGradient>
                 </defs>
-                <rect x="3" y="4" width="18" height="17" rx="4" fill="url(#bookGrad)" />
-                <path d="M16 2V5.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                <path d="M8 2V5.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                <path d="M3 9.5H21" stroke="white" strokeWidth="1.5" strokeOpacity="0.6" />
-                <path d="M8.5 15.2L11 17.5L15.5 13" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#wishGrad)" />
             </svg>
         ) : (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
-                <rect x="3" y="4" width="18" height="17" rx="4" stroke="#788292" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M16 2V5.5" stroke="#788292" strokeWidth="1.9" strokeLinecap="round" />
-                <path d="M8 2V5.5" stroke="#788292" strokeWidth="1.9" strokeLinecap="round" />
-                <path d="M3 9.5H21" stroke="#788292" strokeWidth="1.7" />
-                <circle cx="8" cy="13.5" r="1.1" fill="#788292" />
-                <circle cx="12" cy="13.5" r="1.1" fill="#788292" />
-                <circle cx="16" cy="13.5" r="1.1" fill="#788292" />
-                <circle cx="8" cy="17" r="1.1" fill="#788292" />
-                <circle cx="12" cy="17" r="1.1" fill="#788292" />
-                <circle cx="16" cy="17" r="1.1" fill="#788292" />
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="#788292" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         )}
     </div>
@@ -118,15 +105,15 @@ const BottomNavbar = () => {
     const navItems = [
         { name: 'Home', icon: HomeIcon, route: '/' },
         { name: 'Reels', icon: ReelsIcon, route: '/reels' },
-        { name: 'Add Property', icon: Plus, route: '/hotel/join', isCenter: true },
-        { name: 'Bookings', icon: BookingsIcon, route: '/bookings' },
+        { name: 'Post', icon: Plus, route: '/hotel/join', isCenter: true },
+        { name: 'Wishlist', icon: WishlistIcon, route: '/wishlist' },
         { name: 'Profile', icon: ProfileIcon, route: '/profile/edit' },
     ];
 
     const getActiveTab = (path) => {
         if (path.includes('reels')) return 'Reels';
-        if (path.includes('hotel') || path.includes('post') || path.includes('property')) return 'Add Property';
-        if (path.includes('bookings') || path.includes('checkout')) return 'Bookings';
+        if (path.includes('hotel') || path.includes('post') || path.includes('property')) return 'Post';
+        if (path.includes('wishlist') || path.includes('saved')) return 'Wishlist';
         if (path.includes('profile') || path.includes('account')) return 'Profile';
         return 'Home';
     };
@@ -134,7 +121,7 @@ const BottomNavbar = () => {
     const activeTab = getActiveTab(location.pathname);
 
     const handleNavClick = (item) => {
-        if (item.name === 'Add Property') {
+        if (item.name === 'Post' || item.name === 'Add Property' || item.isCenter) {
             const token = localStorage.getItem('token');
             if (!token) {
                 navigate('/login', { state: { from: { pathname: '/hotel/join' } } });
@@ -158,15 +145,25 @@ const BottomNavbar = () => {
 
                     if (item.isCenter) {
                         return (
-                            <div key={item.name} className="relative flex justify-center items-center h-full">
-                                <button
-                                    onClick={() => handleNavClick(item)}
-                                    className="absolute -top-3.5 w-12 h-12 bg-slate-900 hover:bg-slate-800 rounded-full flex items-center justify-center shadow-lg shadow-slate-900/30 transition-transform active:scale-95 border-[2.5px] border-white outline-none focus:outline-none focus-visible:outline-none"
-                                    aria-label="Add Property"
-                                >
+                            <button
+                                key={item.name}
+                                onClick={() => handleNavClick(item)}
+                                className="relative flex flex-col items-center justify-end h-full pb-1.5 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 active:scale-95 transition-all group"
+                                aria-label="Post Property"
+                            >
+                                <div className="absolute -top-3.5 w-12 h-12 bg-slate-900 hover:bg-slate-800 rounded-full flex items-center justify-center shadow-lg shadow-slate-900/30 transition-transform group-hover:scale-105 border-[2.5px] border-white">
                                     <Plus className="w-6 h-6 text-amber-400" strokeWidth={2.6} />
-                                </button>
-                            </div>
+                                </div>
+                                <span
+                                    className={`text-[10.5px] leading-tight tracking-tight transition-colors duration-150 ${
+                                        isActive
+                                            ? 'font-bold text-[#1a56db]'
+                                            : 'font-medium text-[#788292] group-hover:text-slate-800'
+                                    }`}
+                                >
+                                    Post
+                                </span>
+                            </button>
                         );
                     }
 

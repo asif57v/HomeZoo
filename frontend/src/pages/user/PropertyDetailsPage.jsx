@@ -228,6 +228,7 @@ const PropertyDetailsPage = () => {
     ? (/sale|buy/i.test(property.transactionType || '') ? 'Buy' : 'Rent')
     : displayType;
   const isBedBased = ['hostel', 'pg'].includes(propertyType?.toLowerCase());
+  const isLeadType = ['buy', 'plot', 'rent', 'pg', 'hostel'].includes(propertyType?.toLowerCase());
 
   // Update guests when rooms change to ensure valid state
   useEffect(() => {
@@ -635,11 +636,22 @@ const PropertyDetailsPage = () => {
     setBookingLoading(true);
     try {
       const pType = propertyType?.toLowerCase();
+      const leadBudget = property.buyDetails?.expectedPrice ||
+        property.plotDetails?.expectedPrice ||
+        property.rentDetails?.monthlyRent ||
+        property.pgDetails?.monthlyRent ||
+        property.minPrice ||
+        property.startingPrice ||
+        Number(property.dynamicData?.expectedPrice) ||
+        (selectedRoom ? getRoomPrice(selectedRoom) : 0) ||
+        0;
+
       const response = await bookingService.create({
         propertyId: id,
         message: `I am interested in this ${propertyType}. Please contact me.`,
-        budget: property.buyDetails?.expectedPrice || property.plotDetails?.expectedPrice || property.rentDetails?.monthlyRent || Number(property.dynamicData?.expectedPrice) || 0,
+        budget: leadBudget,
         propertyType: pType,
+        roomTypeId: selectedRoom?._id || null,
         checkInDate: dates.checkIn || new Date()
       });
 
@@ -655,7 +667,7 @@ const PropertyDetailsPage = () => {
 
   const handleBook = async () => {
     const pType = propertyType?.toLowerCase();
-    if (pType === 'buy' || pType === 'plot' || pType === 'rent') {
+    if (['buy', 'plot', 'rent', 'pg', 'hostel'].includes(pType)) {
       handleInquiry();
       return;
     }
@@ -749,6 +761,7 @@ const PropertyDetailsPage = () => {
       const response = await propertyService.revealContact(id);
       if (response.success) {
         setRevealedNumber(response.contactNumber);
+        toast.success("Contact number revealed! Partner notified.");
       } else {
         toast.error(response.message || "Failed to reveal contact");
       }
@@ -1087,7 +1100,7 @@ const PropertyDetailsPage = () => {
                   <h3 className="font-bold text-blue-900 mb-3">Rental Details</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-blue-900">
                     <div><span className="opacity-70 text-xs block">Monthly Rent</span>₹{rentDetails.monthlyRent?.toLocaleString() || 'Not set'}</div>
-                    <div><span className="opacity-70 text-xs block">Maintenance</span>₹{rentDetails.maintenanceCharges?.toLocaleString() || 0}</div>
+                    <div><span className="opacity-70 text-xs block">Security</span>₹{(rentDetails.securityDeposit !== undefined ? rentDetails.securityDeposit : rentDetails.maintenanceCharges)?.toLocaleString() || 0}</div>
                     <div><span className="opacity-70 text-xs block">Type</span>{rentDetails.type || 'Not specified'}</div>
                     <div><span className="opacity-70 text-xs block">Furnishing</span>{rentDetails.furnishing || 'Not specified'}</div>
                     <div><span className="opacity-70 text-xs block">Tenant Preference</span>{rentDetails.tenantPreference || 'Any'}</div>
@@ -1413,7 +1426,7 @@ const PropertyDetailsPage = () => {
                 </div>
               )}
 
-              {['Rent', 'Buy', 'Plot'].includes(propertyType) ? (
+              {isLeadType ? (
                 <div className="mb-8 p-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm lg:hidden">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-inner">
@@ -1438,7 +1451,7 @@ const PropertyDetailsPage = () => {
                       )}
                     </button>
                     {revealedNumber && (
-                      <a href={`tel:${revealedNumber}`} className="text-center text-xs text-emerald-600 font-bold underline mt-1">
+                      <a href={`tel:${revealedNumber}`} onClick={() => propertyService.recordViewLead(id).catch(() => {})} className="text-center text-xs text-emerald-600 font-bold underline mt-1">
                         Click to dial {revealedNumber}
                       </a>
                     )}
@@ -1915,7 +1928,7 @@ const PropertyDetailsPage = () => {
                     {/* Inputs */}
                     <div className="space-y-4 mb-6">
                       {/* Date Pickers */}
-                      {propertyType?.toLowerCase() !== 'pg' && propertyType?.toLowerCase() !== 'hostel' && propertyType?.toLowerCase() !== 'buy' && propertyType?.toLowerCase() !== 'plot' && propertyType?.toLowerCase() !== 'rent' && (
+                      {!isLeadType && (
                         <div className="grid grid-cols-2 gap-3">
                           <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
                             <label className="block text-[10px] text-gray-500 font-bold uppercase mb-1">Check-in</label>
@@ -1928,8 +1941,8 @@ const PropertyDetailsPage = () => {
                         </div>
                       )}
 
-                      {/* Inquiry Fields for Buy/Plot */}
-                      {(propertyType?.toLowerCase() === 'buy' || propertyType?.toLowerCase() === 'plot' || propertyType?.toLowerCase() === 'rent') && (
+                      {/* Inquiry Fields for Lead Properties */}
+                      {isLeadType && (
                         <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-3">
                           <p className="text-xs font-bold text-gray-700 uppercase">Inquiry Details</p>
                           <textarea
@@ -1940,7 +1953,7 @@ const PropertyDetailsPage = () => {
                       )}
 
                       {/* Guests */}
-                      {!['buy', 'plot', 'rent'].includes(propertyType?.toLowerCase()) && (
+                      {!isLeadType && (
                         <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-xs font-bold text-gray-700 uppercase">Guests & Rooms</span>
@@ -1965,7 +1978,7 @@ const PropertyDetailsPage = () => {
                       )}
 
                       {/* Availability Message */}
-                      {dates.checkIn && (
+                      {!isLeadType && dates.checkIn && (
                         <div className="text-xs">
                           {checkingAvailability ? <span className="text-blue-600">Checking availability...</span> :
                             availability?.available === false ? <span className="text-red-500 font-bold">{availability.message}</span> :
@@ -1978,13 +1991,13 @@ const PropertyDetailsPage = () => {
                     <div className="flex flex-col gap-3">
                       <button
                         onClick={handleBook}
-                        disabled={bookingLoading || checkingAvailability || availability?.available === false}
+                        disabled={bookingLoading || (!isLeadType && (checkingAvailability || availability?.available === false))}
                         className="w-full py-4 bg-gradient-to-r from-surface to-surface-dark text-white rounded-xl font-bold shadow-lg shadow-surface/30 hover:shadow-surface/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        {bookingLoading ? <Loader2 className="animate-spin" size={20} /> : (['buy', 'plot', 'rent'].includes(propertyType?.toLowerCase()) ? 'Inquire Now' : 'Reserve Now')}
+                        {bookingLoading ? <Loader2 className="animate-spin" size={20} /> : (isLeadType ? 'Enquire Now' : 'Reserve Now')}
                       </button>
 
-                      {(['rent', 'buy', 'plot'].includes(propertyType?.toLowerCase())) && (
+                      {isLeadType && (
                         <button
                           onClick={handleRevealContact}
                           disabled={revealLoading}
@@ -1998,14 +2011,16 @@ const PropertyDetailsPage = () => {
                           )}
                         </button>
                       )}
-                      {revealedNumber && (['rent', 'buy', 'plot'].includes(propertyType?.toLowerCase())) && (
-                        <a href={`tel:${revealedNumber}`} className="text-center text-xs text-emerald-600 font-medium underline">
+                      {revealedNumber && isLeadType && (
+                        <a href={`tel:${revealedNumber}`} onClick={() => propertyService.recordViewLead(id).catch(() => {})} className="text-center text-xs text-emerald-600 font-medium underline">
                           Dial {revealedNumber}
                         </a>
                       )}
                     </div>
 
-                    <p className="text-center text-[10px] text-gray-400 mt-3 font-medium">You won't be charged yet</p>
+                    {!isLeadType && (
+                      <p className="text-center text-[10px] text-gray-400 mt-3 font-medium">You won't be charged yet</p>
+                    )}
                   </>
                 )}
               </div>
@@ -2046,17 +2061,35 @@ const PropertyDetailsPage = () => {
             )}
           </div>
           <div className="flex flex-1 md:flex-none gap-2">
-            {(['rent', 'buy', 'plot'].includes(propertyType?.toLowerCase())) ? (
+            {isLeadType ? (
               <div className="flex flex-1 gap-2">
-                <a href={`tel:${contactNumber}`} className="bg-white text-surface border border-surface px-4 py-3 rounded-xl font-bold flex-1 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                  <Phone size={20} /> Call
-                </a>
+                {revealedNumber ? (
+                  <a
+                    href={`tel:${revealedNumber}`}
+                    onClick={() => propertyService.recordViewLead(id).catch(() => {})}
+                    className="bg-white text-emerald-600 border border-emerald-600 px-3 py-3 rounded-xl font-bold flex-1 hover:bg-emerald-50 transition-colors flex items-center justify-center gap-1.5 text-sm"
+                  >
+                    <Phone size={18} /> Call {revealedNumber}
+                  </a>
+                ) : (
+                  <button
+                    onClick={handleRevealContact}
+                    disabled={revealLoading}
+                    className="bg-white text-emerald-600 border border-emerald-600 px-3 py-3 rounded-xl font-bold flex-1 hover:bg-emerald-50 transition-colors flex items-center justify-center gap-1.5 text-sm"
+                  >
+                    {revealLoading ? <Loader2 size={18} className="animate-spin" /> : (
+                      <>
+                        <Phone size={18} /> Reveal Contact
+                      </>
+                    )}
+                  </button>
+                )}
                 <button
                   onClick={handleBook}
                   disabled={bookingLoading}
                   className="bg-surface text-white px-4 py-3 rounded-xl font-bold flex-1 hover:bg-surface-dark transition-colors flex items-center justify-center gap-2"
                 >
-                  {bookingLoading ? <Loader2 size={20} className="animate-spin" /> : (['buy', 'plot', 'rent'].includes(propertyType?.toLowerCase()) ? 'Inquire Now' : 'Book Now')}
+                  {bookingLoading ? <Loader2 size={20} className="animate-spin" /> : 'Enquire Now'}
                 </button>
               </div>
             ) : (

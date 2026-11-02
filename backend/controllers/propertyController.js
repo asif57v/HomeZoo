@@ -1020,9 +1020,83 @@ export const revealContact = async (req, res) => {
       await partner.save();
     }
 
+    // Create lead record in Booking so partner sees it under leads/inquiries
+    try {
+      const Booking = (await import('../models/Booking.js')).default;
+      let user = req.user;
+      let leadUserId = null;
+      let leadUserModel = 'User';
+      let leadGuestName = 'Interested Guest';
+
+      if (user && user._id) {
+        leadUserId = user._id;
+        leadUserModel = (user.isPartner || user.role === 'partner' || user.constructor?.modelName === 'Partner') ? 'Partner' : 'User';
+        leadGuestName = user.name || 'Interested Customer';
+      } else {
+        let guestUser = await User.findOne({ phone: '9999999999' });
+        if (!guestUser) {
+          try {
+            guestUser = await User.create({
+              name: 'Interested Guest',
+              phone: '9999999999',
+              email: 'guest@hoomzo.com',
+              password: 'GuestUser12345!'
+            });
+          } catch (e) {
+            guestUser = await User.findOne({});
+          }
+        }
+        leadUserId = guestUser?._id;
+        leadUserModel = 'User';
+        leadGuestName = 'Interested Guest';
+      }
+
+      if (!leadUserId) {
+        const anyUser = await User.findOne({});
+        leadUserId = anyUser?._id;
+      }
+
+      if (leadUserId) {
+        const pType = (property.propertyType || 'pg').toLowerCase();
+        const bookingId = `CALL-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+        const leadBudget = pType === 'buy'
+          ? (property.buyDetails?.expectedPrice || 0)
+          : (pType === 'rent'
+            ? (property.rentDetails?.monthlyRent || 0)
+            : (property.pgDetails?.monthlyRent || property.startingPrice || property.minPrice || 0));
+
+        const lead = new Booking({
+          bookingId,
+          userModel: leadUserModel,
+          userId: leadUserId,
+          propertyId: property._id,
+          propertyType: pType,
+          isInquiry: true,
+          bookingStatus: 'pending',
+          guests: { adults: 1, children: 0 },
+          inquiryMetadata: {
+            preferredDate: new Date(),
+            message: `Revealed contact / requested call on Hoomzo (${new Date().toLocaleDateString('en-GB')})`,
+            budget: leadBudget,
+            status: 'new'
+          }
+        });
+        await lead.save();
+
+        if (partner._id) {
+          notificationService.sendToUser(partner._id, {
+            title: 'Contact Revealed! 📞',
+            body: `${leadGuestName} viewed your contact number for ${property.propertyName}.`
+          }, { type: 'contact_revealed', bookingId: lead._id, url: '/partner/bookings' }, 'partner').catch(e => console.error(e));
+        }
+      }
+    } catch (leadErr) {
+      console.error('Error generating contact reveal lead:', leadErr);
+    }
+
     res.json({
       success: true,
-      contactNumber: property.contactNumber
+      contactNumber: property.contactNumber || partner.phone
     });
 
   } catch (error) {

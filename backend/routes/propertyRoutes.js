@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorizedRoles } from '../middlewares/authMiddleware.js';
+import { protect, authorizedRoles, optionalProtect } from '../middlewares/authMiddleware.js';
 import {
   createProperty,
   updateProperty,
@@ -21,7 +21,7 @@ const router = express.Router();
 router.get('/', getPublicProperties);
 router.get('/recommended-sellers', getRecommendedSellers);
 router.get('/my', protect, authorizedRoles('partner', 'admin', 'user'), getMyProperties);
-router.get('/:id/reveal-contact', revealContact);
+router.get('/:id/reveal-contact', optionalProtect, revealContact);
 router.get('/:id', getPropertyDetails);
 
 router.post('/', protect, authorizedRoles('partner', 'admin', 'user'), createProperty);

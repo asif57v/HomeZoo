@@ -138,6 +138,7 @@ const propertySchema = new mongoose.Schema({
     furnishing: { type: String, enum: ['Fully', 'Semi', 'Unfurnished'] },
     tenantPreference: { type: String }, // Family, Bachelors, etc.
     builtYear: Number,
+    securityDeposit: Number,
     maintenanceCharges: Number,
     electricityIncluded: Boolean,
     waterSupply: String,

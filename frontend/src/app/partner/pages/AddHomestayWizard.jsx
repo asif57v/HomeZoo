@@ -189,10 +189,22 @@ const AddHomestayWizard = () => {
   };
 
   // --- API / Maps Logic ---
-  const useCurrentLocation = async () => {
-    setError('');
+  const autoLocationTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    if (step === 2 && !autoLocationTriggeredRef.current) {
+      const isAddressEmpty = !propertyForm.address.state && !propertyForm.address.city && !propertyForm.address.fullAddress;
+      if (isAddressEmpty) {
+        autoLocationTriggeredRef.current = true;
+        useCurrentLocation(true);
+      }
+    }
+  }, [step, propertyForm.address.state, propertyForm.address.city, propertyForm.address.fullAddress]);
+
+  const useCurrentLocation = async (isAuto = false) => {
+    if (!isAuto) setError('');
     if (!navigator.geolocation) {
-      setError('Geolocation not supported by your browser');
+      if (!isAuto) setError('Geolocation not supported by your browser');
       return;
     }
 
@@ -245,21 +257,23 @@ const AddHomestayWizard = () => {
       });
     } catch (err) {
       console.error('[useCurrentLocation] Error:', err);
-      // Check if it's a GeolocationPositionError (has code property)
-      if (err && typeof err.code === 'number') {
-        if (err.code === 1) { // PERMISSION_DENIED
-          setError('Location permission denied. Please enable it in browser settings.');
-        } else if (err.code === 2) { // POSITION_UNAVAILABLE
-          setError('Location unavailable. Check your GPS/network.');
-        } else if (err.code === 3) { // TIMEOUT
-          setError('Location request timed out.');
+      if (!isAuto) {
+        // Check if it's a GeolocationPositionError (has code property)
+        if (err && typeof err.code === 'number') {
+          if (err.code === 1) { // PERMISSION_DENIED
+            setError('Location permission denied. Please enable it in browser settings.');
+          } else if (err.code === 2) { // POSITION_UNAVAILABLE
+            setError('Location unavailable. Check your GPS/network.');
+          } else if (err.code === 3) { // TIMEOUT
+            setError('Location request timed out.');
+          } else {
+            setError(`Location error: ${err.message || 'Unknown error'}`);
+          }
         } else {
-          setError(`Location error: ${err.message || 'Unknown error'}`);
+          // Backend API error or other error
+          const msg = err.response?.data?.message || err.message || 'Failed to fetch address from coordinates';
+          setError(msg);
         }
-      } else {
-        // Backend API error or other error
-        const msg = err.response?.data?.message || err.message || 'Failed to fetch address from coordinates';
-        setError(msg);
       }
     } finally {
       setLoadingLocation(false);
@@ -707,16 +721,6 @@ const AddHomestayWizard = () => {
       setError('Property Name and Short Description required');
       return;
     }
-    if (propertyForm.contactNumber) {
-      if (propertyForm.contactNumber.length !== 10) {
-        setError('Contact number must be exactly 10 digits');
-        return;
-      }
-      if (!isValidPhoneNumber(propertyForm.contactNumber)) {
-        setError('Please enter a valid 10-digit mobile number (starting with 6, 7, 8, or 9)');
-        return;
-      }
-    }
     setStep(2);
   };
   const nextFromLocation = () => {
@@ -1052,39 +1056,6 @@ const AddHomestayWizard = () => {
                     <span className={`text-sm font-bold ${propertyForm.familyFriendly ? 'text-emerald-900' : 'text-gray-700'}`}>Family Friendly</span>
                   </label>
                 </div>
-
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Contact Number (For Guest Inquiries)
-                    </label>
-                    {propertyForm.contactNumber ? (
-                      <span className={`text-[11px] font-medium ${propertyForm.contactNumber.length === 10 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        {propertyForm.contactNumber.length}/10 digits
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3.5 flex items-center gap-1.5 text-gray-500 font-semibold text-sm pointer-events-none select-none border-r border-gray-200 pr-2.5">
-                      <span>+91</span>
-                    </div>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={10}
-                      className="input pl-16 w-full" style={{ paddingLeft: "4.5rem" }}
-                      placeholder="9876543210"
-                      value={propertyForm.contactNumber || ''}
-                      onChange={e => updatePropertyForm('contactNumber', sanitizePhoneNumber(e.target.value))}
-                    />
-                  </div>
-                  {propertyForm.contactNumber && propertyForm.contactNumber.length > 0 && propertyForm.contactNumber.length < 10 && (
-                    <p className="text-xs text-amber-600 font-medium">Please enter a 10-digit mobile number</p>
-                  )}
-                  {propertyForm.contactNumber && propertyForm.contactNumber.length === 10 && !isValidPhoneNumber(propertyForm.contactNumber) && (
-                    <p className="text-xs text-amber-600 font-medium">Mobile number should start with 6, 7, 8, or 9</p>
-                  )}
-                </div>
               </div>
             </div>
           )}
@@ -1131,7 +1102,6 @@ const AddHomestayWizard = () => {
                   <input className="input" placeholder="City" value={propertyForm.address.city} onChange={e => updatePropertyForm(['address', 'city'], e.target.value)} />
 
                   <input className="input col-span-2" placeholder="Full Street Address" value={propertyForm.address.fullAddress} onChange={e => updatePropertyForm(['address', 'fullAddress'], e.target.value)} />
-                  <input className="input" placeholder="Pincode / Zip" value={propertyForm.address.pincode} onChange={e => updatePropertyForm(['address', 'pincode'], e.target.value)} />
                 </div>
 
                 <button

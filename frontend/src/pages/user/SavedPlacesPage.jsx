@@ -37,7 +37,7 @@ const SavedPlacesPage = () => {
                         <button onClick={() => navigate(-1)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
                             <ArrowLeft size={20} />
                         </button>
-                        <h1 className="text-xl font-bold">Saved Places</h1>
+                        <h1 className="text-xl font-bold">Wishlist</h1>
                     </div>
                     <button
                         onClick={() => navigate('/reels?tab=saved')}
@@ -47,7 +47,7 @@ const SavedPlacesPage = () => {
                     </button>
                 </div>
                 <h2 className="text-2xl font-black">Your Favorites</h2>
-                <p className="text-sm text-white/70">Hotels and property reels you have saved.</p>
+                <p className="text-sm text-white/70">Properties and reels you have saved.</p>
             </div>
 
             <div className="max-w-7xl mx-auto px-5 pt-8 pb-24">
@@ -64,13 +64,13 @@ const SavedPlacesPage = () => {
                 ) : (
                     <div className="flex flex-col items-center justify-center pt-20 opacity-50">
                         <Heart size={48} className="text-gray-300 mb-2" />
-                        <p className="text-gray-500 font-bold">No saved places yet.</p>
+                        <p className="text-gray-500 font-bold">Your wishlist is empty.</p>
                         <p className="text-xs text-gray-400 mt-1">Start exploring and save your favorites!</p>
                         <button
                             onClick={() => navigate('/search')}
                             className="mt-6 bg-surface text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
                         >
-                            Explore Hotels
+                            Explore Properties
                         </button>
                     </div>
                 )}

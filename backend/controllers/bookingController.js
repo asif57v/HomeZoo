@@ -148,10 +148,10 @@ export const createBooking = async (req, res) => {
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
     let pType = property.propertyType.toLowerCase();
-    const BOOKABLE_TYPES = ['villa', 'resort', 'hotel', 'hostel', 'pg', 'homestay', 'tent'];
+    const BOOKABLE_TYPES = ['villa', 'resort', 'hotel', 'homestay', 'tent'];
     // Dynamic-category listings (e.g. Apartment for rent/sale) without room types are inquiries
     const isDynamicListing = !['buy', 'plot', 'rent', ...BOOKABLE_TYPES].includes(pType) && !roomTypeId;
-    const isInquiry = ['buy', 'plot', 'rent'].includes(pType) || isDynamicListing;
+    const isInquiry = ['buy', 'plot', 'rent', 'pg', 'hostel'].includes(pType) || isDynamicListing;
     if (isDynamicListing) {
       pType = /sale|buy/i.test(property.transactionType || '') ? 'buy' : 'rent';
     }
@@ -166,10 +166,19 @@ export const createBooking = async (req, res) => {
     const roomType = roomTypeId ? await RoomType.findById(roomTypeId) : null;
     if (!isInquiry && !roomType) return res.status(404).json({ message: 'Room type not found' });
 
-    // --- HANDLE INQUIRY FLOW (BUY/PLOT) ---
+    // --- HANDLE INQUIRY FLOW (BUY/PLOT/RENT/PG/HOSTEL) ---
     if (isInquiry) {
       const bookingId = `INQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const userModel = req.user.constructor.modelName;
+
+      const inquiryBudget = req.body.budget || Number(property.dynamicData?.expectedPrice) || (
+        pType === 'buy' ? property.buyDetails?.expectedPrice : (
+          pType === 'rent' ? property.rentDetails?.monthlyRent : (
+            ['pg', 'hostel'].includes(pType) ? (property.pgDetails?.monthlyRent || property.startingPrice || property.minPrice || 0) :
+            property.plotDetails?.expectedPrice
+          )
+        )
+      ) || 0;
 
       const inquiry = new Booking({
         bookingId,
@@ -183,7 +192,7 @@ export const createBooking = async (req, res) => {
         inquiryMetadata: {
           preferredDate: checkInDate ? new Date(checkInDate) : new Date(),
           message: req.body.message || 'I am interested in this property.',
-          budget: req.body.budget || Number(property.dynamicData?.expectedPrice) || (pType === 'buy' ? property.buyDetails?.expectedPrice : (pType === 'rent' ? property.rentDetails?.monthlyRent : property.plotDetails?.expectedPrice)),
+          budget: inquiryBudget,
           status: 'new'
         }
       });

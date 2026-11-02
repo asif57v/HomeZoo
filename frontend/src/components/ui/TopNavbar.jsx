@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Globe, Menu, X, Home, Search, Video, Calendar, Wallet, Share2, LogOut, FileText, HelpCircle, Shield, ChevronRight, Plus } from 'lucide-react';
+import { User, Globe, Menu, X, Home, Search, Video, Calendar, Wallet, Share2, LogOut, FileText, HelpCircle, Shield, ChevronRight, Plus, Heart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authService } from '../../services/apiService';
@@ -41,7 +41,7 @@ const TopNavbar = () => {
         { name: 'Search', path: '/search', icon: Search },
         { name: 'Reels', path: '/reels', icon: Video },
         { name: 'Add Property', path: '/hotel/join', icon: Plus },
-        { name: 'Bookings', path: '/bookings', icon: Calendar },
+        { name: 'Wishlist', path: '/wishlist', icon: Heart },
         { name: 'Wallet', path: '/wallet', icon: Wallet },
         { name: 'Refer & Earn', path: '/refer', icon: Share2 },
     ];
