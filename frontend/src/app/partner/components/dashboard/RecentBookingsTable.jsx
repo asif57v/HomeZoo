@@ -7,17 +7,13 @@ const RecentBookingsTable = ({ bookings }) => {
   const navigate = useNavigate();
 
   if (!bookings || bookings.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-        <p className="text-gray-400 text-sm">No recent bookings found.</p>
-      </div>
-    );
+    return null;
   }
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
       <div className="px-4 py-3 md:px-5 md:py-4 border-b border-gray-100 flex justify-between items-center">
-        <h3 className="font-bold text-gray-900 text-base md:text-lg">Recent Activity</h3>
+        <h3 className="font-bold text-gray-900 text-base md:text-lg">Recent Enquiries</h3>
         <button
           onClick={() => navigate('/hotel/bookings')}
           className="text-xs font-semibold text-[#005CA8] hover:text-[#004b8a] flex items-center gap-1 hover:gap-2 transition-all"

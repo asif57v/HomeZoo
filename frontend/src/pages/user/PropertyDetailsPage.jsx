@@ -1099,10 +1099,10 @@ const PropertyDetailsPage = () => {
                 <div className="mb-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
                   <h3 className="font-bold text-blue-900 mb-3">Rental Details</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-blue-900">
-                    <div><span className="opacity-70 text-xs block">Monthly Rent</span>₹{rentDetails.monthlyRent?.toLocaleString() || 'Not set'}</div>
-                    <div><span className="opacity-70 text-xs block">Security</span>₹{(rentDetails.securityDeposit !== undefined ? rentDetails.securityDeposit : rentDetails.maintenanceCharges)?.toLocaleString() || 0}</div>
                     <div><span className="opacity-70 text-xs block">Type</span>{rentDetails.type || 'Not specified'}</div>
                     <div><span className="opacity-70 text-xs block">Furnishing</span>{rentDetails.furnishing || 'Not specified'}</div>
+                    <div><span className="opacity-70 text-xs block">Monthly Rent</span>₹{rentDetails.monthlyRent?.toLocaleString() || 'Not set'}</div>
+                    <div><span className="opacity-70 text-xs block">Security</span>₹{(rentDetails.securityDeposit !== undefined ? rentDetails.securityDeposit : rentDetails.maintenanceCharges)?.toLocaleString() || 0}</div>
                     <div><span className="opacity-70 text-xs block">Tenant Preference</span>{rentDetails.tenantPreference || 'Any'}</div>
                     {rentDetails.societyName && <div><span className="opacity-70 text-xs block">Society</span>{rentDetails.societyName}</div>}
                     <div><span className="opacity-70 text-xs block">Water Supply</span>{rentDetails.waterSupply || 'Not specified'}</div>
