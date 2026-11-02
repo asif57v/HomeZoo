@@ -1246,25 +1246,6 @@ const AddDynamicWizard = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Monthly Rent (₹)</label>
-                      <input type="number" className="input w-full" value={propertyForm.rentDetails?.monthlyRent || ''} onChange={e => updatePropertyForm(['rentDetails', 'monthlyRent'], e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Security (₹)</label>
-                      <input
-                        type="number"
-                        className="input w-full"
-                        placeholder="Security Deposit"
-                        value={propertyForm.rentDetails?.securityDeposit !== undefined && propertyForm.rentDetails?.securityDeposit !== '' ? propertyForm.rentDetails?.securityDeposit : (propertyForm.rentDetails?.maintenanceCharges || '')}
-                        onChange={e => {
-                          updatePropertyForm(['rentDetails', 'securityDeposit'], e.target.value);
-                          updatePropertyForm(['rentDetails', 'maintenanceCharges'], e.target.value);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
                       <label className="text-xs font-semibold text-gray-500 mb-1 block">Type</label>
                       <select className="input w-full" value={propertyForm.rentDetails?.type || ''} onChange={e => updatePropertyForm(['rentDetails', 'type'], e.target.value)}>
                         <option value="">Select Type</option>
@@ -1283,6 +1264,25 @@ const AddDynamicWizard = () => {
                         <option value="Semi">Semi Furnished</option>
                         <option value="Unfurnished">Unfurnished</option>
                       </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Monthly Rent (₹)</label>
+                      <input type="number" className="input w-full" value={propertyForm.rentDetails?.monthlyRent || ''} onChange={e => updatePropertyForm(['rentDetails', 'monthlyRent'], e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 mb-1 block">Security (₹)</label>
+                      <input
+                        type="number"
+                        className="input w-full"
+                        placeholder="Security Deposit"
+                        value={propertyForm.rentDetails?.securityDeposit !== undefined && propertyForm.rentDetails?.securityDeposit !== '' ? propertyForm.rentDetails?.securityDeposit : (propertyForm.rentDetails?.maintenanceCharges || '')}
+                        onChange={e => {
+                          updatePropertyForm(['rentDetails', 'securityDeposit'], e.target.value);
+                          updatePropertyForm(['rentDetails', 'maintenanceCharges'], e.target.value);
+                        }}
+                      />
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-gray-500 mb-1 block">Tenant Preference</label>
@@ -2238,16 +2238,16 @@ const AddDynamicWizard = () => {
                           <span className="font-medium text-gray-900">{propertyForm.rentDetails?.type || '-'}</span>
                         </div>
                         <div className="flex justify-between">
+                          <span className="text-gray-600">Furnishing</span>
+                          <span className="font-medium text-gray-900">{propertyForm.rentDetails?.furnishing || '-'}</span>
+                        </div>
+                        <div className="flex justify-between">
                           <span className="text-gray-600">Monthly Rent</span>
                           <span className="font-bold text-emerald-600">₹{propertyForm.rentDetails?.monthlyRent || '0'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Security</span>
                           <span className="font-medium text-gray-900">₹{propertyForm.rentDetails?.securityDeposit || propertyForm.rentDetails?.maintenanceCharges || '0'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Furnishing</span>
-                          <span className="font-medium text-gray-900">{propertyForm.rentDetails?.furnishing || '-'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Tenant Preference</span>
