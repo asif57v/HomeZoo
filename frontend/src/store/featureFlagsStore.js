@@ -2,15 +2,15 @@ import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/apiConfig';
+import { getSocket } from '../utils/socket';
 
 export const RAZORPAY_UNAVAILABLE_MESSAGE = 'Online payments are temporarily unavailable. Please try again later.';
 
 /**
  * Global feature switches managed by the admin (Platform Feature Controls).
- * One store is shared by the User App, Hotel Panel and Admin Panel so they can never disagree.
- * Defaults are "enabled" until the first response; the backend enforces the real rule regardless.
+ * Uses real-time WebSocket (Socket.io) push updates instead of periodic API polling.
  */
-const useFeatureFlagsStore = create((set) => ({
+const useFeatureFlagsStore = create((set, get) => ({
   subscriptionEnabled: true,
   razorpayEnabled: true,
   loaded: false,
@@ -22,21 +22,39 @@ const useFeatureFlagsStore = create((set) => ({
       loaded: true
     })),
 
+  // Initial fetch on app start as an instant fallback
   fetchFlags: async () => {
     try {
-      // Plain axios on purpose: public endpoint, and keeps the shared api interceptors out of this call
       const { data } = await axios.get(`${API_BASE_URL}/info/platform/features`, { timeout: 15000 });
-      set((state) => ({
-        subscriptionEnabled: typeof data.subscriptionEnabled === 'boolean' ? data.subscriptionEnabled : state.subscriptionEnabled,
-        razorpayEnabled: typeof data.razorpayEnabled === 'boolean' ? data.razorpayEnabled : state.razorpayEnabled,
-        loaded: true
-      }));
+      get().setFlags(data);
     } catch (error) {
-      // Keep the last known flags on network errors
       set({ loaded: true });
+    }
+  },
+
+  // Real-time WebSocket connection to receive instant push updates without polling
+  initWebSocket: () => {
+    try {
+      const socket = getSocket();
+
+      socket.on('connect', () => {
+        // Request latest flags immediately upon connection
+        socket.emit('get_feature_flags');
+      });
+
+      socket.on('feature_flags_updated', (flags) => {
+        if (flags && typeof flags === 'object') {
+          get().setFlags(flags);
+        }
+      });
+    } catch (err) {
+      console.warn('Socket.IO initialization error in featureFlagsStore:', err);
     }
   }
 }));
+
+// Initialize real-time WebSocket listener
+useFeatureFlagsStore.getState().initWebSocket();
 
 export const useFeatureFlags = () => useFeatureFlagsStore(useShallow((s) => ({
   subscriptionEnabled: s.subscriptionEnabled,

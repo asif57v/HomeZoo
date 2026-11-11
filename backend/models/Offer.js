@@ -128,7 +128,6 @@ offerSchema.methods.isUsableBy = function (userId) {
 };
 
 // Indexes for performance
-offerSchema.index({ code: 1 });
 offerSchema.index({ isActive: 1 });
 offerSchema.index({ isActive: 1, startDate: 1, endDate: 1 });
 offerSchema.index({ isActive: 1, showOnHome: 1 });

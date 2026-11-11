@@ -24,14 +24,22 @@ const ReelItem = ({ reel, navigate, banded }) => {
     }, []);
 
     useEffect(() => {
-        if (videoRef.current) {
+        const video = videoRef.current;
+        if (video) {
             if (isIntersecting) {
-                videoRef.current.play().catch(err => console.log("Autoplay blocked", err));
+                video.play().catch(err => console.log("Autoplay blocked", err));
             } else {
-                videoRef.current.pause();
-                videoRef.current.currentTime = 0;
+                video.pause();
+                video.currentTime = 0;
             }
         }
+        return () => {
+            if (video) {
+                try {
+                    video.pause();
+                } catch (_) {}
+            }
+        };
     }, [isIntersecting]);
 
     return (

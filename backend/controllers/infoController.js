@@ -68,8 +68,8 @@ export const getTopRatedSectionConfig = async (req, res) => {
       success: true,
       enabled: c.enabled !== false,
       badgeText: c.badgeText ?? 'Verified Excellence',
-      title: c.title || 'Top Rated HomeZo Partners',
-      subtitle: c.subtitle ?? '',
+      title: (c.title ? c.title.replace(/HomeZo/gi, 'Hoomzo') : 'Top Rated Hoomzo Partners'),
+      subtitle: (c.subtitle ? c.subtitle.replace(/HomeZo/gi, 'Hoomzo') : ''),
       buttonText: c.buttonText ?? 'View All Partners',
       maxPartners: c.maxPartners || 6
     });

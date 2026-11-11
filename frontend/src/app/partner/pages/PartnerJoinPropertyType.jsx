@@ -12,7 +12,7 @@ import { evaluateSubscriptionCanAddProperty } from '../../../utils/subscriptionG
 // Only these 4 options, in this order. No duplicates.
 const FOUR_OPTIONS = [
   { key: 'pg-coliving', label: 'PG/Co-living', description: 'Long-stay beds or rooms with shared facilities', badge: 'Long Term', icon: BedDouble, route: '/hotel/join-pg', color: 'bg-purple-50 text-purple-600' },
-  { key: 'rent', label: 'Rent', description: 'List your property for rent', badge: 'Rental', icon: Home, color: 'bg-emerald-50 text-emerald-600' },
+  { key: 'rent', label: 'Rent', description: 'List your property for rent', badge: 'Rental', icon: Home, color: 'bg-cyan-50 text-cyan-600' },
   { key: 'buy', label: 'Sell', description: 'List your property for sale', badge: 'Sale', icon: Landmark, color: 'bg-blue-50 text-blue-600' },
   { key: 'plot', label: 'Plot', description: 'List land or plot', badge: 'Land', icon: TreePine, color: 'bg-amber-50 text-amber-600' },
 ];

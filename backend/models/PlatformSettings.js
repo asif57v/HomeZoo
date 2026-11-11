@@ -40,7 +40,7 @@ const platformSettingsSchema = new mongoose.Schema(
     topRatedPartnersSection: {
       enabled: { type: Boolean, default: true },
       badgeText: { type: String, default: 'Verified Excellence', maxlength: 60 },
-      title: { type: String, default: 'Top Rated HomeZo Partners', maxlength: 120 },
+      title: { type: String, default: 'Top Rated Hoomzo Partners', maxlength: 120 },
       subtitle: {
         type: String,
         default: 'Collaborate with our highest-performing locality experts and trusted land advisors with proven track records and verified titles.',

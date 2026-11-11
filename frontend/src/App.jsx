@@ -9,6 +9,7 @@ import BottomNavbar from './components/ui/BottomNavbar';
 import TopNavbar from './components/ui/TopNavbar';
 import PartnerBottomNavbar from './app/partner/components/PartnerBottomNavbar';
 import ScrollToTop from './components/ui/ScrollToTop';
+import SoftGlowTouchEffect from './components/ui/SoftGlowTouchEffect';
 
 // Hooks & Services
 import { useLenis } from './app/shared/hooks/useLenis';
@@ -139,19 +140,10 @@ const SubscriptionGate = ({ children }) => {
 const Layout = ({ children }) => {
   const location = useLocation();
 
-  // Keep admin feature switches (subscription / Razorpay) fresh for every app
+  // Fetch initial feature switches on app load; real-time updates are pushed via WebSocket
   React.useEffect(() => {
     const { fetchFlags } = useFeatureFlagsStore.getState();
     fetchFlags();
-    const onVisible = () => document.visibilityState === 'visible' && fetchFlags();
-    const timer = setInterval(fetchFlags, 60000);
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('focus', fetchFlags);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('focus', fetchFlags);
-    };
   }, []);
   const [platformStatus, setPlatformStatus] = React.useState({
     loading: true,
@@ -459,6 +451,7 @@ function App() {
     <Router>
       <ScrollToTop />
       <Toaster position="top-center" reverseOrder={false} />
+      <SoftGlowTouchEffect />
       <Layout>
         <Suspense fallback={<PageLoader />}>
           <Routes>

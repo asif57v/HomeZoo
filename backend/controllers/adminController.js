@@ -970,7 +970,15 @@ export const updateFeatureControls = async (req, res) => {
     }
 
     await settings.save();
-    res.status(200).json({ success: true, features: serializeFeatures(settings.featureControls) });
+    const updatedFeatures = serializeFeatures(settings.featureControls);
+
+    // Broadcast feature flags in real-time to all connected WebSocket clients
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('feature_flags_updated', updatedFeatures);
+    }
+
+    res.status(200).json({ success: true, features: updatedFeatures });
   } catch (error) {
     console.error('Update Feature Controls Error:', error);
     res.status(500).json({ success: false, message: 'Server error updating feature controls' });

@@ -54,8 +54,6 @@ const reelDurationPaymentSchema = new mongoose.Schema(
     },
     razorpayPaymentId: {
       type: String,
-      index: true,
-      sparse: true,
     },
     paymentStatus: {
       type: String,

@@ -88,7 +88,6 @@ const propertyCategorySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes for performance
-propertyCategorySchema.index({ slug: 1 });
 propertyCategorySchema.index({ isActive: 1 });
 propertyCategorySchema.index({ isActive: 1, isPopular: 1, popularOrder: 1 });
 propertyCategorySchema.index({ isActive: 1, isFeatured: 1, featuredOrder: 1 });

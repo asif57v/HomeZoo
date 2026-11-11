@@ -314,7 +314,7 @@ const NewsPage = () => {
 
                             {/* Modal Footer */}
                             <div className="p-4 px-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-                                <span className="text-xs font-medium text-slate-400">HomeZo Market Intelligence</span>
+                                <span className="text-xs font-medium text-slate-400">Hoomzo Market Intelligence</span>
                                 <button
                                     onClick={() => setSelectedArticle(null)}
                                     className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"

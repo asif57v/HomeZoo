@@ -28,7 +28,7 @@ export const pickImageSource = () =>
       b.textContent = label;
       b.style.cssText = `padding:14px;border-radius:12px;font-weight:700;font-size:16px;border:${
         primary ? 'none' : '1px solid #e5e7eb'
-      };background:${primary ? '#059669' : '#fff'};color:${primary ? '#fff' : '#374151'};`;
+      };background:${primary ? '#005CA8' : '#fff'};color:${primary ? '#fff' : '#374151'};cursor:pointer;`;
       b.onclick = () => done(value);
       return b;
     };

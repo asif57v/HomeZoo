@@ -6,6 +6,7 @@ import usePartnerStore from '../store/partnerStore';
 import { userService, authService, hotelService } from '../../../services/apiService';
 import PartnerHeader from '../components/PartnerHeader';
 import { isFlutterApp, openFlutterCamera, uploadBase64Image } from '../../../utils/flutterBridge';
+import { pickImageSource, pickFlutterImages, pickGalleryFiles } from '../../../utils/imageSource';
 import { requestNotificationPermission, detectPlatform } from '../../../utils/firebase';
 import { compressImage } from '../../../utils/imageCompressor';
 
@@ -144,8 +145,7 @@ const PartnerProfile = () => {
         }
     };
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
+    const handlePartnerFile = async (file) => {
         if (!file) return;
 
         try {
@@ -159,6 +159,7 @@ const PartnerProfile = () => {
                 const newUrl = res.files[0].url;
                 const newPublicId = res.files[0].publicId;
                 await updateProfileImage(newUrl, newPublicId);
+                toast.success('Profile photo updated successfully');
             }
         } catch (err) {
             console.error('Image upload failed:', err);
@@ -171,30 +172,77 @@ const PartnerProfile = () => {
         }
     };
 
-    const handleCameraCapture = async () => {
+    const handleBase64PartnerUpload = async (base64, mimeType, fileName) => {
         try {
             setUploading(true);
-            const cameraResult = await openFlutterCamera();
+            const uploadResult = await uploadBase64Image(base64, mimeType, fileName);
 
-            if (!cameraResult.success || !cameraResult.base64) {
-                throw new Error('Camera capture failed');
-            }
-
-            const uploadResult = await uploadBase64Image(
-                cameraResult.base64,
-                cameraResult.mimeType,
-                cameraResult.fileName
-            );
-
-            if (uploadResult.success && uploadResult.files && uploadResult.files.length > 0) {
+            if (uploadResult && uploadResult.success && uploadResult.files && uploadResult.files.length > 0) {
                 const newUrl = uploadResult.files[0].url;
                 const newPublicId = uploadResult.files[0].publicId;
                 await updateProfileImage(newUrl, newPublicId);
+                toast.success('Profile photo updated successfully');
             }
         } catch (err) {
-            console.error('Camera upload failed:', err);
+            console.error('Partner base64 upload failed:', err);
+            toast.error('Failed to upload photo');
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handlePhotoSelect = async () => {
+        try {
+            const source = await pickImageSource();
+            if (!source) return;
+
+            if (source === 'gallery') {
+                if (isFlutterApp()) {
+                    try {
+                        const nativeImages = await pickFlutterImages(false);
+                        if (nativeImages && nativeImages.length > 0) {
+                            const img = nativeImages[0];
+                            await handleBase64PartnerUpload(img.base64, img.mimeType, img.fileName);
+                            return;
+                        }
+                    } catch (e) {
+                        console.warn('Flutter gallery error, falling back to file picker', e);
+                    }
+                }
+                const files = await pickGalleryFiles(false);
+                if (files && files.length > 0) {
+                    await handlePartnerFile(files[0]);
+                }
+                return;
+            }
+
+            if (source === 'camera') {
+                if (isFlutterApp()) {
+                    try {
+                        setUploading(true);
+                        const cameraResult = await openFlutterCamera();
+                        if (!cameraResult || !cameraResult.success || !cameraResult.base64) {
+                            return;
+                        }
+                        await handleBase64PartnerUpload(
+                            cameraResult.base64,
+                            cameraResult.mimeType,
+                            cameraResult.fileName
+                        );
+                    } catch (err) {
+                        console.error('Camera upload failed:', err);
+                        if (err?.message && !err.message.includes('cancelled') && !err.message.includes('closed')) {
+                            toast.error('Unable to capture photo');
+                        }
+                    } finally {
+                        setUploading(false);
+                    }
+                } else {
+                    fileInputRef.current?.click();
+                }
+            }
+        } catch (err) {
+            console.error('Partner photo select error:', err);
         }
     };
 
@@ -245,11 +293,12 @@ const PartnerProfile = () => {
                             )}
                         </div>
 
-                        {/* Permanent Camera Button */}
+                        {/* Permanent Camera / Gallery Button */}
                         <button
-                            onClick={() => isFlutterApp() ? handleCameraCapture() : fileInputRef.current?.click()}
+                            onClick={handlePhotoSelect}
                             disabled={uploading}
-                            className="absolute bottom-1 right-1 w-9 h-9 bg-white text-[#005CA8] rounded-full flex items-center justify-center shadow-lg border border-gray-100 hover:scale-110 active:scale-95 transition-all z-10"
+                            className="absolute bottom-1 right-1 w-9 h-9 bg-white text-[#005CA8] rounded-full flex items-center justify-center shadow-lg border border-gray-100 hover:scale-110 active:scale-95 transition-all z-10 cursor-pointer"
+                            aria-label="Change photo"
                         >
                             <Camera size={18} />
                         </button>
@@ -259,7 +308,10 @@ const PartnerProfile = () => {
                     <input
                         type="file"
                         ref={fileInputRef}
-                        onChange={handleImageUpload}
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePartnerFile(file);
+                        }}
                         className="hidden"
                         accept="image/*"
                     />
@@ -336,57 +388,6 @@ const PartnerProfile = () => {
                         isEditing={false} // Always read-only
                         onChange={() => { }}
                     />
-                </div>
-
-                {/* Test Push Notification Card */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-[2rem] p-5 mb-6 shadow-sm">
-                    <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
-                                <Bell size={18} />
-                            </div>
-                            <div>
-                                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Test Push Notification</h4>
-                                <p className="text-[11px] font-medium text-slate-500 mt-0.5">Send a test push notification to check FCM setup on this device</p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={async () => {
-                                try {
-                                    setTestNotifLoading(true);
-
-                                    // 1. Ensure token is requested & registered with backend
-                                    toast.loading('Checking notification permission...', { id: 'partner-test-notif' });
-                                    const token = await requestNotificationPermission();
-                                    if (token) {
-                                        await userService.updateFcmToken(token, detectPlatform());
-                                        toast.loading('Sending test notification...', { id: 'partner-test-notif' });
-                                    } else {
-                                        toast.error('Permission denied or FCM token unavailable. Please allow notifications in browser.', { id: 'partner-test-notif' });
-                                        return;
-                                    }
-
-                                    // 2. Trigger test notification
-                                    const res = await userService.sendTestNotification();
-                                    if (res.success) {
-                                        toast.success('Test notification sent! Check your device.', { id: 'partner-test-notif' });
-                                    } else {
-                                        toast.error(res.message || 'Failed to send test notification', { id: 'partner-test-notif' });
-                                    }
-                                } catch (err) {
-                                    toast.error(err.response?.data?.message || err.message || 'Failed to send test notification', { id: 'partner-test-notif' });
-                                } finally {
-                                    setTestNotifLoading(false);
-                                }
-                            }}
-                            disabled={testNotifLoading}
-                            className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 shrink-0 disabled:opacity-50"
-                        >
-                            {testNotifLoading ? <Loader2 size={14} className="animate-spin" /> : <Bell size={14} />}
-                            Send Test
-                        </button>
-                    </div>
                 </div>
 
                 <div className="mt-8 text-center text-xs text-gray-400">

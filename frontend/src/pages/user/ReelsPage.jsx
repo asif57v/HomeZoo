@@ -93,12 +93,12 @@ export default function ReelsPage() {
     const tabParam = params.get('tab');
     if (tabParam === 'saved' || tabParam === 'my') {
       setActiveTab(tabParam);
-    }
-    const reelIdParam = params.get('reel');
-    if (reelIdParam) {
-      reelService.getReelById(reelIdParam).then((res) => {
-        if (res.reel) setSelectedReelForModal(res.reel);
-      }).catch(() => {});
+      const reelIdParam = params.get('reel');
+      if (reelIdParam) {
+        reelService.getReelById(reelIdParam).then((res) => {
+          if (res.reel) setSelectedReelForModal(res.reel);
+        }).catch(() => {});
+      }
     }
   }, [location.search]);
 
@@ -120,7 +120,8 @@ export default function ReelsPage() {
         ...(cursor ? { cursor: String(page) } : {}),
         ...(exclude ? { exclude } : {}),
       });
-      const list = res.reels || [];
+      let list = res.reels || [];
+
       if (cursor) {
         setFeedReels((prev) => {
           const seen = new Set(prev.map((r) => r._id));
@@ -134,7 +135,29 @@ export default function ReelsPage() {
           return merged;
         });
       } else {
+        // Initial load: If a specific reel was targeted (e.g. clicked from ReelSection on Home)
+        const params = new URLSearchParams(window.location.search);
+        const targetReelId = params.get('reel');
+        if (targetReelId) {
+          const foundIdx = list.findIndex((r) => r._id === targetReelId);
+          if (foundIdx > 0) {
+            // Move targeted reel to index 0 so it plays immediately without double mounting
+            const [targetReel] = list.splice(foundIdx, 1);
+            list = [targetReel, ...list];
+          } else if (foundIdx === -1) {
+            // Fetch the specific reel and place it at index 0
+            try {
+              const singleRes = await reelService.getReelById(targetReelId);
+              if (singleRes?.reel) {
+                list = [singleRes.reel, ...list];
+              }
+            } catch (err) {
+              console.error('Failed to fetch target reel for feed', err);
+            }
+          }
+        }
         setFeedReels(list);
+        setActiveIndex(0);
       }
       setFeedNextCursor(res.nextCursor || null);
       setFeedHasMore(!!res.hasMore);
@@ -359,7 +382,7 @@ export default function ReelsPage() {
       if (navigator.share) {
         await navigator.share({
           title: 'Reel',
-          text: reel.caption || 'Check this reel on HomeZo',
+          text: reel.caption || 'Check this reel on Hoomzo',
           url,
         });
       } else {
@@ -481,7 +504,7 @@ export default function ReelsPage() {
         key: razorpayKeyId,
         amount: order.amount,
         currency: order.currency || 'INR',
-        name: 'HomeZo',
+        name: 'Hoomzo',
         description: `Reel duration charge (${quote.duration}s)`,
         order_id: order.id,
         theme: { color: '#059669' },
@@ -740,7 +763,7 @@ export default function ReelsPage() {
                   >
                     <ReelCard
                       reel={reel}
-                      isActive={activeIndex === index}
+                      isActive={!selectedReelForModal && activeIndex === index}
                       onLikeToggle={handleLikeToggle}
                       onSaveToggle={handleSaveToggle}
                       onCommentClick={handleCommentClick}

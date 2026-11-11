@@ -1212,23 +1212,25 @@ const AddDynamicWizard = () => {
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">{isTent ? 'Property / Camp Name' : isPlot ? 'Project / Plot Name' : isBuy ? 'Property Title' : isRent ? 'Property / Society Name' : 'Property / Hotel Name'}</label>
                   <input
                     className="input w-full"
-                    placeholder={isTent ? "e.g. Riverside Jungle Camp" : isRent ? "e.g. Green Valley Apartments" : "e.g. Grand Royal Hotel"}
+                    placeholder={isTent ? "e.g. Riverside Jungle Camp" : isRent ? "e.g. Green Valley Apartments" : isPlot ? "e.g. Palm Meadows Phase 1" : isBuy ? "e.g. Luxury 3 BHK Villa" : "e.g. Grand Royal Hotel"}
                     value={propertyForm.propertyName}
                     onChange={e => updatePropertyForm('propertyName', e.target.value)}
                   />
                 </div>
+                {!(isRent || isBuy || isPlot) && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 mb-1 block">Short Description</label>
+                    <textarea
+                      className="input w-full"
+                      placeholder="Brief summary for listings..."
+                      value={propertyForm.shortDescription}
+                      onChange={e => updatePropertyForm('shortDescription', e.target.value)}
+                    />
+                  </div>
+                )}
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">{isBuy ? 'Property Summary' : 'Short Description'}</label>
-                  <textarea
-                    className="input w-full"
-                    placeholder="Brief summary for listings..."
-                    value={propertyForm.shortDescription}
-                    onChange={e => updatePropertyForm('shortDescription', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 mb-1 block">{isBuy ? 'Property Details' : 'Detailed Description'}</label>
-                  <textarea className="input w-full h-24" placeholder={isTent ? "Describe your campsite, tents, and experience..." : isRent ? "Describe your property, amenities, etc..." : isBuy ? "Describe your property features, condition, and highlights" : "Tell guests what makes your hotel unique..."} value={propertyForm.description} onChange={e => updatePropertyForm('description', e.target.value)} />
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">{(isRent || isBuy || isPlot) ? 'Description' : 'Detailed Description'}</label>
+                  <textarea className="input w-full h-24" placeholder={isTent ? "Describe your campsite, tents, and experience..." : isRent ? "Describe your property, amenities, etc..." : isBuy ? "Describe your property features, condition, and highlights" : isPlot ? "Describe your plot dimensions, boundary, connectivity, etc..." : "Tell guests what makes your hotel unique..."} value={propertyForm.description} onChange={e => updatePropertyForm('description', e.target.value)} />
                 </div>
               </div>
             </div>

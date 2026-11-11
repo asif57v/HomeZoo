@@ -254,11 +254,11 @@ const HomeBottomSections = () => {
                         </div>
                         )}
                         <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-                            {partnersSection?.title || 'Top Rated HomeZo Partners'}
+                            {(partnersSection?.title || 'Top Rated Hoomzo Partners').replace(/HomeZo/gi, 'Hoomzo')}
                         </h2>
                         {partnersSection?.subtitle && (
                         <p className="text-xs sm:text-base text-slate-500 font-medium mt-1.5 max-w-2xl leading-relaxed">
-                            {partnersSection.subtitle}
+                            {partnersSection.subtitle.replace(/HomeZo/gi, 'Hoomzo')}
                         </p>
                         )}
                     </div>
@@ -571,7 +571,7 @@ const HomeBottomSections = () => {
                         <div className="max-w-2xl space-y-4 sm:space-y-5">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 font-bold text-[11px] sm:text-xs tracking-wider uppercase border border-blue-400/20">
                                 <Smartphone className="w-3.5 h-3.5 text-blue-400" />
-                                HomeZo On The Go
+                                Hoomzo On The Go
                             </div>
 
                             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight sm:leading-snug">
@@ -623,7 +623,7 @@ const HomeBottomSections = () => {
                             <div className="max-w-[170px]">
                                 <h4 className="font-extrabold text-white text-sm tracking-tight">Scan to install app</h4>
                                 <p className="text-[11px] text-slate-300 font-medium mt-1 leading-normal">
-                                    Point your phone camera here to get the official HomeZo app instantly.
+                                    Point your phone camera here to get the official Hoomzo app instantly.
                                 </p>
                                 <span className="inline-block mt-2 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">iOS & Android</span>
                             </div>
@@ -716,7 +716,7 @@ const HomeBottomSections = () => {
 
                             {/* Modal Footer */}
                             <div className="p-4 px-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-                                <span className="text-xs font-medium text-slate-400">HomeZo Real Estate Intelligence</span>
+                                <span className="text-xs font-medium text-slate-400">Hoomzo Real Estate Intelligence</span>
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => {

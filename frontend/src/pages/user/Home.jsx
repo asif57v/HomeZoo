@@ -14,6 +14,7 @@ import ReelSection from '../../components/user/ReelSection';
 import LatestProjectsBanner from '../../components/user/LatestProjectsBanner';
 import PayHostelFeesSection from '../../components/user/PayHostelFeesSection';
 import HomeBottomSections from '../../components/user/HomeBottomSections';
+import HostPartnerHubBanner from '../../components/user/HostPartnerHubBanner';
 import { Band, SectionHeader } from '../../components/user/home/HomeLayout';
 import { categoryService } from '../../services/categoryService';
 import homeService from '../../services/homeService';
@@ -270,6 +271,11 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Top Host & Partner Hub Banner - Desktop/Laptop */}
+      <div className="hidden md:block max-w-7xl mx-auto px-4 lg:px-6 w-full pt-6 pb-2">
+        <HostPartnerHubBanner />
+      </div>
+
       {/* Main Home Sections when "All" tab is active */}
       {(!selectedType.id || selectedType.label === 'All') ? (
         // Each section owns a full-width background band; alternating tones
@@ -413,6 +419,11 @@ const Home = () => {
           <HomeBottomSections />
         </div>
       )}
+
+      {/* Bottom Host & Partner Hub Banner - Desktop/Laptop (End of Scroll) */}
+      <div className="hidden md:block max-w-7xl mx-auto px-4 lg:px-6 w-full mt-10 md:mt-14 mb-8">
+        <HostPartnerHubBanner />
+      </div>
     </main>
   );
 };

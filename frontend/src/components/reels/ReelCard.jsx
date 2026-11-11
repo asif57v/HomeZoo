@@ -33,6 +33,9 @@ const setSoundMuted = (value) => {
   soundListeners.forEach((l) => l());
 };
 
+// Global audio mutex: Guarantees that ONLY ONE reel video can ever play sound/video at any time across the app
+let currentlyPlayingVideo = null;
+
 const railButton =
   'w-11 h-11 flex items-center justify-center text-white active:scale-90 transition-transform drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]';
 
@@ -100,8 +103,20 @@ const ReelCard = memo(function ReelCard({
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (video.paused) video.play().catch(() => {});
-    else video.pause();
+    if (video.paused) {
+      if (currentlyPlayingVideo && currentlyPlayingVideo !== video) {
+        try {
+          currentlyPlayingVideo.pause();
+        } catch (_) {}
+      }
+      currentlyPlayingVideo = video;
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+      if (currentlyPlayingVideo === video) {
+        currentlyPlayingVideo = null;
+      }
+    }
   }, []);
 
   // Track video play/pause & watch duration
@@ -110,6 +125,14 @@ const ReelCard = memo(function ReelCard({
     if (!video) return;
 
     if (isActive) {
+      // Audio Mutex: Ensure any other playing reel is paused immediately
+      if (currentlyPlayingVideo && currentlyPlayingVideo !== video) {
+        try {
+          currentlyPlayingVideo.pause();
+        } catch (_) {}
+      }
+      currentlyPlayingVideo = video;
+
       watchStartTimeRef.current = Date.now();
       video.muted = getSoundMuted();
       video.play().catch((err) => {
@@ -146,7 +169,22 @@ const ReelCard = memo(function ReelCard({
         }
       }
       video.pause();
+      if (currentlyPlayingVideo === video) {
+        currentlyPlayingVideo = null;
+      }
     }
+
+    return () => {
+      // Cleanup: always pause video and release mutex when card unmounts or changes
+      if (video) {
+        try {
+          video.pause();
+        } catch (_) {}
+      }
+      if (currentlyPlayingVideo === video) {
+        currentlyPlayingVideo = null;
+      }
+    };
   }, [isActive, reel._id]);
 
   const handleTimeUpdate = useCallback(() => {

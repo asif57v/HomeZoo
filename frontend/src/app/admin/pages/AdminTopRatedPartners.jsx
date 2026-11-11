@@ -31,7 +31,7 @@ const PartnerRow = ({ partner, action }) => (
 const DEFAULT_SECTION = {
     enabled: true,
     badgeText: 'Verified Excellence',
-    title: 'Top Rated HomeZo Partners',
+    title: 'Top Rated Hoomzo Partners',
     subtitle: 'Collaborate with our highest-performing locality experts and trusted land advisors with proven track records and verified titles.',
     buttonText: 'View All Partners',
     maxPartners: 6
@@ -180,7 +180,7 @@ const AdminTopRatedPartners = () => {
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-gray-600 mb-1">Heading</label>
-                            <input type="text" maxLength={120} value={section.title} onChange={(e) => setField('title', e.target.value)} placeholder="Top Rated HomeZo Partners" className={inputCls} />
+                            <input type="text" maxLength={120} value={section.title} onChange={(e) => setField('title', e.target.value)} placeholder="Top Rated Hoomzo Partners" className={inputCls} />
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-xs font-medium text-gray-600 mb-1">Sub heading</label>

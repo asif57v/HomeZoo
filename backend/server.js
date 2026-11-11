@@ -13,6 +13,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import morgan from 'morgan';
 import dns from 'dns';
+import { getFeatureFlags } from './middlewares/featureGuards.js';
 
 // Use public DNS for SRV lookups (mongodb+srv) — local router DNS often refuses them
 dns.setServers(['8.8.8.8', '1.1.1.1']);
@@ -82,9 +83,22 @@ const io = new Server(server, {
   }
 });
 
+// Attach socket.io instance to express app
+app.set('io', io);
+
 // Socket.io Logic
 io.on('connection', (socket) => {
   console.log('🔌 New Client Connected:', socket.id);
+
+  // Client requests initial feature flags over WebSocket
+  socket.on('get_feature_flags', async () => {
+    try {
+      const flags = await getFeatureFlags();
+      socket.emit('feature_flags_updated', flags);
+    } catch (err) {
+      console.error('Socket get_feature_flags error:', err.message);
+    }
+  });
 
   // User joins a tracking room (e.g., their booking ID or just a hotel room)
   socket.on('join_tracking', (room) => {
@@ -274,3 +288,5 @@ mongoose.connection.on('reconnected', () => {
 
 // Start connection
 connectWithRetry();
+
+export { io };

@@ -76,7 +76,7 @@ const TopNavbar = () => {
                 </div>
 
                 {/* Desktop Links (Restored) */}
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-7">
                     <Link to="/" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Home
                     </Link>
@@ -86,15 +86,8 @@ const TopNavbar = () => {
                     <Link to="/reels" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Reels
                     </Link>
-                    <button
-                        type="button"
-                        onClick={() => handleNavigateToAddProperty(navigate)}
-                        className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight cursor-pointer"
-                    >
-                        Add Property
-                    </button>
-                    <Link to="/bookings" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
-                        Bookings
+                    <Link to="/wishlist" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                        Wishlist
                     </Link>
                     <Link to="/wallet" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
                         Wallet
@@ -105,22 +98,31 @@ const TopNavbar = () => {
                 </div>
 
                 {/* Right Side: User Actions */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => handleNavigateToAddProperty(navigate)}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-full shadow-sm shadow-amber-500/25 active:scale-95 transition-all cursor-pointer"
+                    >
+                        <Plus size={14} strokeWidth={3} />
+                        <span>Post Property</span>
+                    </button>
+
                     <Link
                         to="/saved-places"
-                        className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-600 transition border border-transparent hover:border-emerald-100"
+                        className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-600 transition border border-transparent hover:border-emerald-100"
                     >
-                        <Globe size={18} className="text-gray-500 hover:text-emerald-600" />
+                        <Globe size={17} className="text-gray-500 hover:text-emerald-600" />
                     </Link>
 
                     <Link
                         to="/settings"
-                        className="pl-3 pr-4 py-1.5 bg-white border border-gray-100 rounded-full flex items-center gap-3 hover:border-emerald-200 hover:bg-emerald-50/30 transition group shadow-sm"
+                        className="pl-2.5 pr-3.5 py-1 bg-white border border-gray-100 rounded-full flex items-center gap-2.5 hover:border-emerald-200 hover:bg-emerald-50/30 transition group shadow-sm"
                     >
-                        <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-emerald-200">
+                        <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-emerald-200">
                             {userName.charAt(0)}
                         </div>
-                        <span className="text-sm font-bold text-emerald-950 group-hover:text-emerald-700">
+                        <span className="text-xs font-bold text-emerald-950 group-hover:text-emerald-700">
                             {userName.split(' ')[0]}
                         </span>
                     </Link>
