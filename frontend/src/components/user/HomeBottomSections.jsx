@@ -281,69 +281,71 @@ const HomeBottomSections = () => {
                             return (
                                 <motion.div
                                     key={partner._id || idx}
-                                    whileHover={{ y: -6 }}
-                                    transition={{ duration: 0.25, ease: "easeOut" }}
+                                    whileHover={{ y: -5 }}
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
                                     onClick={() => window.location.href = `#/partners/${partner._id}`}
-                                    className="group relative w-[72vw] max-w-[270px] sm:max-w-[320px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start rounded-[16px] p-3 sm:p-4 border border-[#FFE173] bg-gradient-to-br from-[#E8AE2E] via-[#FCE38A] to-[#D59821] shadow-[0_15px_40px_-10px_rgba(213,152,33,0.55)] hover:shadow-[0_20px_50px_-10px_rgba(213,152,33,0.7)] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md"
+                                    className="group relative w-[76vw] max-w-[265px] sm:max-w-[285px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start rounded-[14px] md:rounded-[20px] p-3 md:p-5 border border-[#FFE173] bg-gradient-to-br from-[#E8AE2E] via-[#FCE38A] to-[#D59821] shadow-[0_10px_28px_-8px_rgba(213,152,33,0.5)] md:shadow-[0_15px_40px_-10px_rgba(213,152,33,0.55)] hover:shadow-[0_20px_50px_-10px_rgba(213,152,33,0.7)] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md"
                                 >
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-2xl rounded-full rounded-tr-none"></div>
-                                    <div className="absolute bottom-0 left-0 w-40 h-20 bg-white/20 blur-2xl rounded-t-full"></div>
+                                    <div className="absolute top-0 right-0 w-24 md:w-32 h-24 md:h-32 bg-white/10 blur-xl rounded-full rounded-tr-none"></div>
+                                    <div className="absolute bottom-0 left-0 w-32 md:w-40 h-16 md:h-20 bg-white/20 blur-xl rounded-t-full"></div>
                                     
                                     {/* Top Section */}
-                                    <div className="flex gap-4 items-center relative z-10">
+                                    <div className="flex gap-2.5 md:gap-4 items-center relative z-10">
                                         {/* Golden Badge */}
-                                        <div className="w-[85px] h-[85px] shrink-0 relative flex flex-col items-center justify-center bg-gradient-to-b from-[#FFF0B3] via-[#FCE38A] to-[#D59821] rounded-full border-[3px] border-[#FFF0B3] shadow-[0_5px_15px_rgba(163,111,0,0.5)]">
-                                            <div className="absolute inset-1 rounded-full border border-dashed border-[#A36F00]/40"></div>
-                                            <div className="flex flex-col items-center z-10 text-[#7A5200] mt-1">
-                                                <svg className="w-6 h-6 mb-0.5 fill-[#A36F00]" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
-                                                <span className="font-black text-[12px] leading-none text-[#523600]">GOLD</span>
-                                                <span className="font-bold text-[7px] tracking-widest text-[#7A5200]">PARTNER</span>
+                                        <div className="w-[58px] h-[58px] md:w-[78px] md:h-[78px] shrink-0 relative flex flex-col items-center justify-center bg-gradient-to-b from-[#FFF0B3] via-[#FCE38A] to-[#D59821] rounded-full border-[2px] md:border-[3px] border-[#FFF0B3] shadow-[0_3px_10px_rgba(163,111,0,0.45)] md:shadow-[0_5px_15px_rgba(163,111,0,0.5)]">
+                                            <div className="absolute inset-0.5 md:inset-1 rounded-full border border-dashed border-[#A36F00]/40"></div>
+                                            <div className="flex flex-col items-center z-10 text-[#7A5200]">
+                                                <svg className="w-4 h-4 md:w-5 md:h-5 mb-0.5 fill-[#A36F00]" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
+                                                <span className="font-black text-[9px] md:text-[11.5px] leading-none text-[#523600]">GOLD</span>
+                                                <span className="font-bold text-[6px] md:text-[7px] tracking-widest text-[#7A5200]">PARTNER</span>
                                                 <div className="flex gap-0.5 mt-0.5">
-                                                    <Star className="w-2.5 h-2.5 fill-[#523600] text-[#523600]" />
-                                                    <Star className="w-2.5 h-2.5 fill-[#523600] text-[#523600]" />
-                                                    <Star className="w-2.5 h-2.5 fill-[#523600] text-[#523600]" />
+                                                    <Star className="w-2 h-2 md:w-2.5 md:h-2.5 fill-[#523600] text-[#523600]" />
+                                                    <Star className="w-2 h-2 md:w-2.5 md:h-2.5 fill-[#523600] text-[#523600]" />
+                                                    <Star className="w-2 h-2 md:w-2.5 md:h-2.5 fill-[#523600] text-[#523600]" />
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Right Details */}
-                                        <div className="flex-1">
-                                            <h3 className="font-extrabold text-[#523600] text-lg sm:text-xl flex items-center gap-1.5 tracking-tight">
-                                                <span>{partner.name}</span>
-                                                <BadgeCheck className="w-[18px] h-[18px] text-[#A36F00] fill-[#FFF0B3] shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-extrabold text-[#523600] text-sm sm:text-[15px] md:text-lg lg:text-xl flex items-center gap-1.5 tracking-tight leading-tight">
+                                                <span className="break-words">{partner.name}</span>
+                                                <BadgeCheck className="w-4 h-4 md:w-5 md:h-5 text-[#A36F00] fill-[#FFF0B3] shrink-0" />
                                             </h3>
-                                            <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] bg-gradient-to-r from-[#FFF0B3] to-[#FCE38A] border border-[#D59821]/40 shadow-sm">
-                                                <Sparkles className="w-3 h-3 text-[#8F6100]" />
-                                                <span className="text-[9px] sm:text-[10px] font-black uppercase text-[#523600] tracking-wider">{partner.plan?.name || 'ELITE GOLD PACK'}</span>
+                                            <div className="mt-1 md:mt-1.5 inline-flex items-center gap-1 md:gap-1.5 px-1.5 py-0.5 md:px-2.5 md:py-1 rounded md:rounded-[4px] bg-gradient-to-r from-[#FFF0B3] to-[#FCE38A] border border-[#D59821]/40 shadow-xs max-w-full">
+                                                <Sparkles className="w-2.5 h-2.5 text-[#8F6100] shrink-0" />
+                                                <span className="text-[8.5px] md:text-[10px] font-black uppercase text-[#523600] tracking-wider whitespace-nowrap">{partner.plan?.name || 'PROFESSIONAL GOLD PACK'}</span>
                                             </div>
-                                            <p className="text-[10px] sm:text-xs font-semibold text-[#6E4B00] leading-snug mt-2.5">
-                                                {partner.tagline}
-                                            </p>
+                                            {partner.tagline && (
+                                                <p className="text-[9.5px] md:text-xs font-semibold text-[#6E4B00] leading-tight md:leading-snug mt-1 md:mt-2 line-clamp-2">
+                                                    {partner.tagline}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
                                     {/* Middle Stats Pill */}
-                                    <div className="mt-5 py-2.5 px-3 rounded-xl bg-gradient-to-br from-[#FDF2CB] to-[#F1D273] shadow-[0_2px_8px_rgba(163,111,0,0.15)] flex items-center justify-between border border-[#FFF0B3] relative z-10">
-                                        <div className="flex-1 flex items-center justify-center border-r border-[#C98A00]/30 gap-2.5 sm:gap-3">
-                                            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-[#734D00]" />
+                                    <div className="mt-2.5 md:mt-4 py-1.5 px-2.5 md:py-2.5 md:px-3.5 rounded-lg md:rounded-xl bg-gradient-to-br from-[#FDF2CB] to-[#F1D273] shadow-[0_2px_6px_rgba(163,111,0,0.12)] md:shadow-[0_2px_8px_rgba(163,111,0,0.15)] flex items-center justify-between border border-[#FFF0B3] relative z-10">
+                                        <div className="flex-1 flex items-center justify-center border-r border-[#C98A00]/30 gap-2 md:gap-3">
+                                            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-[#734D00] shrink-0" />
                                             <div className="flex flex-col">
-                                                <span className="text-[#8F6100] font-extrabold uppercase text-[8px] sm:text-[9px] tracking-widest">Experience</span>
-                                                <span className="text-[#3A2600] font-black text-xs sm:text-sm">{partner.experienceYears}+ Yrs</span>
+                                                <span className="text-[#8F6100] font-extrabold uppercase text-[7.5px] md:text-[8.5px] tracking-wider">Experience</span>
+                                                <span className="text-[#3A2600] font-black text-xs md:text-sm leading-tight">{partner.experienceYears || 0}+ Yrs</span>
                                             </div>
                                         </div>
-                                        <div className="flex-1 flex items-center justify-center gap-2.5 sm:gap-3">
-                                            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#734D00]" />
+                                        <div className="flex-1 flex items-center justify-center gap-2 md:gap-3">
+                                            <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-[#734D00] shrink-0" />
                                             <div className="flex flex-col">
-                                                <span className="text-[#8F6100] font-extrabold uppercase text-[8px] sm:text-[9px] tracking-widest">Listings</span>
-                                                <span className="text-[#3A2600] font-black text-xs sm:text-sm">{partner.totalListings}</span>
+                                                <span className="text-[#8F6100] font-extrabold uppercase text-[7.5px] md:text-[8.5px] tracking-wider">Listings</span>
+                                                <span className="text-[#3A2600] font-black text-xs md:text-sm leading-tight">{partner.totalListings || 0}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Top Rated & Button */}
-                                    <div className="mt-3.5 relative z-10">
-                                        <div className="inline-flex items-center gap-1.5 bg-[#FDF2CB] text-[#523600] text-[9px] font-extrabold px-2.5 py-1 rounded shadow-sm mb-2 border border-[#F1D273]/50">
-                                            <Star className="w-2.5 h-2.5 fill-[#C98A00] text-[#C98A00]" />
+                                    <div className="mt-2 md:mt-3.5 relative z-10">
+                                        <div className="inline-flex items-center gap-1 bg-[#FDF2CB] text-[#523600] text-[8px] md:text-[9.5px] font-extrabold px-1.5 py-0.5 md:px-2 md:py-1 rounded shadow-xs mb-1.5 md:mb-2 border border-[#F1D273]/50">
+                                            <Star className="w-2 h-2 fill-[#C98A00] text-[#C98A00]" />
                                             <span className="uppercase tracking-wide">Top Rated</span>
                                         </div>
                                         <button 
@@ -351,9 +353,9 @@ const HomeBottomSections = () => {
                                                 e.stopPropagation();
                                                 window.location.href = `#/partners/${partner._id}`;
                                             }}
-                                            className="w-full py-2.5 sm:py-3 rounded-[8px] bg-gradient-to-b from-[#D4981C] via-[#A66F00] to-[#784E00] text-white font-extrabold text-xs sm:text-sm shadow-[0_5px_15px_rgba(80,50,0,0.4)] flex items-center justify-center gap-2 hover:from-[#B58217] hover:to-[#5C3B00] transition-colors border border-[#FEEAA7]/30 border-t-[#FFF0B3]/50"
+                                            className="w-full py-2 md:py-3 rounded-lg md:rounded-[10px] bg-gradient-to-b from-[#D4981C] via-[#A66F00] to-[#784E00] text-white font-extrabold text-xs md:text-sm shadow-[0_4px_12px_rgba(80,50,0,0.35)] md:shadow-[0_5px_15px_rgba(80,50,0,0.4)] flex items-center justify-center gap-2 hover:from-[#B58217] hover:to-[#5C3B00] transition-colors border border-[#FEEAA7]/30 border-t-[#FFF0B3]/50 active:scale-[0.98]"
                                         >
-                                            <Phone className="w-4 h-4" />
+                                            <Phone className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                             <span>Show Contact</span>
                                         </button>
                                     </div>
@@ -364,11 +366,11 @@ const HomeBottomSections = () => {
                         return (
                             <motion.div
                                 key={partner._id || idx}
-                                whileHover={{ y: -6 }}
-                                transition={{ duration: 0.25, ease: "easeOut" }}
+                                whileHover={{ y: -4 }}
+                                transition={{ duration: 0.2, ease: "easeOut" }}
                                 onClick={() => window.location.href = `#/partners/${partner._id}`}
-                                className={`group relative w-[72vw] max-w-[270px] sm:max-w-[320px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start 
-                                    ${theme.cardRadius || 'rounded-[24px]'} p-3 sm:p-4 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
+                                className={`group relative w-[76vw] max-w-[265px] sm:max-w-[285px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start 
+                                    ${theme.cardRadius || 'rounded-[16px]'} p-3 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
                                     transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md`}
                             >
                                 {/* Subtle Crystal/Diamond Grid Pattern for Diamond Pack */}
@@ -378,33 +380,33 @@ const HomeBottomSections = () => {
 
                                 <div>
                                     {/* Profile Section */}
-                                    <div className="flex items-start justify-between gap-2.5">
-                                        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
                                             {/* Profile Avatar */}
-                                            <div className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden ${theme.isDark ? 'bg-[#060B2D] border-2 border-[#E94CFF] shadow-[0_0_20px_rgba(233,76,255,0.6)]' : 'bg-white border-2 border-white shadow-md'} shrink-0 ring-2 ${theme.profileRing} transition-all duration-300`}>
+                                            <div className={`relative w-8 h-8 md:w-11 md:h-11 rounded-full overflow-hidden ${theme.isDark ? 'bg-[#060B2D] border border-[#E94CFF]' : 'bg-white border border-white'} shrink-0 ring-2 ${theme.profileRing} transition-all duration-300`}>
                                                 {partner.profileImage ? (
                                                     <img src={partner.profileImage} alt={partner.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                 ) : (
                                                     <div className={`w-full h-full flex items-center justify-center ${theme.isDark ? 'bg-[#060B2D] text-[#39D5FF]' : 'bg-slate-100 text-slate-400'}`}>
-                                                        <User size={24} />
+                                                        <User size={18} />
                                                     </div>
                                                 )}
                                             </div>
 
                                             {/* Partner Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className={`font-extrabold ${theme.isDark ? 'text-white group-hover:text-[#39D5FF]' : 'text-slate-900 group-hover:text-blue-600'} text-[13px] sm:text-sm flex items-center gap-1 tracking-tight transition-colors`}>
-                                                    <span className="truncate">{partner.name}</span>
-                                                    <BadgeCheck className={`w-4 h-4 ${theme.isDark ? 'text-[#39D5FF] fill-[#1C2F8F]' : 'text-blue-500 fill-blue-50'} shrink-0 inline-block`} />
+                                                <h3 className={`font-extrabold ${theme.isDark ? 'text-white group-hover:text-[#39D5FF]' : 'text-slate-900 group-hover:text-blue-600'} text-xs sm:text-[13px] md:text-sm lg:text-base flex items-center gap-1.5 tracking-tight leading-tight transition-colors`}>
+                                                    <span className="break-words">{partner.name}</span>
+                                                    <BadgeCheck className={`w-3.5 h-3.5 ${theme.isDark ? 'text-[#39D5FF] fill-[#1C2F8F]' : 'text-blue-500 fill-blue-50'} shrink-0 inline-block`} />
                                                 </h3>
 
-                                                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${theme.badgeStyle} tracking-wider shadow-2xs`}>
+                                                <div className="mt-0.5 flex items-center gap-1 flex-wrap">
+                                                    <span className={`text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${theme.badgeStyle} tracking-wider shadow-2xs whitespace-nowrap`}>
                                                         {theme.badgeLabel}
                                                     </span>
                                                     {(partner.address?.city || partner.address?.locality) && (
-                                                        <span className={`flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold ${theme.subTextColor || 'text-slate-500'} truncate`}>
-                                                            <MapPin className={`w-3 h-3 ${theme.locationIconColor || theme.subTextColor || 'text-slate-400'} shrink-0`} />
+                                                        <span className={`flex items-center gap-0.5 text-[9px] font-semibold ${theme.subTextColor || 'text-slate-500'} truncate`}>
+                                                            <MapPin className={`w-2.5 h-2.5 ${theme.locationIconColor || theme.subTextColor || 'text-slate-400'} shrink-0`} />
                                                             <span className="truncate">{partner.address.locality || partner.address.city}</span>
                                                         </span>
                                                     )}
@@ -414,40 +416,39 @@ const HomeBottomSections = () => {
 
                                         {/* Top Right Rating Badge */}
                                         <div className="shrink-0">
-                                            <div className={`inline-flex items-center gap-1 ${theme.ratingBg || 'bg-amber-50/95 border-amber-200/80 text-amber-950'} backdrop-blur-md font-black text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border`}>
-                                                <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
+                                            <div className={`inline-flex items-center gap-0.5 ${theme.ratingBg || 'bg-amber-50/95 border-amber-200/80 text-amber-950'} backdrop-blur-md font-black text-[9px] px-1.5 py-0.5 rounded-full border`}>
+                                                <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400 shrink-0" />
                                                 <span>{partner.rating}</span>
-                                                <span className={`${theme.ratingCountColor || 'text-slate-400'} font-medium text-[9px] sm:text-[10px]`}>({partner.reviewsCount})</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Description / Quote Card */}
-                                    <div className={`mt-2.5 p-2.5 rounded-xl border ${theme.quoteBg} flex items-start gap-2 transition-colors duration-300`}>
-                                        <Quote className={`w-3.5 h-3.5 ${theme.quoteIconColor} shrink-0 mt-0.5 rotate-180`} />
-                                        <p className={`text-[11px] font-semibold ${theme.isDark ? 'text-white' : 'text-slate-700'} leading-snug italic line-clamp-2`}>
+                                    <div className={`mt-2 p-1.5 sm:p-2 rounded-lg border ${theme.quoteBg} flex items-start gap-1.5 transition-colors duration-300`}>
+                                        <Quote className={`w-3 h-3 ${theme.quoteIconColor} shrink-0 mt-0.5 rotate-180`} />
+                                        <p className={`text-[10px] font-semibold ${theme.isDark ? 'text-white' : 'text-slate-700'} leading-tight italic line-clamp-2`}>
                                             "{partner.tagline || 'Trusted partner with complete knowledge about the locality.'}"
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Bottom Section: Experience + Listings + Explore Profile Button */}
-                                <div className={`mt-3 pt-2.5 border-t ${theme.dividerColor ? 'border-purple-600/40' : 'border-slate-200/70'} flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5`}>
+                                <div className={`mt-2 pt-2 border-t ${theme.dividerColor ? 'border-purple-600/40' : 'border-slate-200/70'} flex items-center justify-between gap-2`}>
                                     {/* Stats */}
-                                    <div className="flex items-center gap-3 sm:gap-4 justify-between sm:justify-start">
+                                    <div className="flex items-center gap-2">
                                         {/* Experience */}
                                         <div className="flex flex-col items-start">
-                                            <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[9px]`}>Experience</span>
-                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-[11px] sm:text-xs mt-0.5`}>{partner.experienceYears || 0}+ Years</span>
+                                            <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[7px]`}>Exp</span>
+                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-[10px] leading-tight`}>{partner.experienceYears || 0}+ Yrs</span>
                                         </div>
 
                                         {/* Divider */}
-                                        <div className={`h-6 w-[1px] ${theme.dividerColor || 'bg-slate-200/80'}`} />
+                                        <div className={`h-4 w-[1px] ${theme.dividerColor || 'bg-slate-200/80'}`} />
 
                                         {/* Active Listings */}
                                         <div className="flex flex-col items-start">
-                                            <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[9px]`}>Listings</span>
-                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-[11px] sm:text-xs mt-0.5`}>{partner.totalListings || 0} Properties</span>
+                                            <span className={`${theme.statLabelColor || 'text-slate-400'} font-bold uppercase tracking-wider text-[7px]`}>Listings</span>
+                                            <span className={`${theme.isDark ? 'text-white' : 'text-slate-900'} font-black text-[10px] leading-tight`}>{partner.totalListings || 0}</span>
                                         </div>
                                     </div>
 
@@ -457,10 +458,10 @@ const HomeBottomSections = () => {
                                             e.stopPropagation();
                                             window.location.href = `#/partners/${partner._id}`;
                                         }}
-                                        className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-[11px] shadow-md transition-all duration-300 active:scale-95 group/btn shrink-0 w-full sm:w-auto`}
+                                        className={`inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-[10px] shadow-sm transition-all duration-300 active:scale-95 group/btn shrink-0`}
                                     >
-                                        <span className="whitespace-nowrap">Explore Profile</span>
-                                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform shrink-0" />
+                                        <span className="whitespace-nowrap">Profile</span>
+                                        <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform shrink-0" />
                                     </button>
                                 </div>
                             </motion.div>

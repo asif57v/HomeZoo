@@ -127,9 +127,9 @@ const PartnerTransactionsTab = ({ partnerId }) => {
             try {
                 setLoading(true);
                 const [wRes, sRes, tRes] = await Promise.all([
-                    walletService.getWallet({ ownerId: partnerId, viewAs: 'partner' }),
-                    walletService.getWalletStats({ ownerId: partnerId, viewAs: 'partner' }),
-                    walletService.getTransactions({ ownerId: partnerId, viewAs: 'partner', limit: 50 })
+                    walletService.getWallet({ ownerId: partnerId }),
+                    walletService.getWalletStats({ ownerId: partnerId }),
+                    walletService.getTransactions({ ownerId: partnerId, limit: 50 })
                 ]);
                 if (wRes.success) setWallet(wRes.wallet);
                 if (sRes.success) setStats(sRes.stats);

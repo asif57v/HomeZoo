@@ -409,7 +409,7 @@ export const createBooking = async (req, res) => {
 
     // Handle Wallet Payment (Partial or Full)
     if (paymentMethod === 'wallet' || (useWallet && walletDeduction > 0)) {
-      const wallet = await Wallet.findOne({ partnerId: req.user._id, role: 'user' });
+      const wallet = await Wallet.getUnifiedWallet(req.user._id);
       const deductionAmount = walletDeduction || totalAmount;
 
       if (!wallet || wallet.balance < deductionAmount) {
@@ -425,15 +425,7 @@ export const createBooking = async (req, res) => {
 
         // 1. Credit Partner
         if (partnerPayout > 0 && property.partnerId) {
-          let partnerWallet = await Wallet.findOne({ partnerId: property.partnerId, role: 'partner' });
-          if (!partnerWallet) {
-            // Auto-create if missing (Safe-guard)
-            partnerWallet = await Wallet.create({
-              partnerId: property.partnerId,
-              role: 'partner',
-              balance: 0
-            });
-          }
+          let partnerWallet = await Wallet.getUnifiedWallet(property.partnerId);
 
           await partnerWallet.credit(partnerPayout, `Payment for Booking #${bookingId}`, bookingId, 'booking_payment');
 
@@ -551,14 +543,7 @@ export const createBooking = async (req, res) => {
 
       if (deductionAmount > 0 && property.partnerId) {
         // 1. Debit Partner
-        let partnerWallet = await Wallet.findOne({ partnerId: property.partnerId, role: 'partner' });
-        if (!partnerWallet) {
-          partnerWallet = await Wallet.create({
-            partnerId: property.partnerId,
-            role: 'partner',
-            balance: 0
-          });
-        }
+        let partnerWallet = await Wallet.getUnifiedWallet(property.partnerId);
 
         // Check balance (Optional: enforce positive balance?)
         // We will proceed with debit, which might throw if insufficient balance 
@@ -978,7 +963,7 @@ export const cancelBooking = async (req, res) => {
       const fullBooking = await Booking.findById(booking._id).populate('propertyId').populate('userId');
 
       if (refundAmount > 0 && fullBooking.propertyId && fullBooking.propertyId.partnerId) {
-        const partnerWallet = await Wallet.findOne({ partnerId: fullBooking.propertyId.partnerId, role: 'partner' });
+        const partnerWallet = await Wallet.getUnifiedWallet(fullBooking.propertyId.partnerId);
         const adminWallet = await Wallet.findOne({ role: 'admin' });
 
         if (partnerWallet && adminWallet) {
@@ -1020,16 +1005,7 @@ export const cancelBooking = async (req, res) => {
 
     // 1. Refund User (If paid)
     if (booking.paymentStatus === 'paid') {
-      let userWallet = await Wallet.findOne({ partnerId: booking.userId, role: 'user' });
-
-      // Auto-create wallet if it doesn't exist
-      if (!userWallet) {
-        userWallet = await Wallet.create({
-          partnerId: booking.userId,
-          role: 'user',
-          balance: 0
-        });
-      }
+      let userWallet = await Wallet.getUnifiedWallet(booking.userId);
 
       await userWallet.credit(booking.totalAmount, `Refund for Booking #${booking.bookingId}`, booking.bookingId, 'refund');
     }
@@ -1040,7 +1016,7 @@ export const cancelBooking = async (req, res) => {
     if (booking.partnerPayout > 0 && booking.paymentStatus === 'paid') {
       const fullBooking = await Booking.findById(booking._id).populate('propertyId');
       if (fullBooking.propertyId && fullBooking.propertyId.partnerId) {
-        const partnerWallet = await Wallet.findOne({ partnerId: fullBooking.propertyId.partnerId, role: 'partner' });
+        const partnerWallet = await Wallet.getUnifiedWallet(fullBooking.propertyId.partnerId);
         if (partnerWallet) {
           try {
             await partnerWallet.debit(
@@ -1177,7 +1153,7 @@ export const markBookingNoShow = async (req, res) => {
       const refundAmount = (booking.taxes || 0) + (booking.adminCommission || 0);
 
       if (refundAmount > 0 && booking.propertyId.partnerId) {
-        const partnerWallet = await Wallet.findOne({ partnerId: booking.propertyId.partnerId, role: 'partner' });
+        const partnerWallet = await Wallet.getUnifiedWallet(booking.propertyId.partnerId);
         const adminWallet = await Wallet.findOne({ role: 'admin' });
 
         if (partnerWallet && adminWallet) {
@@ -1194,7 +1170,7 @@ export const markBookingNoShow = async (req, res) => {
       const deductionAmount = booking.partnerPayout || 0;
 
       if (deductionAmount > 0 && booking.propertyId.partnerId) {
-        let partnerWallet = await Wallet.findOne({ partnerId: booking.propertyId.partnerId, role: 'partner' });
+        let partnerWallet = await Wallet.getUnifiedWallet(booking.propertyId.partnerId);
 
         // Ensure Admin Wallet
         let adminWallet = await Wallet.findOne({ role: 'admin' });

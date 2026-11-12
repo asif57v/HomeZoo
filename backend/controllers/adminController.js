@@ -685,7 +685,7 @@ export const getUserDetails = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const wallet = await Wallet.findOne({ partnerId: id, role: 'user' });
+    const wallet = await Wallet.getUnifiedWallet(id);
     let walletTransactions = wallet
       ? await Transaction.find({ walletId: wallet._id }).sort({ createdAt: -1 }).lean()
       : [];

@@ -1179,25 +1179,34 @@ const AddDynamicWizard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
-        <button onClick={handleBack} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft size={20} />
-        </button>
+        {step <= totalSteps ? (
+          <button onClick={handleBack} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+            <ArrowLeft size={20} />
+          </button>
+        ) : (
+          <div className="w-9" />
+        )}
         <div className="text-sm font-bold text-gray-900">
           {step <= totalSteps ? `Step ${step} of ${totalSteps}` : 'Complete'}
         </div>
-        <button onClick={handleExit} className="p-2 -mr-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+        <button
+          onClick={() => (step > totalSteps ? navigate('/hotel/properties', { replace: true }) : handleExit())}
+          className="p-2 -mr-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+        >
           <X size={20} />
         </button>
       </header>
 
       <div className="w-full h-1 bg-gray-200 sticky top-16 z-20">
-        <div className="h-full bg-emerald-600 transition-all duration-500 ease-out" style={{ width: `${(step / totalSteps) * 100}%` }} />
+        <div className="h-full bg-emerald-600 transition-all duration-500 ease-out" style={{ width: step > totalSteps ? '100%' : `${(step / totalSteps) * 100}%` }} />
       </div>
 
-      <main className="flex-1 w-full max-w-2xl mx-auto p-4 md:px-6 md:pt-6 pb-52 md:pb-80">
-        <div className="mb-6">
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-2">{getStepTitle()}</h1>
-        </div>
+      <main className={`flex-1 w-full max-w-2xl mx-auto p-4 md:px-6 md:pt-6 ${step <= totalSteps ? 'pb-52 md:pb-80' : 'pb-12'}`}>
+        {step <= totalSteps && (
+          <div className="mb-6">
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">{getStepTitle()}</h1>
+          </div>
+        )}
 
         <div className="bg-white md:p-6 md:rounded-2xl md:shadow-sm md:border md:border-gray-100 space-y-6">
           {currentStepInfo?.key === 'basic' && (
@@ -2467,34 +2476,36 @@ const AddDynamicWizard = () => {
         </div >
       </main >
 
-      <footer className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-10 md:px-6 md:pb-4 z-40 bg-white/80 backdrop-blur-md ${keyboardOpen ? 'hidden' : ''}`}>
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-          <button
-            onClick={handleBack}
-            disabled={step === 1 || loading}
-            className="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            Back
-          </button>
-          {step < 9 && (
+      {step <= totalSteps && step < 10 && (
+        <footer className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-10 md:px-6 md:pb-4 z-40 bg-white/80 backdrop-blur-md ${keyboardOpen ? 'hidden' : ''}`}>
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
             <button
-              onClick={clearCurrentStep}
-              disabled={loading}
-              className="px-4 py-3 rounded-xl border border-red-200 text-red-600 font-bold hover:bg-red-50 disabled:opacity-50 transition-all text-sm"
+              onClick={handleBack}
+              disabled={step === 1 || loading}
+              className="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
-              Clear Step
+              Back
             </button>
-          )}
-          <button
-            onClick={handleNext}
-            disabled={loading || (currentStepInfo?.key === 'rooms' && roomTypes.length === 0)}
-            className="flex-1 px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-          >
-            {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-            {currentStepInfo?.key === 'review' ? (loading ? 'Submitting...' : 'Submit Property') : 'Continue'}
-          </button>
-        </div>
-      </footer>
+            {step < 9 && (
+              <button
+                onClick={clearCurrentStep}
+                disabled={loading}
+                className="px-4 py-3 rounded-xl border border-red-200 text-red-600 font-bold hover:bg-red-50 disabled:opacity-50 transition-all text-sm cursor-pointer"
+              >
+                Clear Step
+              </button>
+            )}
+            <button
+              onClick={handleNext}
+              disabled={loading || (currentStepInfo?.key === 'rooms' && roomTypes.length === 0)}
+              className="flex-1 px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {currentStepInfo?.key === 'review' ? (loading ? 'Submitting...' : 'Submit Property') : 'Continue'}
+            </button>
+          </div>
+        </footer>
+      )}
 
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }

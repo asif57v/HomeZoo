@@ -33,7 +33,7 @@ const usePartnerDashboard = () => {
         const [propertiesData, bookingsData, walletData, reviewStats] = await Promise.all([
           hotelService.getMyHotels(),
           bookingService.getPartnerBookings(),
-          walletService.getWallet({ viewAs: 'partner' }),
+          walletService.getWallet(),
           reviewService.getPartnerStats().catch(() => ({ pendingReviews: 0 })) // Handle error gracefully
         ]);
 

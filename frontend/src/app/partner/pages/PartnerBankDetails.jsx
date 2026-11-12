@@ -27,7 +27,7 @@ const PartnerBankDetails = () => {
   const fetchDetails = async () => {
     try {
       setLoading(true);
-      const data = await walletService.getWallet({ viewAs: 'partner' });
+      const data = await walletService.getWallet();
       const bank = data.wallet?.bankDetails;
 
       if (bank && bank.accountNumber) {

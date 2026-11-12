@@ -15,7 +15,7 @@ const PartnerHeader = ({ title, subtitle }) => {
     useEffect(() => {
         const fetchWallet = async () => {
             try {
-                const walletData = await walletService.getWallet({ viewAs: 'partner' });
+                const walletData = await walletService.getWallet();
                 if (walletData.success && walletData.wallet) {
                     setWalletBalance(walletData.wallet.balance);
                 }
@@ -42,32 +42,32 @@ const PartnerHeader = ({ title, subtitle }) => {
 
     return (
         <>
-            <div className="flex items-center justify-between relative h-16 px-4 bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-gray-100">
+            <div className="flex items-center justify-between relative h-14 sm:h-16 px-2.5 sm:px-4 bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-gray-100">
                 <button
                     onClick={() => setIsSidebarOpen(true)}
-                    className="p-1.5 rounded-full bg-white hover:bg-gray-100 transition shadow-sm border border-gray-100"
+                    className="p-1.5 rounded-full bg-white hover:bg-gray-100 transition shadow-xs border border-gray-100 shrink-0 cursor-pointer"
                 >
                     <Menu size={18} className="text-gray-700 hover:text-[#005CA8]" />
                 </button>
 
                 <div 
                     onClick={() => navigate('/')} 
-                    className="flex flex-col items-start pt-1 ml-4 cursor-pointer hover:opacity-80 transition-opacity"
+                    className="flex flex-col items-start pt-0.5 ml-2 sm:ml-4 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
                     title="Go to Home"
                 >
-                    <div className="font-black tracking-tighter flex items-center text-xl">
+                    <div className="font-black tracking-tighter flex items-center text-lg sm:text-xl">
                         <span className="text-slate-900">HOOM</span>
                         <span className="text-[#005CA8]">ZO</span>
                     </div>
-                    <div className="w-6 h-1 bg-[#005CA8] rounded-full -mt-0.5 ml-0.5"></div>
+                    <div className="w-5 sm:w-6 h-0.5 sm:h-1 bg-[#005CA8] rounded-full -mt-0.5 ml-0.5"></div>
                 </div>
 
-                <div className="flex-1" />
+                <div className="flex-1 min-w-[4px]" />
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors active:scale-95"
+                        className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors active:scale-95 cursor-pointer"
                         title="Switch to Guest View"
                     >
                         <Home size={13} />
@@ -75,7 +75,7 @@ const PartnerHeader = ({ title, subtitle }) => {
                     </button>
                     <button
                         onClick={() => navigate('/hotel/notifications')}
-                        className="relative p-1.5 rounded-full bg-white hover:bg-gray-100 transition shadow-sm border border-gray-100"
+                        className="relative p-1.5 rounded-full bg-white hover:bg-gray-100 transition shadow-xs border border-gray-100 cursor-pointer"
                     >
                         <Bell size={18} className="text-gray-700 hover:text-[#005CA8]" />
                         {unreadCount > 0 && (
@@ -85,14 +85,14 @@ const PartnerHeader = ({ title, subtitle }) => {
 
                     <button
                         onClick={() => navigate('/hotel/wallet')}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                        className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-1 rounded-full bg-white border border-gray-100 shadow-xs active:scale-95 transition-transform cursor-pointer"
                     >
-                        <div className="w-5 h-5 bg-[#005CA8] rounded-full flex items-center justify-center">
+                        <div className="w-5 h-5 bg-[#005CA8] rounded-full flex items-center justify-center shrink-0">
                             <Wallet size={10} className="text-white" />
                         </div>
-                        <div className="flex flex-col items-start leading-none mr-0.5">
-                            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wide">Wallet</span>
-                            <span className="text-[10px] font-bold text-slate-900">
+                        <div className="flex flex-col items-start leading-none mr-0.5 min-w-0">
+                            <span className="text-[7.5px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-wide">Wallet</span>
+                            <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-900 truncate">
                                 {new Intl.NumberFormat('en-IN', {
                                     style: 'currency',
                                     currency: 'INR',

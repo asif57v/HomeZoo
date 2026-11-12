@@ -156,7 +156,7 @@ export const verifyHostelFeePayment = async (req, res) => {
     try {
       let userWallet = null;
       if (feeRecord.userId) {
-        userWallet = await Wallet.findOne({ partnerId: feeRecord.userId, role: 'user' });
+        userWallet = await Wallet.getUnifiedWallet(feeRecord.userId);
       }
 
       if (userWallet) {

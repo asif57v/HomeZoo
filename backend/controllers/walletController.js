@@ -223,23 +223,8 @@ export const getTransactions = async (req, res) => {
 export const requestWithdrawal = async (req, res) => {
   try {
     const { amount } = req.body;
-    const role = getWalletRole(req.user.role, 'partner'); // Withdrawals only for partners generally
-
-    // Validation
-    if (!amount || amount < PaymentConfig.minWithdrawalAmount) {
-      return res.status(400).json({
-        message: `Minimum withdrawal amount is ₹${PaymentConfig.minWithdrawalAmount}`
-      });
-    }
-
-    if (amount > PaymentConfig.maxWithdrawalAmount) {
-      return res.status(400).json({
-        message: `Maximum withdrawal amount is ₹${PaymentConfig.maxWithdrawalAmount}`
-      });
-    }
-
-    // Get specific wallet
-    const wallet = await Wallet.findOne({ partnerId: req.user._id, role });
+    // Get unified wallet
+    const wallet = await Wallet.getUnifiedWallet(req.user._id);
     if (!wallet) {
       return res.status(404).json({ message: 'Wallet not found' });
     }
@@ -471,47 +456,7 @@ export const getWithdrawals = async (req, res) => {
  */
 export const updateBankDetails = async (req, res) => {
   try {
-    const role = getWalletRole(req.user.role, 'partner');
-
-    // Validation Schema
-    const bankSchema = Joi.object({
-      accountNumber: Joi.string()
-        .pattern(/^[0-9]{9,18}$/)
-        .required()
-        .messages({
-          'string.pattern.base': 'Account number must be 9-18 digits'
-        }),
-      ifscCode: Joi.string()
-        .pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)
-        .required()
-        .messages({
-          'string.pattern.base': 'Invalid IFSC code format (e.g. HDFC0001234)'
-        }),
-      accountHolderName: Joi.string()
-        .min(3)
-        .max(100)
-        .required(),
-      bankName: Joi.string()
-        .min(2)
-        .max(100)
-        .required()
-    });
-
-    const { error } = bankSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
-    const { accountNumber, ifscCode, accountHolderName, bankName } = req.body;
-    let wallet = await Wallet.findOne({ partnerId: req.user._id, role });
-
-    if (!wallet) {
-      wallet = await Wallet.create({
-        partnerId: req.user._id,
-        role,
-        balance: 0
-      });
-    }
+    let wallet = await Wallet.getUnifiedWallet(req.user._id);
 
     wallet.bankDetails = {
       accountNumber,
@@ -545,8 +490,7 @@ export const updateBankDetails = async (req, res) => {
  */
 export const deleteBankDetails = async (req, res) => {
   try {
-    const role = getWalletRole(req.user.role, 'partner');
-    const wallet = await Wallet.findOne({ partnerId: req.user._id, role });
+    const wallet = await Wallet.getUnifiedWallet(req.user._id);
 
     if (!wallet) {
       return res.status(404).json({ message: 'Wallet not found' });
@@ -757,27 +701,8 @@ export const createAddMoneyOrder = async (req, res) => {
 export const verifyAddMoneyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
-    const role = getWalletRole(req.user.role);
-
-    const sign = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSign = crypto
-      .createHmac('sha256', PaymentConfig.razorpayKeySecret)
-      .update(sign.toString())
-      .digest('hex');
-
-    if (razorpay_signature !== expectedSign) {
-      return res.status(400).json({ message: 'Invalid payment signature' });
-    }
-
-    // Find correct wallet based on ROLE
-    let wallet = await Wallet.findOne({ partnerId: req.user._id, role });
-    if (!wallet) {
-      wallet = await Wallet.create({
-        partnerId: req.user._id,
-        role,
-        balance: 0
-      });
-    }
+    // Find single unified wallet
+    let wallet = await Wallet.getUnifiedWallet(req.user._id);
 
     // Credit wallet
     await wallet.credit(

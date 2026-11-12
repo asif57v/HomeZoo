@@ -58,33 +58,33 @@ const PartnerSupport = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-gray-50 pb-28 sm:pb-24">
             <PartnerHeader title="Support Center" subtitle="We are here to help" />
 
-            <div className="max-w-3xl mx-auto px-4 pt-6">
+            <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6">
 
                 {support?.content && (
-                    <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
+                    <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 mb-6">
                         <LegalContent content={support.content} />
                         {support.supportHours && <p className="mt-3 text-xs text-gray-400">{support.supportHours}</p>}
                     </div>
                 )}
 
                 {/* Contact Options */}
-                <div className="grid grid-cols-2 gap-3 mb-8">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-8">
                     <button
                         onClick={() => window.open(`https://wa.me/${(support?.supportWhatsapp || '919111384535').replace(/D/g, '')}`, '_blank')}
-                        className="bg-[#005CA8] hover:bg-[#004b8a] text-white p-5 rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="bg-[#005CA8] hover:bg-[#004b8a] text-white p-3.5 sm:p-5 rounded-2xl shadow-md flex flex-col items-center justify-center gap-1.5 sm:gap-2 active:scale-95 transition-transform cursor-pointer"
                     >
-                        <MessageSquare size={24} />
-                        <span className="text-sm font-bold">WhatsApp Chat</span>
+                        <MessageSquare size={20} className="sm:w-6 sm:h-6" />
+                        <span className="text-xs sm:text-sm font-bold text-center">WhatsApp Chat</span>
                     </button>
                     <a
                         href={`tel:${support?.supportPhone || '9111384535'}`}
-                        className="bg-white border border-gray-200 text-slate-900 p-5 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="bg-white border border-gray-200 text-slate-900 p-3.5 sm:p-5 rounded-2xl shadow-xs flex flex-col items-center justify-center gap-1.5 sm:gap-2 active:scale-95 transition-transform"
                     >
-                        <Phone size={24} />
-                        <span className="text-sm font-bold">Call Support</span>
+                        <Phone size={20} className="sm:w-6 sm:h-6" />
+                        <span className="text-xs sm:text-sm font-bold text-center">Call Support</span>
                     </a>
                 </div>
 

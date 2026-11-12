@@ -181,7 +181,7 @@ export const verifyPayment = async (req, res) => {
       const walletUsedAmount = Number(notes.walletUsedAmount) || 0;
       // Debit User Wallet if used (Partial Online Payment)
       if (walletUsedAmount > 0) {
-        const userWallet = await Wallet.findOne({ partnerId: notes.userId, role: 'user' });
+        const userWallet = await Wallet.getUnifiedWallet(notes.userId);
         if (userWallet) {
           await userWallet.debit(walletUsedAmount, `Partial Wallet Payment for Booking #${newBookingId}`, newBookingId, 'booking_payment');
         }
@@ -215,14 +215,7 @@ export const verifyPayment = async (req, res) => {
       const partnerId = fullBooking.propertyId?.partnerId;
 
       if (partnerId) {
-        let partnerWallet = await Wallet.findOne({ partnerId: partnerId, role: 'partner' });
-        if (!partnerWallet) {
-          partnerWallet = await Wallet.create({
-            partnerId: partnerId,
-            role: 'partner',
-            balance: 0
-          });
-        }
+        let partnerWallet = await Wallet.getUnifiedWallet(partnerId);
 
         const payout = paymentMeta.partnerPayout || 0;
 

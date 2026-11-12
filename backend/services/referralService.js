@@ -186,20 +186,8 @@ class ReferralService {
      * Helper to get wallet
      */
     async getOrCreateWallet(userId, modelType) {
-        let role = modelType.toLowerCase();
-        // Map 'Partner' modelType to 'partner' role, 'User' to 'user'
-        if (role === 'admin') role = 'admin';
-
-        let wallet = await Wallet.findOne({ partnerId: userId, role });
-        if (!wallet) {
-            wallet = await Wallet.create({
-                partnerId: userId,
-                role,
-                balance: 0
-            });
-        }
-        return wallet;
-    }
+    return await Wallet.getUnifiedWallet(userId);
+  }
 
     /**
      * Get User Stats for UI
@@ -244,7 +232,7 @@ class ReferralService {
         };
 
         // 3. Earnings
-        const wallet = await Wallet.findOne({ partnerId: userId, role: 'user' });
+        const wallet = await Wallet.getUnifiedWallet(userId);
         // Aggregation for specific referral income
         // Can do aggregation on Transaction collection
         /*

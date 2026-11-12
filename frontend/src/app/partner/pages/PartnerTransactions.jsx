@@ -46,7 +46,6 @@ const PartnerTransactions = () => {
         try {
             setLoading(true);
             const data = await walletService.getTransactions({
-                viewAs: 'partner',
                 type: filter === 'all' ? undefined : filter
             });
             if (data.success) {

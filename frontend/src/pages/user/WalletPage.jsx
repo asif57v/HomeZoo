@@ -30,9 +30,9 @@ const WalletPage = () => {
 
     const fetchWalletData = async () => {
         try {
-            const res = await api.get('/wallet/stats', { params: { viewAs: 'user' } });
+            const res = await api.get('/wallet/stats');
             if (res.data.success) {
-                setBalance(res.data.stats.currentBalance || res.data.wallet?.balance || 0);
+                setBalance(res.data.stats.currentBalance ?? res.data.wallet?.balance ?? 0);
             }
         } catch (error) {
             console.error('Fetch Wallet Error:', error);
@@ -41,7 +41,7 @@ const WalletPage = () => {
 
     const fetchTransactions = async () => {
         try {
-            const res = await api.get('/wallet/transactions', { params: { viewAs: 'user' } });
+            const res = await api.get('/wallet/transactions');
             if (res.data.success) {
                 setTransactions(res.data.transactions);
             }

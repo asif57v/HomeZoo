@@ -1119,29 +1119,38 @@ const AddPGWizard = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <div className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
-          <button onClick={handleBack} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-            <ArrowLeft size={20} />
-          </button>
+          {step < 7 ? (
+            <button onClick={handleBack} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+              <ArrowLeft size={20} />
+            </button>
+          ) : (
+            <div className="w-9" />
+          )}
           <div className="text-sm font-bold text-gray-900">
-            {step <= 7 ? `Step ${step} of 7 (${calculateCompletionPercentage()}% Complete)` : 'Registration Complete'}
+            {step < 7 ? `Step ${step} of 6 (${calculateCompletionPercentage()}% Complete)` : 'Registration Complete'}
           </div>
-          <button onClick={handleExit} className="p-2 -mr-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+          <button
+            onClick={() => (step >= 7 ? navigate('/hotel/properties', { replace: true }) : handleExit())}
+            className="p-2 -mr-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+          >
             <X size={20} />
           </button>
         </div>
         <div className="h-1 bg-gray-100 w-full">
           <div
             className="h-full bg-emerald-500 transition-all duration-300 ease-out"
-            style={{ width: `${calculateCompletionPercentage()}%` }}
+            style={{ width: step >= 7 ? '100%' : `${calculateCompletionPercentage()}%` }}
           />
         </div>
       </div>
 
-      <main className="flex-1 max-w-2xl mx-auto w-full p-4 md:px-6 md:pt-6 pb-52 md:pb-80">
+      <main className={`flex-1 max-w-2xl mx-auto w-full p-4 md:px-6 md:pt-6 ${step < 7 ? 'pb-52 md:pb-80' : 'pb-12'}`}>
         <div className="max-w-xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">{getStepTitle()}</h1>
-          </div>
+          {step < 7 && (
+            <div className="mb-6">
+              <h1 className="text-2xl font-extrabold text-gray-900 mb-2">{getStepTitle()}</h1>
+            </div>
+          )}
           {step === 1 && (
             <div className="space-y-6">
               {error && (

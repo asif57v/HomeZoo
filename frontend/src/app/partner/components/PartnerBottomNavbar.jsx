@@ -22,11 +22,11 @@ const PartnerBottomNavbar = () => {
 
   const { subscriptionEnabled } = useFeatureFlags();
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, route: '/hotel/dashboard' },
-    { name: 'Enquiry', icon: Briefcase, route: '/hotel/bookings' },
-    ...(subscriptionEnabled ? [{ name: 'Subscription', icon: Crown, route: '/hotel/subscriptions' }] : []),
-    { name: 'Reels', icon: Clapperboard, route: '/reels' },
-    { name: 'Profile', icon: UserCircle, route: '/hotel/profile' },
+    { name: 'Dashboard', shortName: 'Home', icon: LayoutDashboard, route: '/hotel/dashboard' },
+    { name: 'Enquiry', shortName: 'Enquiry', icon: Briefcase, route: '/hotel/bookings' },
+    ...(subscriptionEnabled ? [{ name: 'Subscription', shortName: 'Plans', icon: Crown, route: '/hotel/subscriptions' }] : []),
+    { name: 'Reels', shortName: 'Reels', icon: Clapperboard, route: '/reels' },
+    { name: 'Profile', shortName: 'Profile', icon: UserCircle, route: '/hotel/profile' },
   ];
 
   const handleNavClick = (item) => {
@@ -43,7 +43,7 @@ const PartnerBottomNavbar = () => {
         rounded-t-[28px] 
         shadow-[0_-8px_30px_rgba(0,0,0,0.08)] 
         border-t border-gray-100/80 
-        px-2 h-[68px] 
+        px-1 sm:px-2 h-[64px] sm:h-[68px] 
         grid ${navItems.length === 4 ? 'grid-cols-4' : 'grid-cols-5'} items-center 
         relative
       `}>
@@ -55,7 +55,7 @@ const PartnerBottomNavbar = () => {
             <button
               key={item.name}
               onClick={() => handleNavClick(item)}
-              className="relative flex flex-col items-center justify-center h-full gap-1 py-1 px-0.5 min-w-0"
+              className="relative flex flex-col items-center justify-center h-full gap-0.5 sm:gap-1 py-1 px-0.5 min-w-0 overflow-hidden"
             >
               {isActive && (
                 <motion.div
@@ -67,13 +67,14 @@ const PartnerBottomNavbar = () => {
               )}
 
               <Icon
-                size={22}
+                size={20}
                 className={`transition-colors duration-200 ${isActive ? 'text-[#005CA8] fill-[#005CA8]/10' : 'text-gray-400'}`}
                 strokeWidth={isActive ? 2.5 : 2}
               />
 
-              <span className={`text-[10px] font-bold tracking-normal whitespace-nowrap transition-colors duration-200 ${isActive ? 'text-[#005CA8]' : 'text-gray-400'}`}>
-                {item.name}
+              <span className={`text-[9.5px] sm:text-[10px] font-bold tracking-tight truncate max-w-full px-0.5 text-center leading-tight transition-colors duration-200 ${isActive ? 'text-[#005CA8]' : 'text-gray-400'}`}>
+                <span className="sm:hidden">{item.shortName || item.name}</span>
+                <span className="hidden sm:inline">{item.name}</span>
               </span>
             </button>
           );

@@ -56,7 +56,7 @@ const BookingCheckoutPage = () => {
 
   const fetchWalletBalance = async () => {
     try {
-      const data = await walletService.getWallet({ viewAs: 'user' });
+      const data = await walletService.getWallet();
       if (data.success && data.wallet) {
         setWalletBalance(data.wallet.balance);
       }

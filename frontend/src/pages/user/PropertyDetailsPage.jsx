@@ -2030,80 +2030,99 @@ const PropertyDetailsPage = () => {
       </div>
 
       {/* Sticky Bottom Booking Bar */}
-      <div className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] shadow-lg z-50 lg:hidden ${keyboardOpen ? 'hidden' : ''}`}>
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs text-gray-500">{priceBreakdown ? 'Total Amount' : priceLabel}</p>
-            <p className="font-bold text-lg text-surface">
+      <div className={`fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-3 py-2.5 sm:px-4 sm:py-3 pb-[calc(1.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50 lg:hidden ${keyboardOpen ? 'hidden' : ''}`}>
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-2.5 sm:gap-4">
+          <div className="shrink-0 min-w-0 pr-1">
+            <p className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider leading-none truncate max-w-[110px]">
+              {priceBreakdown ? 'Total Amount' : priceLabel}
+            </p>
+            <p className="font-black text-base sm:text-lg text-surface tracking-tight mt-0.5 leading-tight">
               ₹{priceBreakdown?.grandTotal?.toLocaleString() || bookingBarPrice?.toLocaleString() || 'N/A'}
             </p>
             {dates.checkIn && dates.checkOut && (
-              <div className="mt-1">
+              <div className="mt-0.5">
                 {checkingAvailability ? (
-                  <span className="text-[10px] text-blue-500 flex items-center gap-1">
-                    <Loader2 size={10} className="animate-spin" /> Checking...
+                  <span className="text-[10px] text-blue-500 flex items-center gap-1 font-medium">
+                    <Loader2 size={10} className="animate-spin shrink-0" /> Checking...
                   </span>
                 ) : availability?.available === false ? (
-                  <span className="text-[10px] text-red-500 font-bold flex items-center gap-1">
-                    <Info size={10} /> {availability.message || "Not Available"}
+                  <span className="text-[10px] text-red-500 font-bold flex items-center gap-1 truncate max-w-[110px]">
+                    <Info size={10} className="shrink-0" /> {availability.message || "Not Available"}
                   </span>
                 ) : availability?.available === true ? (
                   <span className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                    <CheckCircle size={10} /> {availability.unitsLeft !== undefined ? `${availability.unitsLeft} Left!` : 'Available'}
+                    <CheckCircle size={10} className="shrink-0" /> {availability.unitsLeft !== undefined ? `${availability.unitsLeft} Left!` : 'Available'}
                   </span>
                 ) : null}
               </div>
             )}
             {extraPricingLabels.length > 0 && (
-              <p className="text-[11px] text-gray-500">
+              <p className="text-[10px] text-gray-400 font-medium truncate max-w-[110px]">
                 {extraPricingLabels.join(' • ')}
               </p>
             )}
           </div>
-          <div className="flex flex-1 md:flex-none gap-2">
+
+          <div className="flex flex-1 items-center gap-2 min-w-0 justify-end">
             {isLeadType ? (
-              <div className="flex flex-1 gap-2">
+              <div className="flex flex-1 items-center gap-2 min-w-0 w-full">
                 {revealedNumber ? (
                   <a
                     href={`tel:${revealedNumber}`}
                     onClick={() => propertyService.recordViewLead(id).catch(() => {})}
-                    className="bg-white text-emerald-600 border border-emerald-600 px-3 py-3 rounded-xl font-bold flex-1 hover:bg-emerald-50 transition-colors flex items-center justify-center gap-1.5 text-sm"
+                    className="flex-1 min-w-0 bg-emerald-50 text-emerald-700 border-2 border-emerald-600/90 hover:bg-emerald-100 px-2 sm:px-3 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs whitespace-nowrap"
+                    title={`Call ${revealedNumber}`}
                   >
-                    <Phone size={18} /> Call {revealedNumber}
+                    <Phone size={15} className="shrink-0 text-emerald-600" />
+                    <span className="truncate sm:hidden">Call Now</span>
+                    <span className="hidden sm:inline truncate">Call {revealedNumber}</span>
                   </a>
                 ) : (
                   <button
+                    type="button"
                     onClick={handleRevealContact}
                     disabled={revealLoading}
-                    className="bg-white text-emerald-600 border border-emerald-600 px-3 py-3 rounded-xl font-bold flex-1 hover:bg-emerald-50 transition-colors flex items-center justify-center gap-1.5 text-sm"
+                    className="flex-1 min-w-0 bg-white text-emerald-600 border-2 border-emerald-600 hover:bg-emerald-50 px-2 sm:px-3 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer disabled:opacity-60 whitespace-nowrap"
                   >
-                    {revealLoading ? <Loader2 size={18} className="animate-spin" /> : (
+                    {revealLoading ? (
+                      <Loader2 size={16} className="animate-spin text-emerald-600" />
+                    ) : (
                       <>
-                        <Phone size={18} /> Reveal Contact
+                        <Phone size={15} className="shrink-0" />
+                        <span className="truncate sm:hidden">Contact</span>
+                        <span className="hidden sm:inline truncate">Reveal Contact</span>
                       </>
                     )}
                   </button>
                 )}
                 <button
+                  type="button"
                   onClick={handleBook}
                   disabled={bookingLoading}
-                  className="bg-surface text-white px-4 py-3 rounded-xl font-bold flex-1 hover:bg-surface-dark transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 min-w-0 bg-surface text-white px-2 sm:px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm hover:bg-surface-dark transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-md shadow-surface/20 cursor-pointer disabled:opacity-60 whitespace-nowrap"
                 >
-                  {bookingLoading ? <Loader2 size={20} className="animate-spin" /> : 'Enquire Now'}
+                  {bookingLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <span>Enquire Now</span>
+                  )}
                 </button>
               </div>
             ) : (
               <button
+                type="button"
                 onClick={handleBook}
                 disabled={bookingLoading || checkingAvailability}
-                className="bg-surface text-white px-8 py-3 rounded-xl font-bold flex-1 md:w-64 disabled:opacity-70 disabled:cursor-not-allowed hover:bg-surface-dark transition-colors flex items-center justify-center gap-2"
+                className="bg-surface text-white px-6 py-2.5 sm:py-3 rounded-xl font-bold flex-1 md:w-64 disabled:opacity-70 disabled:cursor-not-allowed hover:bg-surface-dark transition-all flex items-center justify-center gap-2 cursor-pointer text-sm shadow-md shadow-surface/20 active:scale-95"
               >
                 {(bookingLoading || checkingAvailability) ? (
                   <>
-                    <Loader2 size={20} className="animate-spin" />
+                    <Loader2 size={18} className="animate-spin" />
                     <span>{checkingAvailability ? 'Checking...' : 'Processing...'}</span>
                   </>
-                ) : 'Book Now'}
+                ) : (
+                  'Book Now'
+                )}
               </button>
             )}
           </div>
