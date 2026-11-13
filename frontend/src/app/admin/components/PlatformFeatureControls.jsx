@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Crown, CreditCard, Loader2, AlertTriangle } from 'lucide-react';
+import { Crown, CreditCard, Loader2, AlertTriangle, Smartphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminService from '../../../services/adminService';
 import useFeatureFlagsStore from '../../../store/featureFlagsStore';
@@ -24,6 +24,16 @@ const CARDS = [
     confirmTitle: 'Disable Razorpay payments?',
     confirmBody:
       'No new Razorpay orders can be created in the User App or Hotel Panel (bookings, wallet top-ups, subscriptions, hostel fees, reels). Existing transactions and pending payments are not changed.'
+  },
+  {
+    key: 'phonepeHostelFeesEnabled',
+    updatedKey: 'phonepeHostelFeesUpdatedAt',
+    title: 'PhonePe Hostel Fees (Home)',
+    description: 'Control the PhonePe UPI hostel fees payment card shown on the user Home page.',
+    icon: Smartphone,
+    confirmTitle: 'Hide PhonePe section on Home page?',
+    confirmBody:
+      'The PhonePe UPI hostel fees payment card will be completely removed from the user Home page until you turn this back on.'
   }
 ];
 
@@ -103,7 +113,7 @@ const PlatformFeatureControls = () => {
         <p className="text-xs text-gray-500">Global switches applied instantly to the User App, Hotel Panel and APIs.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {CARDS.map((card) => {
           const enabled = features?.[card.key] !== false;
           const Icon = card.icon;

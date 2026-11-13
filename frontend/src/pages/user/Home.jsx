@@ -69,7 +69,7 @@ const THEME_MAP = {
 };
 
 const Home = () => {
-  const { razorpayEnabled } = useFeatureFlags();
+  const { razorpayEnabled, phonepeHostelFeesEnabled } = useFeatureFlags();
   const [selectedType, setSelectedType] = useState({ id: null, label: 'All' });
   const [pgFilters, setPgFilters] = useState({ gender: undefined, occupancy: undefined, foodIncluded: undefined });
   const [sectionIds, setSectionIds] = useState({ pg: null, rent: null, buy: null, plot: null });
@@ -81,7 +81,7 @@ const Home = () => {
     featuredCategories: [],
     banners: { HOME_TOP: [], HOME_MIDDLE: [], CATEGORY_PAGE: [] },
     offers: [],
-    sections: { topProperties: null, featuredCategories: null }
+    sections: { topProperties: null, featuredCategories: null, hostelFeePayment: null }
   });
   const [homeLoading, setHomeLoading] = useState(true);
 
@@ -296,22 +296,36 @@ const Home = () => {
           />
 
           {/* 3. Offers + Pay Hostel Fees on a tinted band */}
-          <Band tone="tint" rounded className="my-1 sm:my-1.5 py-3 sm:py-3.5 md:py-4">
-            <div className="flex flex-col md:flex-row gap-3 md:gap-6 items-stretch">
-              {homeData.offers && homeData.offers.length > 0 && (
-                <div className="flex-1 min-w-0">
-                  <ExclusiveOffers
-                    offers={homeData.offers}
-                    loading={homeLoading}
-                    city={currentCity}
-                  />
+          {(() => {
+            const showHostelFees =
+              razorpayEnabled &&
+              phonepeHostelFeesEnabled !== false &&
+              homeData.sections?.hostelFeePayment?.enabled !== false;
+            const showOffers = Boolean(homeData.offers && homeData.offers.length > 0);
+
+            if (!showOffers && !showHostelFees) return null;
+
+            return (
+              <Band tone="tint" rounded className="my-1 sm:my-1.5 py-3 sm:py-3.5 md:py-4">
+                <div className="flex flex-col md:flex-row gap-3 md:gap-6 items-stretch">
+                  {showOffers && (
+                    <div className="flex-1 min-w-0">
+                      <ExclusiveOffers
+                        offers={homeData.offers}
+                        loading={homeLoading}
+                        city={currentCity}
+                      />
+                    </div>
+                  )}
+                  {showHostelFees && (
+                    <div className={`px-4 md:px-0 ${showOffers ? 'w-full md:w-[360px] lg:w-[400px] shrink-0' : 'w-full max-w-xl mx-auto'}`}>
+                      <PayHostelFeesSection title={homeData.sections?.hostelFeePayment?.title} />
+                    </div>
+                  )}
                 </div>
-              )}
-              <div className={`px-4 md:px-0 ${homeData.offers && homeData.offers.length > 0 ? 'w-full md:w-[360px] lg:w-[400px] shrink-0' : 'w-full max-w-xl mx-auto'}`}>
-                {razorpayEnabled && <PayHostelFeesSection />}
-              </div>
-            </div>
-          </Band>
+              </Band>
+            );
+          })()}
 
           {/* 4. Top Properties — large image-overlay cards */}
           <TopPropertiesSection config={homeData.sections?.topProperties} loading={homeLoading} />

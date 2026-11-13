@@ -14,7 +14,22 @@ export const reelService = {
 
     getReelById: (id) => api.get(`/reels/${id}`).then((r) => r.data),
 
-    uploadReel: (file, caption = '', category = 'General', extra = {}) => {
+    uploadReel: async (file, caption = '', category = 'General', extra = {}) => {
+        // If file already has base64 data attached (e.g. from Flutter native bridge), send as JSON
+        if (extra.base64 || file?._base64) {
+            const payload = {
+                base64: extra.base64 || file._base64,
+                caption: caption != null ? String(caption).trim().slice(0, 500) : '',
+                category,
+                ...extra,
+            };
+            return api
+                .post('/reels/upload', payload, {
+                    timeout: 300000,
+                })
+                .then((r) => r.data);
+        }
+
         const formData = new FormData();
         formData.append('video', file);
         formData.append('caption', caption != null ? String(caption).trim().slice(0, 500) : '');
@@ -30,12 +45,30 @@ export const reelService = {
         if (extra.razorpay_order_id) formData.append('razorpay_order_id', extra.razorpay_order_id);
         if (extra.razorpay_payment_id) formData.append('razorpay_payment_id', extra.razorpay_payment_id);
 
-        return api
-            .post('/reels/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                timeout: 300000, // 5 minutes timeout
-            })
-            .then((r) => r.data);
+        try {
+            // Note: DO NOT set explicit 'Content-Type: multipart/form-data'.
+            // Omitting it lets Axios and the browser generate the proper boundary parameter automatically.
+            return await api
+                .post('/reels/upload', formData, {
+                    timeout: 300000, // 5 minutes timeout
+                })
+                .then((r) => r.data);
+        } catch (err) {
+            // If multipart fails and base64 is available, fallback to JSON base64 upload
+            if (file?._base64 || extra.base64) {
+                console.warn('[Reel Upload] Multipart failed, falling back to base64 upload...', err);
+                const payload = {
+                    base64: file._base64 || extra.base64,
+                    caption: caption != null ? String(caption).trim().slice(0, 500) : '',
+                    category,
+                    ...extra,
+                };
+                return await api
+                    .post('/reels/upload', payload, { timeout: 300000 })
+                    .then((r) => r.data);
+            }
+            throw err;
+        }
     },
 
     getDurationSettings: () =>

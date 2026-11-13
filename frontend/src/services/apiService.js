@@ -146,6 +146,16 @@ export const authService = {
     }
   },
 
+  // Delete Account
+  deleteAccount: async () => {
+    try {
+      const response = await api.delete('/users/profile');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
   // Logout - clears FCM tokens on server then clears local storage
   logout: async (platform = null) => {
     try {
@@ -554,6 +564,14 @@ export const userService = {
   updateProfile: async (data) => {
     try {
       const response = await api.put('/users/profile', data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+  deleteAccount: async () => {
+    try {
+      const response = await api.delete('/users/profile');
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

@@ -74,7 +74,7 @@ const PAYMENT_METHODS = [
   }
 ];
 
-const PayHostelFeesSection = () => {
+const PayHostelFeesSection = ({ title }) => {
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -222,7 +222,7 @@ const PayHostelFeesSection = () => {
         <div className="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
           <div className="flex items-center gap-2">
             <h2 className="text-[15px] sm:text-lg md:text-xl font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
-              <span>Pay Hostel Fees</span>
+              <span>{title || 'Pay Hostel Fees'}</span>
             </h2>
           </div>
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 shrink-0">

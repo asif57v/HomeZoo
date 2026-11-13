@@ -1,11 +1,12 @@
 import express from 'express';
-import { getUserProfile, updateUserProfile, updateFcmToken, logoutUser, getNotifications, markNotificationRead, deleteNotifications, markAllNotificationsRead, getSavedHotels, toggleSavedHotel, sendTestNotification } from '../controllers/userController.js';
+import { getUserProfile, updateUserProfile, deleteUserProfile, updateFcmToken, logoutUser, getNotifications, markNotificationRead, deleteNotifications, markAllNotificationsRead, getSavedHotels, toggleSavedHotel, sendTestNotification } from '../controllers/userController.js';
 import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
+router.delete('/profile', protect, deleteUserProfile);
 router.put('/fcm-token', protect, updateFcmToken);
 router.post('/logout', protect, logoutUser);
 router.post('/test-notification', protect, sendTestNotification);

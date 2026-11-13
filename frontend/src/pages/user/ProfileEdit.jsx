@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera, Bell, Lock, Building } from 'lucide-react';
+import { User, Phone, Mail, ArrowLeft, Save, Loader2, MapPin, Navigation, Home, Camera, Bell, Lock, Building, Trash2, AlertTriangle } from 'lucide-react';
 import { authService, userService, hotelService } from '../../services/apiService';
 import { searchPlaceResults, resolvePlaceDetails, parseSuggestionAddress } from '../../utils/placeSuggestions';
 import toast from 'react-hot-toast';
@@ -13,6 +13,8 @@ const ProfileEdit = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [fetchingLocation, setFetchingLocation] = useState(false);
   const [testNotifLoading, setTestNotifLoading] = useState(false);
@@ -317,6 +319,23 @@ const ProfileEdit = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      setDeleting(true);
+      await userService.deleteAccount();
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      toast.success('Your account has been deleted successfully');
+      setShowDeleteModal(false);
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Delete account error:', error);
+      toast.error(error?.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleAddressChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -543,15 +562,71 @@ const ProfileEdit = () => {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading || imageUploading}
-            className="w-full bg-surface text-white py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-surface/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {loading ? <Loader2 size={18} className="animate-spin" /> : 'Update Profile'}
-          </button>
+          {/* Action Buttons: Delete Account placed before Update Profile */}
+          <div className="flex items-center gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              disabled={loading || imageUploading || deleting}
+              className="flex-1 py-3.5 px-4 rounded-2xl font-bold text-xs sm:text-sm bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <Trash2 size={16} />
+              <span>Delete Account</span>
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading || imageUploading || deleting}
+              className="flex-[1.5] bg-surface hover:bg-surface/90 text-white py-3.5 px-4 rounded-2xl font-bold text-xs sm:text-sm shadow-xl shadow-surface/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loading ? <Loader2 size={18} className="animate-spin" /> : 'Update Profile'}
+            </button>
+          </div>
         </form>
       </motion.div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mb-4">
+              <AlertTriangle size={24} />
+            </div>
+            <h3 className="text-lg font-black text-gray-900 mb-1">Delete Account?</h3>
+            <p className="text-xs text-gray-500 leading-relaxed mb-6">
+              Are you sure you want to delete your account? This action is permanent and cannot be undone. All your profile information and data will be permanently removed.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDeleteAccount}
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-md shadow-red-600/20 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>Yes, Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

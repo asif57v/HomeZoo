@@ -29,6 +29,31 @@ import { uploadReelVideo } from '../utils/multer.js';
 
 const router = express.Router();
 
+// Safe multer wrapper for reel video upload that catches errors and avoids connection reset
+const uploadReelMiddleware = (req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('application/json')) {
+    return next();
+  }
+
+  uploadReelVideo.single('video')(req, res, (err) => {
+    if (err) {
+      console.error('❌ Multer Reel Upload Error:', err);
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({
+          success: false,
+          message: 'Video file size exceeds the 60MB limit. Please choose a shorter or smaller video.',
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: err.message || 'Error processing video upload',
+      });
+    }
+    next();
+  });
+};
+
 router.get('/duration-settings', optionalProtect, getReelDurationSettings);
 router.post('/duration-quote', optionalProtect, quoteReelDuration);
 router.post('/duration-payment/create-order', protect, requireRazorpayEnabled, createReelDurationOrder);
@@ -39,7 +64,7 @@ router.post(
   protect,
   authorizedRoles('user', 'partner', 'broker', 'agent', 'seller', 'admin', 'superadmin'),
   rateLimitReelUpload,
-  uploadReelVideo.single('video'),
+  uploadReelMiddleware,
   uploadReel
 );
 

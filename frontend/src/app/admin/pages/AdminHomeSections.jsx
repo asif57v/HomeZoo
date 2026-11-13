@@ -24,6 +24,7 @@ const AdminHomeSections = () => {
 
   const [top, setTop] = useState({ enabled: true, title: 'Top Properties', subtitle: '', properties: [] });
   const [featured, setFeatured] = useState({ enabled: true, title: 'Featured Categories', subtitle: '' });
+  const [hostelFee, setHostelFee] = useState({ enabled: true, title: 'Pay Hostel Fees', subtitle: 'Hostel Rent, Mess & Maintenance via UPI' });
 
   const [search, setSearch] = useState('');
   const [results, setResults] = useState([]);
@@ -33,8 +34,9 @@ const AdminHomeSections = () => {
     const load = async () => {
       try {
         const data = await adminService.getHomeSettings();
-        setTop(data.topProperties);
-        setFeatured(data.featuredCategories);
+        if (data.topProperties) setTop(data.topProperties);
+        if (data.featuredCategories) setFeatured(data.featuredCategories);
+        if (data.hostelFeePayment) setHostelFee(data.hostelFeePayment);
       } catch {
         toast.error('Failed to load home sections');
       } finally {
@@ -102,6 +104,11 @@ const AdminHomeSections = () => {
           enabled: featured.enabled,
           title: featured.title,
           subtitle: featured.subtitle
+        },
+        hostelFeePayment: {
+          enabled: hostelFee.enabled,
+          title: hostelFee.title,
+          subtitle: hostelFee.subtitle
         }
       });
       toast.success('Home sections saved');
@@ -310,6 +317,51 @@ const AdminHomeSections = () => {
               onChange={(e) => setFeatured({ ...featured, subtitle: e.target.value })}
               className={inputCls}
               placeholder="Explore by what you need"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Pay Hostel Fees / PhonePe UPI Section */}
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-700 font-extrabold text-xl shrink-0 shadow-xs">
+              पे
+            </div>
+            <div>
+              <h2 className="text-base font-black text-gray-900 flex items-center gap-2">
+                Pay Hostel Fees (PhonePe UPI)
+              </h2>
+              <p className="text-[11px] text-gray-400">
+                Front page UPI payment card for hostel rent, mess and maintenance. When switched off, it will be completely removed from the user Home page.
+              </p>
+            </div>
+          </div>
+          <Toggle checked={hostelFee.enabled} onChange={(v) => setHostelFee({ ...hostelFee, enabled: v })} />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Section Title</label>
+            <input
+              type="text"
+              maxLength={80}
+              value={hostelFee.title}
+              onChange={(e) => setHostelFee({ ...hostelFee, title: e.target.value })}
+              className={inputCls}
+              placeholder="Pay Hostel Fees"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Subtitle / Note (Optional)</label>
+            <input
+              type="text"
+              maxLength={140}
+              value={hostelFee.subtitle}
+              onChange={(e) => setHostelFee({ ...hostelFee, subtitle: e.target.value })}
+              className={inputCls}
+              placeholder="Hostel Rent, Mess & Maintenance via UPI"
             />
           </div>
         </div>

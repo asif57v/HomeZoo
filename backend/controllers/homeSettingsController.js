@@ -33,6 +33,11 @@ export const getAdminHomeSettings = async (req, res) => {
         enabled: doc.featuredCategories.enabled,
         title: doc.featuredCategories.title,
         subtitle: doc.featuredCategories.subtitle
+      },
+      hostelFeePayment: {
+        enabled: doc.hostelFeePayment?.enabled !== false,
+        title: doc.hostelFeePayment?.title || 'Pay Hostel Fees',
+        subtitle: doc.hostelFeePayment?.subtitle || ''
       }
     });
   } catch (error) {
@@ -49,7 +54,7 @@ export const getAdminHomeSettings = async (req, res) => {
  */
 export const updateHomeSettings = async (req, res) => {
   try {
-    const { topProperties, featuredCategories } = req.body;
+    const { topProperties, featuredCategories, hostelFeePayment } = req.body;
     const doc = await getHomeSettingsDoc();
 
     if (topProperties) {
@@ -87,6 +92,14 @@ export const updateHomeSettings = async (req, res) => {
         doc.featuredCategories.title = t;
       }
       if (subtitle !== undefined) doc.featuredCategories.subtitle = clean(subtitle, 140) ?? '';
+    }
+
+    if (hostelFeePayment) {
+      const { enabled, title, subtitle } = hostelFeePayment;
+      if (!doc.hostelFeePayment) doc.hostelFeePayment = {};
+      if (typeof enabled === 'boolean') doc.hostelFeePayment.enabled = enabled;
+      if (title !== undefined) doc.hostelFeePayment.title = clean(title, 80) || 'Pay Hostel Fees';
+      if (subtitle !== undefined) doc.hostelFeePayment.subtitle = clean(subtitle, 140) ?? '';
     }
 
     await doc.save();

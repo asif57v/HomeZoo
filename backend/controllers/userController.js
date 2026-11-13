@@ -99,6 +99,26 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Delete user account (self-deletion)
+// @route   DELETE /api/users/profile
+// @access  Private
+export const deleteUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    let deleted = await User.findByIdAndDelete(userId);
+    if (!deleted) {
+      deleted = await Partner.findByIdAndDelete(userId);
+    }
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.status(200).json({ success: true, message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete account' });
+  }
+};
+
 /**
  * @desc    Get user's saved hotels
  * @route   GET /api/users/saved-hotels

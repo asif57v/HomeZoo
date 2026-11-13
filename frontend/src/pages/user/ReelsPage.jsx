@@ -27,7 +27,7 @@ import paymentService from '../../services/paymentService';
 import { isFlutterApp, pickVideo } from '../../utils/flutterBridge';
 import toast from 'react-hot-toast';
 
-const MAX_SIZE_MB = 20;
+const MAX_SIZE_MB = 60;
 const MAX_CAPTION_LENGTH = 500;
 
 export default function ReelsPage() {
@@ -414,9 +414,11 @@ export default function ReelsPage() {
   };
 
   const validateVideoFile = (file) => {
-    const allowed = ['video/mp4', 'video/webm'];
-    if (!allowed.includes(file.type)) {
-      toast.error('Only MP4 or WebM video is allowed');
+    if (!file) return false;
+    const name = (file.name || '').toLowerCase();
+    const isVideo = (file.type && file.type.startsWith('video/')) || /\.(mp4|webm|mov|3gp|m4v|mkv|avi)$/i.test(name);
+    if (!isVideo) {
+      toast.error('Only video files (MP4, WebM, MOV, 3GP) are allowed');
       return false;
     }
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
@@ -582,12 +584,15 @@ export default function ReelsPage() {
       toast.success('Reel uploaded successfully!');
       setActiveTab('my');
     } catch (err) {
+      console.error('Reel upload error:', err);
       const msg =
         err.response?.data?.message ||
         err.message ||
         'Upload failed';
       if (String(msg).toLowerCase().includes('cancel')) {
         toast.error('Payment cancelled. Your Reel has not been published.');
+      } else if (msg === 'Network Error') {
+        toast.error('Network Error: Upload failed or timed out. Please check your connection and try again.');
       } else {
         toast.error(msg);
       }
@@ -719,7 +724,7 @@ export default function ReelsPage() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="video/mp4,video/webm"
+        accept="video/*"
         className="hidden"
         onChange={handleFileSelected}
       />
@@ -1073,7 +1078,7 @@ export default function ReelsPage() {
             <p className="text-xs text-gray-500 mb-3">
               Max {durationSettings?.maxDuration ? `${durationSettings.maxDuration}s` : '—'}.
               Free up to {durationSettings?.freeDuration != null ? `${durationSettings.freeDuration}s` : '—'}.
-              Max {MAX_SIZE_MB}MB. MP4 or WebM only.
+              Max {MAX_SIZE_MB}MB.
             </p>
 
             {/* Duration / pricing summary (recalculated when video changes) */}

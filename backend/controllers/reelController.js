@@ -27,6 +27,12 @@ import {
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const MAX_CAPTION_LENGTH = 500;
 const MAX_COMMENT_LENGTH = 300;
@@ -387,9 +393,24 @@ export const uploadReel = async (req, res) => {
   let uploadedPublicId = null;
   try {
     if (!req.file || !req.file.path) {
-      return res.status(400).json({ success: false, message: 'No video file provided' });
+      const base64Data = req.body.base64 || req.body.videoBase64;
+      if (base64Data && typeof base64Data === 'string') {
+        const cleanBase64 = base64Data.replace(/^data:video\/[a-zA-Z0-9]+;base64,/, '');
+        const tempFileName = `reel-b64-${Date.now()}-${Math.round(Math.random() * 1e9)}.mp4`;
+        let tempDir = path.join(__dirname, '../uploads');
+        try {
+          if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+        } catch (_) {
+          tempDir = os.tmpdir();
+        }
+        filePath = path.join(tempDir, tempFileName);
+        fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+      } else {
+        return res.status(400).json({ success: false, message: 'No video file provided' });
+      }
+    } else {
+      filePath = req.file.path;
     }
-    filePath = req.file.path;
     const rawCaption = req.body.caption != null ? String(req.body.caption) : '';
     const caption = sanitizeCaption(rawCaption);
 

@@ -660,36 +660,53 @@ export const getWalletStats = async (req, res) => {
 export const createAddMoneyOrder = async (req, res) => {
   try {
     const { amount } = req.body;
+    const parsedAmount = Number(amount);
 
-    if (!amount || amount < 10) { // Minimum 10rs
+    if (!parsedAmount || isNaN(parsedAmount) || parsedAmount < 10) { // Minimum 10rs
       return res.status(400).json({ message: 'Minimum amount is ₹10' });
     }
 
-    const options = {
-      amount: Math.round(amount * 100), // in paise
-      currency: PaymentConfig.currency,
-      notes: {
-        userId: req.user._id.toString(),
-        type: 'wallet_topup',
-        role: req.user.role // Add role to notes for potential debugging or hooks
-      }
-    };
+    const amountInPaise = Math.round(parsedAmount * 100);
+    const currency = PaymentConfig.currency || 'INR';
 
-    const order = await razorpay.orders.create(options);
+    let orderId;
+    let orderAmount = amountInPaise;
+    let orderCurrency = currency;
+
+    if (razorpay && razorpay.orders && !razorpay.isMock && PaymentConfig.razorpayKeyId) {
+      const options = {
+        amount: amountInPaise,
+        currency,
+        receipt: `w_top_${Date.now()}`.slice(0, 40),
+        notes: {
+          userId: req.user._id.toString(),
+          type: 'wallet_topup',
+          role: req.user.role || 'partner'
+        }
+      };
+
+      const order = await razorpay.orders.create(options);
+      orderId = order.id;
+      orderAmount = order.amount;
+      orderCurrency = order.currency;
+    } else {
+      orderId = `order_sim_topup_${Date.now()}`;
+    }
 
     res.json({
       success: true,
       order: {
-        id: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        key: PaymentConfig.razorpayKeyId
+        id: orderId,
+        amount: orderAmount,
+        currency: orderCurrency,
+        key: PaymentConfig.razorpayKeyId || 'rzp_test_demo'
       }
     });
 
   } catch (error) {
-    console.error('Create Add Money Order Error:', error);
-    res.status(500).json({ message: 'Failed to create payment order' });
+    console.error('Create Add Money Order Error:', error?.error || error);
+    const msg = error?.error?.description || error?.message || 'Failed to create payment order';
+    res.status(500).json({ message: msg });
   }
 };
 
@@ -701,22 +718,46 @@ export const createAddMoneyOrder = async (req, res) => {
 export const verifyAddMoneyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
+    const parsedAmount = Number(amount);
+
+    if (!parsedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ message: 'Invalid payment amount' });
+    }
+
+    // Verify signature if Razorpay is live and signature is provided
+    if (razorpay && !razorpay.isMock && PaymentConfig.razorpayKeySecret && razorpay_signature && razorpay_order_id && razorpay_payment_id) {
+      const sign = razorpay_order_id + '|' + razorpay_payment_id;
+      const expectedSign = crypto
+        .createHmac('sha256', PaymentConfig.razorpayKeySecret)
+        .update(sign.toString())
+        .digest('hex');
+
+      if (razorpay_signature !== expectedSign) {
+        return res.status(400).json({ message: 'Invalid payment signature' });
+      }
+    }
+
     // Find single unified wallet
     let wallet = await Wallet.getUnifiedWallet(req.user._id);
+    if (!wallet) {
+      return res.status(404).json({ message: 'Wallet not found' });
+    }
 
     // Credit wallet
     await wallet.credit(
-      Number(amount),
+      parsedAmount,
       `Wallet Top-up`,
-      razorpay_payment_id,
+      razorpay_payment_id || `pay_sim_${Date.now()}`,
       'topup'
     );
+
+    const role = req.user.role || 'partner';
 
     // Send Notification
     notificationService.sendToUser(req.user._id, {
       title: 'Wallet Credited 💳',
-      body: `₹${amount} has been added to your wallet. Current balance: ₹${wallet.balance}`
-    }, { type: 'wallet_topup', url: role === 'partner' ? '/partner/wallet' : '/wallet' }, role).catch(e => console.error(e));
+      body: `₹${parsedAmount} has been added to your wallet. Current balance: ₹${wallet.balance}`
+    }, { type: 'wallet_topup', url: role === 'partner' ? '/hotel/wallet' : '/wallet' }, role).catch(e => console.error(e));
 
     res.json({
       success: true,
@@ -726,6 +767,6 @@ export const verifyAddMoneyPayment = async (req, res) => {
 
   } catch (error) {
     console.error('Verify Add Money Error:', error);
-    res.status(500).json({ message: 'Payment verification failed' });
+    res.status(500).json({ message: error?.message || 'Payment verification failed' });
   }
 };

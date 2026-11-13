@@ -932,7 +932,9 @@ const serializeFeatures = (fc = {}) => ({
   subscriptionEnabled: fc.subscriptionEnabled !== false,
   subscriptionUpdatedAt: fc.subscriptionUpdatedAt || null,
   razorpayEnabled: fc.razorpayEnabled !== false,
-  razorpayUpdatedAt: fc.razorpayUpdatedAt || null
+  razorpayUpdatedAt: fc.razorpayUpdatedAt || null,
+  phonepeHostelFeesEnabled: fc.phonepeHostelFeesEnabled !== false,
+  phonepeHostelFeesUpdatedAt: fc.phonepeHostelFeesUpdatedAt || null
 });
 
 export const getFeatureControls = async (req, res) => {
@@ -946,18 +948,18 @@ export const getFeatureControls = async (req, res) => {
 
 export const updateFeatureControls = async (req, res) => {
   try {
-    const { subscriptionEnabled, razorpayEnabled } = req.body;
-    const provided = [subscriptionEnabled, razorpayEnabled].filter((v) => v !== undefined);
+    const { subscriptionEnabled, razorpayEnabled, phonepeHostelFeesEnabled } = req.body;
+    const provided = [subscriptionEnabled, razorpayEnabled, phonepeHostelFeesEnabled].filter((v) => v !== undefined);
 
     if (provided.length === 0 || provided.some((v) => typeof v !== 'boolean')) {
-      return res.status(400).json({ success: false, message: 'subscriptionEnabled / razorpayEnabled must be booleans' });
+      return res.status(400).json({ success: false, message: 'subscriptionEnabled / razorpayEnabled / phonepeHostelFeesEnabled must be booleans' });
     }
 
     const settings = await PlatformSettings.getSettings();
     const fc = settings.featureControls || {};
     const now = new Date();
 
-    // Only touch the toggle that was sent, so the two switches stay independent
+    // Only touch the toggle that was sent, so the switches stay independent
     if (typeof subscriptionEnabled === 'boolean' && subscriptionEnabled !== (fc.subscriptionEnabled !== false)) {
       settings.set('featureControls.subscriptionEnabled', subscriptionEnabled);
       settings.set('featureControls.subscriptionUpdatedAt', now);
@@ -967,6 +969,11 @@ export const updateFeatureControls = async (req, res) => {
       settings.set('featureControls.razorpayEnabled', razorpayEnabled);
       settings.set('featureControls.razorpayUpdatedAt', now);
       settings.set('featureControls.razorpayUpdatedBy', req.user._id);
+    }
+    if (typeof phonepeHostelFeesEnabled === 'boolean' && phonepeHostelFeesEnabled !== (fc.phonepeHostelFeesEnabled !== false)) {
+      settings.set('featureControls.phonepeHostelFeesEnabled', phonepeHostelFeesEnabled);
+      settings.set('featureControls.phonepeHostelFeesUpdatedAt', now);
+      settings.set('featureControls.phonepeHostelFeesUpdatedBy', req.user._id);
     }
 
     await settings.save();

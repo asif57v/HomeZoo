@@ -13,8 +13,10 @@ export const getFeatureFlags = async () => {
   return {
     subscriptionEnabled: fc.subscriptionEnabled !== false,
     razorpayEnabled: fc.razorpayEnabled !== false,
+    phonepeHostelFeesEnabled: fc.phonepeHostelFeesEnabled !== false,
     subscriptionUpdatedAt: fc.subscriptionUpdatedAt || null,
-    razorpayUpdatedAt: fc.razorpayUpdatedAt || null
+    razorpayUpdatedAt: fc.razorpayUpdatedAt || null,
+    phonepeHostelFeesUpdatedAt: fc.phonepeHostelFeesUpdatedAt || null
   };
 };
 

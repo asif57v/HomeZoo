@@ -123,6 +123,11 @@ export const getHomeData = async (req, res) => {
         enabled: settings.featuredCategories.enabled,
         title: settings.featuredCategories.title,
         subtitle: settings.featuredCategories.subtitle
+      },
+      hostelFeePayment: {
+        enabled: settings.hostelFeePayment?.enabled !== false,
+        title: settings.hostelFeePayment?.title || 'Pay Hostel Fees',
+        subtitle: settings.hostelFeePayment?.subtitle || ''
       }
     };
 

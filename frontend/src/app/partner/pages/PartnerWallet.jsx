@@ -5,7 +5,26 @@ import {
 } from 'lucide-react';
 import walletService from '../../../services/walletService';
 import { toast } from 'react-hot-toast';
-import { useRazorpay } from 'react-razorpay';
+const loadRazorpay = () => {
+    return new Promise((resolve) => {
+        if (typeof window !== 'undefined' && window.Razorpay) {
+            resolve(true);
+            return;
+        }
+        const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+        if (existingScript) {
+            existingScript.addEventListener('load', () => resolve(true));
+            existingScript.addEventListener('error', () => resolve(false));
+            if (window.Razorpay) return resolve(true);
+        }
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
 import { useFeatureFlags, RAZORPAY_UNAVAILABLE_MESSAGE } from '../../../store/featureFlagsStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -45,7 +64,7 @@ const TransactionItem = ({ txn }) => {
 };
 
 const PartnerWallet = () => {
-    const { Razorpay } = useRazorpay();
+    const [submitting, setSubmitting] = useState(false);
     const [wallet, setWallet] = useState(null);
     const [stats, setStats] = useState(null);
     const [transactions, setTransactions] = useState([]);
@@ -95,6 +114,8 @@ const PartnerWallet = () => {
 
     const handleTransaction = async () => {
         try {
+            const amount = parseFloat(amountInput);
+
             if (activeModal === 'withdraw') {
                 // Check if bank details exist
                 if (!wallet?.bankDetails?.accountNumber) {
@@ -119,73 +140,132 @@ const PartnerWallet = () => {
                         toast.error("Enter a valid bank name");
                         return;
                     }
+                    setSubmitting(true);
                     await walletService.updateBankDetails(bankDetailsInput);
                     toast.success("Bank details saved!");
                     fetchWalletData();
+                    setSubmitting(false);
                     return;
                 }
 
-                const amount = parseFloat(amountInput);
                 if (!amount || amount <= 0) {
                     toast.error('Please enter a valid amount');
                     return;
                 }
 
                 if (amount < 500) { toast.error('Minimum withdrawal is ₹500'); return; }
-                if (amount > wallet?.balance) { toast.error('Insufficient balance'); return; }
+                if (amount > (wallet?.balance || 0)) { toast.error('Insufficient balance'); return; }
 
+                setSubmitting(true);
                 await walletService.requestWithdrawal(amount);
-                toast.success('Withdrawal successful (Test Simulation)');
+                toast.success('Withdrawal request submitted successfully');
                 setActiveModal(null);
                 setAmountInput('');
                 fetchWalletData();
             } else if (activeModal === 'add_money') {
-                // 1. Create Order
-                const { order } = await walletService.addMoney(amount);
+                if (!amount || isNaN(amount) || amount < 10) {
+                    toast.error('Minimum amount is ₹10');
+                    return;
+                }
 
-                // 2. Open Razorpay
+                if (!razorpayEnabled) {
+                    toast.error(RAZORPAY_UNAVAILABLE_MESSAGE);
+                    return;
+                }
+
+                setSubmitting(true);
+
+                // 1. Load Razorpay script
+                const isLoaded = await loadRazorpay();
+                if (!isLoaded || typeof window.Razorpay === 'undefined') {
+                    toast.error('Razorpay SDK failed to load. Please check your internet connection.');
+                    setSubmitting(false);
+                    return;
+                }
+
+                // 2. Create Order
+                const res = await walletService.addMoney(amount);
+                const order = res?.order;
+
+                if (!order || !order.id) {
+                    toast.error('Failed to create payment order');
+                    setSubmitting(false);
+                    return;
+                }
+
+                const userStr = localStorage.getItem('user');
+                let userObj = {};
+                try {
+                    userObj = userStr ? JSON.parse(userStr) : {};
+                } catch (e) {}
+
+                // 3. Open Razorpay
                 const options = {
                     key: order.key,
                     amount: order.amount,
-                    currency: order.currency,
+                    currency: order.currency || 'INR',
                     name: "HoomZo Partner",
                     description: "Wallet Top-up",
                     order_id: order.id,
                     handler: async (response) => {
+                        const toastId = toast.loading('Verifying payment...');
                         try {
-                            // 3. Verify Payment
-                            await walletService.verifyAddMoney({
-                                ...response,
-                                amount // Pass amount for reference
+                            const verifyRes = await walletService.verifyAddMoney({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                amount
                             });
-                            toast.success('Money added successfully!');
-                            setActiveModal(null);
-                            setAmountInput('');
-                            fetchWalletData();
+
+                            if (verifyRes.success) {
+                                toast.success('Money added successfully!', { id: toastId });
+                                setActiveModal(null);
+                                setAmountInput('');
+                                fetchWalletData();
+                            } else {
+                                toast.error(verifyRes.message || 'Payment verification failed', { id: toastId });
+                            }
                         } catch (err) {
-                            toast.error('Payment verification failed');
-                            console.error(err);
+                            console.error('Payment verification failed:', err);
+                            toast.error(err.response?.data?.message || 'Payment verification failed', { id: toastId });
+                        } finally {
+                            setSubmitting(false);
                         }
                     },
                     prefill: {
-                        name: "Partner",
-                        contact: "",
+                        name: userObj.name || "Partner",
+                        contact: userObj.phone || "",
+                        email: userObj.email || "",
                     },
                     theme: {
                         color: "#005CA8",
                     },
+                    modal: {
+                        ondismiss: () => {
+                            setSubmitting(false);
+                        }
+                    }
                 };
 
-                const razorpayInstance = new Razorpay(options);
+                const razorpayInstance = new window.Razorpay(options);
+                razorpayInstance.on('payment.failed', function (resp) {
+                    toast.error(resp.error?.description || 'Payment failed');
+                    setSubmitting(false);
+                });
                 razorpayInstance.open();
-                return; // Don't close modal immediately, let handler do it
+                return;
             }
 
             setActiveModal(null);
             setAmountInput('');
             fetchWalletData();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Transaction failed');
+            console.error('Transaction error:', error);
+            toast.error(error.response?.data?.message || error.message || 'Transaction failed');
+        } finally {
+            if (activeModal !== 'add_money') {
+                setSubmitting(false);
+            }
         }
     };
 
@@ -438,12 +518,13 @@ const PartnerWallet = () => {
                         <button
                             onClick={handleTransaction}
                             disabled={
+                                submitting || (
                                 showBankForm
                                     ? (!bankDetailsInput.accountNumber || !bankDetailsInput.ifscCode)
                                     : (!amountInput ||
                                         (activeModal === 'withdraw' && (Number(amountInput) < 500 || Number(amountInput) > (wallet?.balance || 0))) ||
                                         (activeModal === 'add_money' && Number(amountInput) < 10)
-                                    )
+                                    ))
                             }
                             className={`w-full font-bold py-4 rounded-2xl text-sm active:scale-95 transition-transform flex items-center justify-center gap-2
                                 ${(showBankForm
@@ -451,12 +532,19 @@ const PartnerWallet = () => {
                                     : (!amountInput ||
                                         (activeModal === 'withdraw' && (Number(amountInput) < 500 || Number(amountInput) > (wallet?.balance || 0))) ||
                                         (activeModal === 'add_money' && Number(amountInput) < 10))
-                                )
+                                ) || submitting
                                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                     : 'bg-[#005CA8] text-white shadow-lg shadow-[#005CA8]/20 hover:bg-[#004b8a]'
                                 }`}
                         >
-                            {showBankForm ? 'Save Bank Details' : 'Proceed Securely'}
+                            {submitting ? (
+                                <>
+                                    <Loader2 size={18} className="animate-spin" />
+                                    <span>Processing...</span>
+                                </>
+                            ) : (
+                                showBankForm ? 'Save Bank Details' : 'Proceed Securely'
+                            )}
                         </button>
                     </div>
                 </div>

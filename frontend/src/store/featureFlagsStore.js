@@ -13,12 +13,14 @@ export const RAZORPAY_UNAVAILABLE_MESSAGE = 'Online payments are temporarily una
 const useFeatureFlagsStore = create((set, get) => ({
   subscriptionEnabled: true,
   razorpayEnabled: true,
+  phonepeHostelFeesEnabled: true,
   loaded: false,
 
   setFlags: (flags) =>
     set((state) => ({
       subscriptionEnabled: typeof flags.subscriptionEnabled === 'boolean' ? flags.subscriptionEnabled : state.subscriptionEnabled,
       razorpayEnabled: typeof flags.razorpayEnabled === 'boolean' ? flags.razorpayEnabled : state.razorpayEnabled,
+      phonepeHostelFeesEnabled: typeof flags.phonepeHostelFeesEnabled === 'boolean' ? flags.phonepeHostelFeesEnabled : state.phonepeHostelFeesEnabled,
       loaded: true
     })),
 
@@ -59,6 +61,7 @@ useFeatureFlagsStore.getState().initWebSocket();
 export const useFeatureFlags = () => useFeatureFlagsStore(useShallow((s) => ({
   subscriptionEnabled: s.subscriptionEnabled,
   razorpayEnabled: s.razorpayEnabled,
+  phonepeHostelFeesEnabled: s.phonepeHostelFeesEnabled,
   loaded: s.loaded
 })));
 

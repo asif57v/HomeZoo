@@ -181,6 +181,7 @@ export const pickVideo = async (onSuccess, onError) => {
           const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: result.mimeType || 'video/mp4' });
           const file = new File([blob], result.fileName || 'video.mp4', { type: result.mimeType || 'video/mp4' });
+          file._base64 = result.base64;
           onSuccess && onSuccess(file);
         }
       }

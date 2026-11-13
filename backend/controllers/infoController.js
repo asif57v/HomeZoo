@@ -80,11 +80,11 @@ export const getTopRatedSectionConfig = async (req, res) => {
 
 export const getPublicFeatureFlags = async (req, res) => {
   try {
-    const { subscriptionEnabled, razorpayEnabled } = await getFeatureFlags();
+    const { subscriptionEnabled, razorpayEnabled, phonepeHostelFeesEnabled } = await getFeatureFlags();
     const settings = await PlatformSettings.getSettings();
     const nearbySearchRadiusKm = Number(settings.nearbySearchRadiusKm) || 50;
     res.set('Cache-Control', 'no-store');
-    res.status(200).json({ success: true, subscriptionEnabled, razorpayEnabled, nearbySearchRadiusKm });
+    res.status(200).json({ success: true, subscriptionEnabled, razorpayEnabled, phonepeHostelFeesEnabled, nearbySearchRadiusKm });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error fetching feature flags' });
   }

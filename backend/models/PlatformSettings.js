@@ -64,6 +64,9 @@ const platformSettingsSchema = new mongoose.Schema(
       razorpayEnabled: { type: Boolean, default: true },
       razorpayUpdatedAt: { type: Date },
       razorpayUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+      phonepeHostelFeesEnabled: { type: Boolean, default: true },
+      phonepeHostelFeesUpdatedAt: { type: Date },
+      phonepeHostelFeesUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     },
     /** Free allowance granted to NEW partners at registration (admin controlled) */
     partnerFreeTrial: {

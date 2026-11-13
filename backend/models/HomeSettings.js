@@ -20,6 +20,12 @@ const homeSettingsSchema = new mongoose.Schema({
     enabled: { type: Boolean, default: true },
     title: { type: String, default: 'Featured Categories', trim: true, maxlength: 80 },
     subtitle: { type: String, default: '', trim: true, maxlength: 140 }
+  },
+
+  hostelFeePayment: {
+    enabled: { type: Boolean, default: true },
+    title: { type: String, default: 'Pay Hostel Fees', trim: true, maxlength: 80 },
+    subtitle: { type: String, default: 'Hostel Rent, Mess & Maintenance via UPI', trim: true, maxlength: 140 }
   }
 }, { timestamps: true });
 

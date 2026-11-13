@@ -76,21 +76,24 @@ export const uploadDocuments = multer({
   fileFilter: documentFilter
 });
 
-// File filter for reels: video only (mp4, webm)
+// File filter for reels: video files (mp4, webm, mov, 3gp, mkv, m4v, etc.)
 const reelVideoFilter = (req, file, cb) => {
-  const allowedMimes = ['video/mp4', 'video/webm'];
-  if (allowedMimes.includes(file.mimetype)) {
+  const ext = (path.extname(file.originalname || '') || '').toLowerCase();
+  const allowedExts = ['.mp4', '.webm', '.mov', '.3gp', '.m4v', '.mkv', '.avi'];
+  const isVideoMime = file.mimetype && (file.mimetype.startsWith('video/') || file.mimetype === 'application/octet-stream');
+
+  if (isVideoMime || allowedExts.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error('Only video files (mp4, webm) are allowed for reels'), false);
+    cb(new Error('Only video files (MP4, WebM, MOV, 3GP) are allowed for reels'), false);
   }
 };
 
-// Multer for reel video upload: max 20MB, video only
+// Multer for reel video upload: max 60MB, video only
 export const uploadReelVideo = multer({
   storage: storage,
   limits: {
-    fileSize: 20 * 1024 * 1024, // 20MB
+    fileSize: 60 * 1024 * 1024, // 60MB
   },
   fileFilter: reelVideoFilter,
 });
