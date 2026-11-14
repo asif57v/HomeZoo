@@ -15,7 +15,13 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`, config.data || '');
+  if (config.data instanceof FormData) {
+    console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url} [FormData]`);
+  } else if (config.data && typeof config.data === 'object' && config.data.base64) {
+    console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url} [Base64 Payload: ~${Math.round(config.data.base64.length / 1024)} KB]`);
+  } else {
+    console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`, config.data || '');
+  }
   return config;
 }, (error) => Promise.reject(error));
 

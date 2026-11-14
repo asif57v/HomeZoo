@@ -39,6 +39,9 @@ const uploadReelMiddleware = (req, res, next) => {
   uploadReelVideo.single('video')(req, res, (err) => {
     if (err) {
       console.error('❌ Multer Reel Upload Error:', err);
+      try {
+        if (req.readable) req.resume();
+      } catch (_) {}
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({
           success: false,

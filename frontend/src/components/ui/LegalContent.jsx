@@ -36,23 +36,35 @@ const LegalContent = ({ content, className = '' }) => {
   flushList();
 
   return (
-    <div className={`space-y-3 text-sm text-gray-600 leading-relaxed ${className}`}>
+    <div className={`space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed ${className}`}>
       {blocks.map((b, i) => {
-        if (b.type === 'h2') return <h4 key={i} className="pt-2 font-bold text-textDark text-base">{b.text}</h4>;
-        if (b.type === 'h3') return <h5 key={i} className="font-bold text-textDark">{b.text}</h5>;
+        if (b.type === 'h2') {
+          return (
+            <h4 key={i} className="pt-3 font-bold text-slate-900 text-sm sm:text-base border-t border-slate-100 first:border-t-0 first:pt-0">
+              {b.text}
+            </h4>
+          );
+        }
+        if (b.type === 'h3') {
+          return (
+            <h5 key={i} className="pt-1.5 font-semibold text-slate-800 text-xs sm:text-sm">
+              {b.text}
+            </h5>
+          );
+        }
         if (b.type === 'ul') {
           return (
-            <ul key={i} className="space-y-1.5">
+            <ul key={i} className="space-y-1.5 my-1">
               {b.items.map((item, j) => (
-                <li key={j} className="flex gap-2">
-                  <span className="mt-2 w-1.5 h-1.5 rounded-full bg-surface shrink-0" />
-                  <span>{item}</span>
+                <li key={j} className="flex items-start gap-2 text-xs sm:text-sm text-slate-600">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#005CA8] shrink-0" />
+                  <span className="flex-1">{item}</span>
                 </li>
               ))}
             </ul>
           );
         }
-        return <p key={i}>{b.text}</p>;
+        return <p key={i} className="text-xs sm:text-sm text-slate-600 leading-relaxed">{b.text}</p>;
       })}
     </div>
   );

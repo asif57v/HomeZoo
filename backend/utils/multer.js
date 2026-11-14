@@ -25,8 +25,13 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // Generate unique filename
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    const nameWithoutExt = path.basename(file.originalname, ext).replace(/\s+/g, '-');
+    let ext = path.extname(file.originalname || '');
+    if (!ext || ext.length > 5) {
+      if (file.mimetype === 'video/webm') ext = '.webm';
+      else if (file.mimetype === 'video/quicktime') ext = '.mov';
+      else ext = '.mp4';
+    }
+    const nameWithoutExt = (path.basename(file.originalname || 'reel', ext) || 'reel').replace(/[^a-zA-Z0-9_-]/g, '-');
     cb(null, `${nameWithoutExt}-${uniqueSuffix}${ext}`);
   }
 });
@@ -82,10 +87,11 @@ const reelVideoFilter = (req, file, cb) => {
   const allowedExts = ['.mp4', '.webm', '.mov', '.3gp', '.m4v', '.mkv', '.avi'];
   const isVideoMime = file.mimetype && (file.mimetype.startsWith('video/') || file.mimetype === 'application/octet-stream');
 
-  if (isVideoMime || allowedExts.includes(ext)) {
+  // Mobile camera / gallery / webviews often pass empty extension or octet-stream. Allow to avoid socket reset mid-stream.
+  if (isVideoMime || allowedExts.includes(ext) || !ext) {
     cb(null, true);
   } else {
-    cb(new Error('Only video files (MP4, WebM, MOV, 3GP) are allowed for reels'), false);
+    cb(null, true);
   }
 };
 

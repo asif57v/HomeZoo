@@ -62,6 +62,7 @@ export default function ReelsPage() {
   // Upload Modal State
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadCaption, setUploadCaption] = useState('');
   const [uploadHashtags, setUploadHashtags] = useState('');
   const [selectedFileName, setSelectedFileName] = useState('');
@@ -410,6 +411,7 @@ export default function ReelsPage() {
     setPaidDurationPaymentId(null);
     setPaidRazorpayMeta(null);
     setShowUnlockModal(false);
+    setUploadProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -565,6 +567,7 @@ export default function ReelsPage() {
 
       const paymentMeta = await payForDurationIfNeeded(quote);
 
+      setUploadProgress(1);
       const res = await reelService.uploadReel(
         file,
         uploadCaption.trim(),
@@ -573,6 +576,12 @@ export default function ReelsPage() {
           propertyId: selectedPropertyId || undefined,
           hashtags: uploadHashtags ? uploadHashtags.split(',').map((h) => h.trim()) : [],
           ...paymentMeta,
+        },
+        (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(Math.min(99, percent));
+          }
         }
       );
 
@@ -592,12 +601,13 @@ export default function ReelsPage() {
       if (String(msg).toLowerCase().includes('cancel')) {
         toast.error('Payment cancelled. Your Reel has not been published.');
       } else if (msg === 'Network Error') {
-        toast.error('Network Error: Upload failed or timed out. Please check your connection and try again.');
+        toast.error('Network Error: Upload failed or timed out. Please check your connection or choose a smaller video.');
       } else {
         toast.error(msg);
       }
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -1226,9 +1236,7 @@ export default function ReelsPage() {
                   {uploading ? (
                     <>
                       <Loader2 size={20} className="animate-spin" />
-                      {durationQuote?.requiresPayment && !paidDurationPaymentId
-                        ? 'Processing…'
-                        : 'Uploading…'}
+                      {uploadProgress > 0 ? `Uploading ${uploadProgress}%…` : 'Uploading…'}
                     </>
                   ) : durationQuote?.requiresPayment && durationQuote.charge > 0 ? (
                     paidDurationPaymentId ? (

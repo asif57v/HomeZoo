@@ -14,8 +14,63 @@ export const reelService = {
 
     getReelById: (id) => api.get(`/reels/${id}`).then((r) => r.data),
 
-    uploadReel: async (file, caption = '', category = 'General', extra = {}) => {
-        // If file already has base64 data attached (e.g. from Flutter native bridge), send as JSON
+    uploadReel: async (file, caption = '', category = 'General', extra = {}, onProgress = null) => {
+        const isFileOrBlob = file instanceof Blob || file instanceof File || (file && file.size);
+
+        // If file is a standard File or Blob, always use FormData multipart first (streaming, 33% less bandwidth)
+        if (isFileOrBlob) {
+            const formData = new FormData();
+            formData.append('video', file);
+            formData.append('caption', caption != null ? String(caption).trim().slice(0, 500) : '');
+            formData.append('category', category);
+
+            if (extra.propertyId) formData.append('propertyId', extra.propertyId);
+            if (extra.hashtags) formData.append('hashtags', Array.isArray(extra.hashtags) ? extra.hashtags.join(',') : extra.hashtags);
+            if (extra.city) formData.append('city', extra.city);
+            if (extra.state) formData.append('state', extra.state);
+            if (extra.lat) formData.append('lat', extra.lat);
+            if (extra.lng) formData.append('lng', extra.lng);
+            if (extra.durationPaymentId) formData.append('durationPaymentId', extra.durationPaymentId);
+            if (extra.razorpay_order_id) formData.append('razorpay_order_id', extra.razorpay_order_id);
+            if (extra.razorpay_payment_id) formData.append('razorpay_payment_id', extra.razorpay_payment_id);
+
+            try {
+                return await api
+                    .post('/reels/upload', formData, {
+                        timeout: 600000, // 10 minutes timeout for slow mobile networks
+                        onUploadProgress: (progressEvent) => {
+                            if (onProgress && typeof onProgress === 'function') {
+                                onProgress(progressEvent);
+                            }
+                        },
+                    })
+                    .then((r) => r.data);
+            } catch (err) {
+                // If multipart fails and base64 is available as fallback, try JSON base64
+                if (file?._base64 || extra.base64) {
+                    console.warn('[Reel Upload] Multipart failed, falling back to base64 upload...', err);
+                    const payload = {
+                        base64: file._base64 || extra.base64,
+                        caption: caption != null ? String(caption).trim().slice(0, 500) : '',
+                        category,
+                        ...extra,
+                    };
+                    return await api
+                        .post('/reels/upload', payload, {
+                            timeout: 600000,
+                            onUploadProgress: (progressEvent) => {
+                                if (onProgress && typeof onProgress === 'function') {
+                                    onProgress(progressEvent);
+                                }
+                            },
+                        })
+                        .then((r) => r.data);
+                }
+                throw err;
+            }
+        }
+
+        // Fallback for direct base64 object when no File/Blob is provided
         if (extra.base64 || file?._base64) {
             const payload = {
                 base64: extra.base64 || file._base64,
@@ -25,50 +80,17 @@ export const reelService = {
             };
             return api
                 .post('/reels/upload', payload, {
-                    timeout: 300000,
+                    timeout: 600000,
+                    onUploadProgress: (progressEvent) => {
+                        if (onProgress && typeof onProgress === 'function') {
+                            onProgress(progressEvent);
+                        }
+                    },
                 })
                 .then((r) => r.data);
         }
 
-        const formData = new FormData();
-        formData.append('video', file);
-        formData.append('caption', caption != null ? String(caption).trim().slice(0, 500) : '');
-        formData.append('category', category);
-
-        if (extra.propertyId) formData.append('propertyId', extra.propertyId);
-        if (extra.hashtags) formData.append('hashtags', Array.isArray(extra.hashtags) ? extra.hashtags.join(',') : extra.hashtags);
-        if (extra.city) formData.append('city', extra.city);
-        if (extra.state) formData.append('state', extra.state);
-        if (extra.lat) formData.append('lat', extra.lat);
-        if (extra.lng) formData.append('lng', extra.lng);
-        if (extra.durationPaymentId) formData.append('durationPaymentId', extra.durationPaymentId);
-        if (extra.razorpay_order_id) formData.append('razorpay_order_id', extra.razorpay_order_id);
-        if (extra.razorpay_payment_id) formData.append('razorpay_payment_id', extra.razorpay_payment_id);
-
-        try {
-            // Note: DO NOT set explicit 'Content-Type: multipart/form-data'.
-            // Omitting it lets Axios and the browser generate the proper boundary parameter automatically.
-            return await api
-                .post('/reels/upload', formData, {
-                    timeout: 300000, // 5 minutes timeout
-                })
-                .then((r) => r.data);
-        } catch (err) {
-            // If multipart fails and base64 is available, fallback to JSON base64 upload
-            if (file?._base64 || extra.base64) {
-                console.warn('[Reel Upload] Multipart failed, falling back to base64 upload...', err);
-                const payload = {
-                    base64: file._base64 || extra.base64,
-                    caption: caption != null ? String(caption).trim().slice(0, 500) : '',
-                    category,
-                    ...extra,
-                };
-                return await api
-                    .post('/reels/upload', payload, { timeout: 300000 })
-                    .then((r) => r.data);
-            }
-            throw err;
-        }
+        throw new Error('No video file provided for upload');
     },
 
     getDurationSettings: () =>

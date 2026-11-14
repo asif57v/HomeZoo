@@ -174,13 +174,12 @@ export const pickVideo = async (onSuccess, onError) => {
         // If Flutter returns base64, we convert to Blob/File for compatibility with existing upload logic
         if (result.base64) {
           const byteCharacters = atob(result.base64);
-          const byteNumbers = new Array(byteCharacters.length);
+          const byteArray = new Uint8Array(byteCharacters.length);
           for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
+            byteArray[i] = byteCharacters.charCodeAt(i);
           }
-          const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: result.mimeType || 'video/mp4' });
-          const file = new File([blob], result.fileName || 'video.mp4', { type: result.mimeType || 'video/mp4' });
+          const file = new File([blob], result.fileName || `video_${Date.now()}.mp4`, { type: result.mimeType || 'video/mp4' });
           file._base64 = result.base64;
           onSuccess && onSuccess(file);
         }
