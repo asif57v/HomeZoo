@@ -164,7 +164,13 @@ export const uploadVideoToCloudinary = async (filePath, folder = 'reels', public
       fs.unlinkSync(filePath);
     }
 
-    const duration = result.duration != null ? Number(result.duration) : null;
+    let duration = extractDuration(result);
+    if (duration == null && result.public_id) {
+      // Chunked uploads sometimes return without duration; ask Cloudinary again
+      try {
+        duration = (await getUploadedVideoInfo(result.public_id)).duration;
+      } catch (_) {}
+    }
     return {
       success: true,
       url: result.secure_url,
@@ -196,17 +202,57 @@ export const getDirectVideoUploadSignature = (folder) => {
   };
 };
 
+/** Pull a positive duration (seconds) out of any Cloudinary response shape. */
+const extractDuration = (r) => {
+  if (!r) return null;
+  const candidates = [
+    r.duration,
+    r.video_metadata?.format?.duration,
+    r.video_metadata?.duration,
+    r.media_metadata?.format?.duration,
+    r.media_metadata?.duration,
+    Array.isArray(r.video_metadata?.streams)
+      ? Math.max(...r.video_metadata.streams.map((s) => Number(s.duration) || 0))
+      : null,
+  ];
+  for (const c of candidates) {
+    const n = Number(c);
+    if (c != null && Number.isFinite(n) && n > 0) return n;
+  }
+  return null;
+};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 /**
  * Look up a video already uploaded to Cloudinary (direct upload flow).
+ * The Admin API resource call does not always include `duration`, so fall back to
+ * media_metadata and then `explicit` (which returns the same fields as an upload).
  */
 export const getUploadedVideoInfo = async (publicId) => {
-  const result = await cloudinary.api.resource(publicId, { resource_type: 'video' });
+  const base = await cloudinary.api.resource(publicId, { resource_type: 'video', media_metadata: true });
+  let duration = extractDuration(base);
+
+  for (let attempt = 0; duration == null && attempt < 3; attempt++) {
+    try {
+      const exp = await cloudinary.uploader.explicit(publicId, { type: 'upload', resource_type: 'video' });
+      duration = extractDuration(exp);
+    } catch (err) {
+      console.warn('Cloudinary explicit (duration) failed:', err?.message || err);
+    }
+    if (duration == null) await sleep(1500); // video may still be processing
+  }
+
+  if (duration == null) {
+    console.error('Could not read duration from Cloudinary for', publicId, JSON.stringify(base).slice(0, 1000));
+  }
+
   return {
     success: true,
-    url: result.secure_url,
-    publicId: result.public_id,
-    duration: result.duration != null ? Number(result.duration) : null,
-    format: result.format,
+    url: base.secure_url,
+    publicId: base.public_id,
+    duration,
+    format: base.format,
   };
 };
 
