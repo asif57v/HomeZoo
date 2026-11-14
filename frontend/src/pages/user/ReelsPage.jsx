@@ -432,14 +432,84 @@ export default function ReelsPage() {
 
   const getVideoDuration = (file) =>
     new Promise((resolve, reject) => {
+      let isDone = false;
       const video = document.createElement('video');
       video.preload = 'metadata';
-      video.onloadedmetadata = () => {
-        URL.revokeObjectURL(video.src);
-        resolve(video.duration);
+      video.muted = true;
+      video.playsInline = true;
+      video.autoplay = false;
+
+      const finish = (duration) => {
+        if (isDone) return;
+        isDone = true;
+        clearTimeout(timeoutId);
+        cleanup();
+        if (typeof duration === 'number' && Number.isFinite(duration) && duration > 0) {
+          resolve(duration);
+        } else {
+          reject(new Error('Invalid duration'));
+        }
       };
-      video.onerror = () => reject(new Error('Could not read video'));
-      video.src = URL.createObjectURL(file);
+
+      const cleanup = () => {
+        video.onloadedmetadata = null;
+        video.ondurationchange = null;
+        video.oncanplay = null;
+        video.onerror = null;
+        try {
+          if (video.src) URL.revokeObjectURL(video.src);
+        } catch (_) {}
+      };
+
+      const checkDuration = () => {
+        if (Number.isFinite(video.duration) && video.duration > 0) {
+          finish(video.duration);
+        } else if (video.duration === Infinity) {
+          // For streaming/fragmented MP4, seek to end to force duration calculation
+          video.currentTime = 1e10;
+          video.ontimeupdate = () => {
+            video.ontimeupdate = null;
+            if (Number.isFinite(video.duration) && video.duration > 0) {
+              finish(video.duration);
+            } else if (Number.isFinite(video.currentTime) && video.currentTime > 0) {
+              finish(video.currentTime);
+            }
+          };
+        }
+      };
+
+      video.onloadedmetadata = checkDuration;
+      video.ondurationchange = checkDuration;
+      video.oncanplay = checkDuration;
+      video.onerror = () => {
+        if (isDone) return;
+        isDone = true;
+        clearTimeout(timeoutId);
+        cleanup();
+        reject(new Error('Browser could not read video metadata'));
+      };
+
+      const timeoutId = setTimeout(() => {
+        if (isDone) return;
+        if (Number.isFinite(video.duration) && video.duration > 0) {
+          finish(video.duration);
+        } else {
+          isDone = true;
+          cleanup();
+          reject(new Error('Duration read timeout'));
+        }
+      }, 3500);
+
+      try {
+        video.src = URL.createObjectURL(file);
+        video.load();
+      } catch (err) {
+        if (isDone) return;
+        isDone = true;
+        clearTimeout(timeoutId);
+        cleanup();
+        reject(err);
+      }
     });
 
   const refreshDurationQuote = async (file) => {
@@ -460,11 +530,23 @@ export default function ReelsPage() {
       }
       return res.quote;
     } catch (err) {
-      console.error(err);
-      setDurationQuote(null);
+      console.warn('Direct duration reading failed on mobile browser (likely HEVC/mobile codec). Falling back to server-side duration.', err);
+      // Graceful fallback: Do not block the user! Cloudinary will calculate exact duration on upload.
+      const freeSec = durationSettings?.freeDuration ?? 20;
+      const maxSec = durationSettings?.maxDuration ?? 90;
+      const provisionalQuote = {
+        ok: true,
+        isProvisional: true,
+        duration: null,
+        freeDuration: freeSec,
+        maxDuration: maxSec,
+        charge: 0,
+        requiresPayment: false,
+        message: `Duration will be verified on upload (Free up to ${freeSec}s)`,
+      };
+      setDurationQuote(provisionalQuote);
       setVideoDurationSec(null);
-      toast.error('Could not read video duration');
-      return null;
+      return provisionalQuote;
     } finally {
       setQuoteLoading(false);
     }
@@ -553,7 +635,7 @@ export default function ReelsPage() {
     setUploading(true);
     try {
       let quote = durationQuote;
-      if (!quote || videoDurationSec == null) {
+      if (!quote) {
         quote = await refreshDurationQuote(file);
       }
       if (!quote) {
@@ -565,7 +647,10 @@ export default function ReelsPage() {
         return;
       }
 
-      const paymentMeta = await payForDurationIfNeeded(quote);
+      let paymentMeta = {};
+      if (!quote.isProvisional && quote.requiresPayment && quote.charge > 0) {
+        paymentMeta = await payForDurationIfNeeded(quote);
+      }
 
       setUploadProgress(1);
       const res = await reelService.uploadReel(
@@ -594,6 +679,13 @@ export default function ReelsPage() {
       setActiveTab('my');
     } catch (err) {
       console.error('Reel upload error:', err);
+      if (err.response?.status === 402 && err.response?.data?.quote) {
+        setDurationQuote(err.response.data.quote);
+        setVideoDurationSec(err.response.data.quote.duration);
+        setShowUnlockModal(true);
+        toast.error(err.response.data.message || 'Payment required to unlock this reel duration');
+        return;
+      }
       const msg =
         err.response?.data?.message ||
         err.message ||
@@ -1096,6 +1188,18 @@ export default function ReelsPage() {
               {quoteLoading ? (
                 <div className="flex items-center gap-2 text-gray-500">
                   <Loader2 size={16} className="animate-spin" /> Checking duration…
+                </div>
+              ) : durationQuote?.isProvisional ? (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-gray-900">Video ready to upload</p>
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Free up to {durationQuote.freeDuration || 20}s
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Duration will be automatically verified on server.
+                  </p>
                 </div>
               ) : videoDurationSec == null ? (
                 <p className="text-gray-500 text-xs">Select a video to see duration charge.</p>

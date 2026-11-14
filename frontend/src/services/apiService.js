@@ -34,10 +34,11 @@ api.interceptors.response.use(
 
     // Handle 413 or raw HTML responses from reverse proxies like Nginx
     if (status === 413 || (typeof error.response?.data === 'string' && error.response.data.includes('<html'))) {
-      error.response.data = { 
-        message: 'Upload failed: The image file size exceeds the server upload limit (HTTP 413 Request Entity Too Large).' 
-      };
-      error.message = error.response.data.message;
+      const existingMsg = typeof error.response?.data?.message === 'string' ? error.response.data.message : null;
+      const message = existingMsg || 'Upload failed: File size exceeds the server upload limit (HTTP 413 Request Entity Too Large).';
+      error.response = error.response || {};
+      error.response.data = { message };
+      error.message = message;
     }
 
     // Admin switched a feature off (or on) since this page loaded: resync flags and surface the server message
