@@ -7,6 +7,8 @@ import Property from '../models/Property.js';
 import mongoose from 'mongoose';
 import {
   uploadVideoToCloudinary,
+  getDirectVideoUploadSignature,
+  getUploadedVideoInfo,
   getVideoThumbnailUrl,
   deleteVideoFromCloudinary,
 } from '../utils/cloudinary.js';
@@ -384,6 +386,21 @@ export const verifyReelDurationPayment = async (req, res) => {
   }
 };
 
+const directUploadFolder = (userId) => `rukkoin/reels/${userId}`;
+
+/**
+ * GET /api/reels/upload-signature
+ * Signed params for uploading a reel video straight from the device to Cloudinary.
+ */
+export const getReelUploadSignature = (req, res) => {
+  try {
+    res.json({ success: true, ...getDirectVideoUploadSignature(directUploadFolder(req.user._id)) });
+  } catch (err) {
+    console.error('Reel upload signature error:', err);
+    res.status(500).json({ success: false, message: 'Could not prepare upload' });
+  }
+};
+
 /**
  * POST /api/reels/upload
  * Duration limits & pricing from Admin PlatformSettings. Payment verified server-side when required.
@@ -392,7 +409,13 @@ export const uploadReel = async (req, res) => {
   let filePath = null;
   let uploadedPublicId = null;
   try {
-    if (!req.file || !req.file.path) {
+    const directPublicId = req.body.videoPublicId ? String(req.body.videoPublicId) : null;
+    if (directPublicId) {
+      // Direct-to-Cloudinary flow: must be inside this user's own folder
+      if (!directPublicId.startsWith(`${directUploadFolder(req.user._id)}/`)) {
+        return res.status(400).json({ success: false, message: 'Invalid uploaded video reference' });
+      }
+    } else if (!req.file || !req.file.path) {
       const base64Data = req.body.base64 || req.body.videoBase64;
       if (base64Data && typeof base64Data === 'string') {
         const cleanBase64 = base64Data.replace(/^data:video\/[a-zA-Z0-9]+;base64,/, '');
@@ -414,8 +437,20 @@ export const uploadReel = async (req, res) => {
     const rawCaption = req.body.caption != null ? String(req.body.caption) : '';
     const caption = sanitizeCaption(rawCaption);
 
-    const uploadResult = await uploadVideoToCloudinary(filePath, 'reels');
-    filePath = null; // cleaned by cloudinary util
+    let uploadResult;
+    if (directPublicId) {
+      try {
+        uploadResult = await getUploadedVideoInfo(directPublicId);
+      } catch (_) {
+        return res.status(400).json({
+          success: false,
+          message: 'Uploaded video not found. Please try uploading again.',
+        });
+      }
+    } else {
+      uploadResult = await uploadVideoToCloudinary(filePath, 'reels');
+      filePath = null; // cleaned by cloudinary util
+    }
     uploadedPublicId = uploadResult.publicId;
 
     const rawDuration = uploadResult.duration != null ? Number(uploadResult.duration) : null;

@@ -180,6 +180,37 @@ export const uploadVideoToCloudinary = async (filePath, folder = 'reels', public
 };
 
 /**
+ * Signed params so the client can upload a video straight to Cloudinary
+ * (skips our server, which is what times out on slow/weak mobile devices).
+ */
+export const getDirectVideoUploadSignature = (folder) => {
+  const timestamp = Math.round(Date.now() / 1000);
+  const paramsToSign = { folder, timestamp };
+  const signature = cloudinary.utils.api_sign_request(paramsToSign, process.env.CLOUDINARY_API_SECRET);
+  return {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    timestamp,
+    folder,
+    signature,
+  };
+};
+
+/**
+ * Look up a video already uploaded to Cloudinary (direct upload flow).
+ */
+export const getUploadedVideoInfo = async (publicId) => {
+  const result = await cloudinary.api.resource(publicId, { resource_type: 'video' });
+  return {
+    success: true,
+    url: result.secure_url,
+    publicId: result.public_id,
+    duration: result.duration != null ? Number(result.duration) : null,
+    format: result.format,
+  };
+};
+
+/**
  * Generate thumbnail URL from Cloudinary video (frame at 0s or 1s)
  * @param {string} publicId - Cloudinary public_id of the video
  * @returns {string} - URL for thumbnail image

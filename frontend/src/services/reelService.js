@@ -1,4 +1,32 @@
+import axios from 'axios';
 import { api } from './apiService';
+
+/**
+ * Upload a video directly to Cloudinary using a server-signed request.
+ * Uses a bare axios call so our auth token is NOT sent to Cloudinary.
+ * Returns the Cloudinary public_id.
+ */
+const uploadDirectToCloudinary = async (file, onProgress) => {
+    const sigRes = await api.get('/reels/upload-signature');
+    const { cloudName, apiKey, timestamp, folder, signature } = sigRes.data || {};
+    if (!cloudName || !apiKey || !signature) throw new Error('Upload signature unavailable');
+
+    const form = new FormData();
+    form.append('file', file);
+    form.append('api_key', apiKey);
+    form.append('timestamp', timestamp);
+    form.append('folder', folder);
+    form.append('signature', signature);
+
+    const res = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, form, {
+        timeout: 600000,
+        onUploadProgress: (e) => {
+            if (typeof onProgress === 'function') onProgress(e);
+        },
+    });
+    if (!res.data?.public_id) throw new Error('Cloudinary did not return a video id');
+    return res.data.public_id;
+};
 
 export const reelService = {
     getFeed: (params = {}) =>
@@ -16,6 +44,31 @@ export const reelService = {
 
     uploadReel: async (file, caption = '', category = 'General', extra = {}, onProgress = null) => {
         const isFileOrBlob = file instanceof Blob || file instanceof File || (file && file.size);
+
+        // Preferred: upload straight to Cloudinary (no server hop, works on weak devices/networks),
+        // then send only the metadata to our server.
+        if (isFileOrBlob && typeof Blob !== 'undefined' && file instanceof Blob) {
+            let publicId = null;
+            try {
+                publicId = await uploadDirectToCloudinary(file, onProgress);
+            } catch (directErr) {
+                console.warn('[Reel Upload] Direct Cloudinary upload failed, falling back to server upload...', directErr);
+            }
+            if (publicId) {
+                return await api
+                    .post(
+                        '/reels/upload',
+                        {
+                            videoPublicId: publicId,
+                            caption: caption != null ? String(caption).trim().slice(0, 500) : '',
+                            category,
+                            ...extra,
+                        },
+                        { timeout: 120000 }
+                    )
+                    .then((r) => r.data);
+            }
+        }
 
         // If file is a standard File or Blob, always use FormData multipart first (streaming, 33% less bandwidth)
         if (isFileOrBlob) {

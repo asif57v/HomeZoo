@@ -4,6 +4,7 @@ import { requireRazorpayEnabled } from '../middlewares/featureGuards.js';
 import { rateLimitReelUpload } from '../middlewares/rateLimitReelUpload.js';
 import {
   uploadReel,
+  getReelUploadSignature,
   getFeed,
   getMyReels,
   getMostViewed,
@@ -61,6 +62,13 @@ router.get('/duration-settings', optionalProtect, getReelDurationSettings);
 router.post('/duration-quote', optionalProtect, quoteReelDuration);
 router.post('/duration-payment/create-order', protect, requireRazorpayEnabled, createReelDurationOrder);
 router.post('/duration-payment/verify', protect, verifyReelDurationPayment);
+
+router.get(
+  '/upload-signature',
+  protect,
+  authorizedRoles('user', 'partner', 'broker', 'agent', 'seller', 'admin', 'superadmin'),
+  getReelUploadSignature
+);
 
 router.post(
   '/upload',
