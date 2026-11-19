@@ -290,6 +290,74 @@ class NotificationService {
   }
 
   /**
+   * Notify the owner of a property. property.partnerId points at a Partner doc, but in the
+   * unified app the owner is logged in as a User (different _id, same phone) whose FCM token and
+   * notification list live on the User doc. So we save the notification for both the Partner and
+   * the linked User, and push once per unique device token.
+   * @param {string} ownerId - property.partnerId (Partner id, or User id for legacy rows)
+   */
+  async sendToPropertyOwner(ownerId, notification, data = {}) {
+    try {
+      if (!ownerId) return { success: false, error: 'No owner id' };
+      const Partner = (await import('../models/Partner.js')).default;
+
+      const partner = await Partner.findById(ownerId);
+      let user = await User.findById(ownerId);
+      if (!user && partner?.phone) user = await User.findOne({ phone: partner.phone });
+
+      const recipients = [];
+      if (partner) recipients.push({ doc: partner, userType: 'partner' });
+      if (user) recipients.push({ doc: user, userType: 'user' });
+      if (recipients.length === 0) {
+        console.warn(`[NotificationService] Property owner not found: ${ownerId}`);
+        return { success: false, error: 'Owner not found' };
+      }
+
+      // In-app notification list entry for each identity
+      for (const r of recipients) {
+        await Notification.create({
+          userId: r.doc._id,
+          userType: r.userType,
+          title: notification.title || 'HomeZoo',
+          body: notification.body || '',
+          data: data || {},
+          type: data.type || 'general',
+        }).catch((e) => console.error('[NotificationService] Failed to save owner notification:', e));
+      }
+
+      // Push once per unique token
+      const seen = new Set();
+      let successCount = 0;
+      for (const r of recipients) {
+        let cleaned = false;
+        for (const entry of this.getUserFcmTokens(r.doc)) {
+          if (seen.has(entry.token)) continue;
+          seen.add(entry.token);
+          try {
+            const result = await this.sendToToken(entry.token, notification, data);
+            if (result.success) successCount++;
+            else if (result.isInvalidToken && r.doc.fcmTokens) {
+              r.doc.fcmTokens[entry.platform] = null;
+              cleaned = true;
+            }
+          } catch (err) {
+            console.error(`[NotificationService] Owner push failed (${entry.platform}):`, err.message);
+          }
+        }
+        if (cleaned) {
+          r.doc.markModified('fcmTokens');
+          await r.doc.save().catch((e) => console.error('[NotificationService] Error saving cleaned token state:', e));
+        }
+      }
+      console.log(`[NotificationService] Property owner ${ownerId}: saved for ${recipients.map((r) => r.userType).join('+')}, pushed to ${successCount} device(s)`);
+      return { success: successCount > 0, successCount };
+    } catch (error) {
+      console.error('[NotificationService] Error notifying property owner:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Helper to send notification to all active Admins
    * @param {Object} notification - Notification payload
    * @param {Object} data - Additional data payload

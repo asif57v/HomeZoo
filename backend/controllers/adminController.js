@@ -417,7 +417,7 @@ export const getPropertyRequests = async (req, res) => {
 
 export const updateHotelStatus = async (req, res) => {
   try {
-    const { propertyId, hotelId, status, isLive } = req.body;
+    const { propertyId, hotelId, status, isLive, reason, adminRemark } = req.body;
 
     const id = propertyId || hotelId;
     if (!id) {
@@ -442,12 +442,33 @@ export const updateHotelStatus = async (req, res) => {
     const hotel = await Property.findByIdAndUpdate(id, update, { new: true });
     if (!hotel) return res.status(404).json({ success: false, message: 'Property not found' });
 
-    // NOTIFICATION: Notify Partner of status change
+    // NOTIFICATION: Notify the property owner (Partner + linked User account) of the status change
     if (hotel.partnerId) {
-      notificationService.sendToUser(hotel.partnerId, {
-        title: `Property Status: ${hotel.propertyName}`,
-        body: `Your property status is now: ${hotel.status.toUpperCase()}${typeof isLive === 'boolean' ? ` (Live: ${hotel.isLive ? 'Yes' : 'No'})` : ''}.`
-      }, { type: 'property_status_update', propertyId: hotel._id, url: '/partner/properties' }, 'partner').catch(e => console.error(e));
+      const remark = reason || adminRemark;
+      let payload;
+      if (status === 'approved') {
+        payload = {
+          title: 'Property Approved ✅',
+          body: `Your property "${hotel.propertyName}" has been approved by admin and is now live.`,
+          type: 'property_approved',
+        };
+      } else if (status === 'rejected') {
+        payload = {
+          title: 'Property Rejected ❌',
+          body: `Your property "${hotel.propertyName}" was rejected by admin.${remark ? ` Reason: ${remark}` : ' Please review and update the details.'}`,
+          type: 'property_rejected',
+        };
+      } else {
+        payload = {
+          title: `Property Status: ${hotel.propertyName}`,
+          body: `Your property status is now: ${hotel.status.toUpperCase()}${typeof isLive === 'boolean' ? ` (Live: ${hotel.isLive ? 'Yes' : 'No'})` : ''}.`,
+          type: 'property_status_update',
+        };
+      }
+      notificationService.sendToPropertyOwner(hotel.partnerId,
+        { title: payload.title, body: payload.body },
+        { type: payload.type, propertyId: hotel._id, status: hotel.status, url: '/partner/properties' }
+      ).catch(e => console.error(e));
     }
 
     res.status(200).json({ success: true, hotel });
@@ -472,10 +493,10 @@ export const verifyPropertyDocuments = async (req, res) => {
       property.isLive = true;
 
       // NOTIFICATION: Property Live
-      notificationService.sendToUser(property.partnerId, {
-        title: 'Property is LIVE! 🚀',
-        body: `Your property ${property.propertyName} is verified and LIVE for bookings!`
-      }, { type: 'property_verified', propertyId: property._id, url: '/partner/properties' }, 'partner').catch(e => console.error(e));
+      notificationService.sendToPropertyOwner(property.partnerId, {
+        title: 'Property Approved ✅',
+        body: `Your property "${property.propertyName}" has been approved by admin and is now live.`
+      }, { type: 'property_approved', propertyId: property._id, status: 'approved', url: '/partner/properties' }).catch(e => console.error(e));
 
     } else if (action === 'reject') {
       docs.verificationStatus = 'rejected';
@@ -485,10 +506,10 @@ export const verifyPropertyDocuments = async (req, res) => {
       property.isLive = false;
 
       // NOTIFICATION: Property Rejected
-      notificationService.sendToUser(property.partnerId, {
-        title: 'Property Documents Rejected ⚠️',
-        body: `Documents for ${property.propertyName} were rejected. Reason: ${adminRemark || 'Review required'}`
-      }, { type: 'property_rejected', propertyId: property._id, url: '/partner/properties' }, 'partner').catch(e => console.error(e));
+      notificationService.sendToPropertyOwner(property.partnerId, {
+        title: 'Property Rejected ❌',
+        body: `Your property "${property.propertyName}" was rejected by admin. Reason: ${adminRemark || 'Review required'}`
+      }, { type: 'property_rejected', propertyId: property._id, status: 'rejected', url: '/partner/properties' }).catch(e => console.error(e));
 
     } else {
       return res.status(400).json({ success: false, message: 'Invalid action' });

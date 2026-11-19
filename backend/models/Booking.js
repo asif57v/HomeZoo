@@ -115,7 +115,23 @@ const bookingSchema = new mongoose.Schema({
       type: String,
       enum: ["new", "scheduled", "negotiating", "closed", "sold", "rented", "dropped"],
       default: "new"
-    }
+    },
+    // Lead tracking (see utils/leadTracker.js)
+    source: String,        // strongest action: property_view | call_click | contact_reveal | enquiry_form
+    sourceScreen: String,  // where the user found the property, e.g. "Home · Find your perfect stay"
+    sharingType: String,   // e.g. "Double Sharing"
+    roomName: String,
+    roomPrice: Number,
+    beds: Number,
+    platform: String,      // app | web
+    activity: [{
+      _id: false,
+      action: String,
+      label: String,
+      screen: String,
+      sharingType: String,
+      at: Date
+    }]
   }
 
 }, { timestamps: true });

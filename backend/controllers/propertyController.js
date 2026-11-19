@@ -13,6 +13,7 @@ import User from '../models/User.js'; // Needed to find Admins? Or Admin model
 import Admin from '../models/Admin.js';
 import { getFeatureFlags } from '../middlewares/featureGuards.js';
 import PlatformSettings from '../models/PlatformSettings.js';
+import { recordLead, readLeadContext } from '../utils/leadTracker.js';
 
 const sanitizePhone = (phone) => {
   if (!phone) return phone;
@@ -726,6 +727,20 @@ export const getPublicProperties = async (req, res) => {
           rankingWeight: { $ifNull: ['$plan.rankingWeight', 0] },
           hasVerifiedTag: { $ifNull: ['$plan.hasVerifiedTag', false] }
         }
+      },
+      // SECURITY: this endpoint is public. Never expose partner credentials / push tokens / OTP state.
+      {
+        $project: {
+          'partner.password': 0,
+          'partner.fcmTokens': 0,
+          'partner.otp': 0,
+          'partner.otpExpires': 0,
+          'partner.aadhaarNumber': 0,
+          'partner.aadhaarFront': 0,
+          'partner.aadhaarBack': 0,
+          'partner.panNumber': 0,
+          'partner.panCardImage': 0
+        }
       }
     );
 
@@ -813,6 +828,10 @@ export const getPublicProperties = async (req, res) => {
     }
 
     pipeline.push({ $sort: sortStage });
+
+    // Optional page size (home carousels only need a few cards; avoids sending every property on mobile data)
+    const lim = parseInt(req.query.limit, 10);
+    if (lim > 0) pipeline.push({ $limit: Math.min(lim, 100) });
 
     // Execute
     const list = await Property.aggregate(pipeline);
@@ -928,7 +947,23 @@ export const getPropertyDetails = async (req, res) => {
     const property = await Property.findById(id);
     if (!property) return res.status(404).json({ message: 'Property not found' });
     const roomTypes = await RoomType.find({ propertyId: id, isActive: true });
-    const documents = await PropertyDocument.findOne({ propertyId: id });
+
+    // SECURITY: this route is public. Legal documents (owner ID proof, rent agreement, licences) are returned only to the
+    // owning partner or an admin (req.user is set by optionalProtect). Read-only check: never auto-create a partner here.
+    let canSeeDocs = false;
+    const u = req.user;
+    if (u) {
+      if (['admin', 'superadmin'].includes(u.role)) canSeeDocs = true;
+      else if (property.partnerId) {
+        const owner = String(property.partnerId);
+        if (String(u._id) === owner) canSeeDocs = true;
+        else if (u.phone) {
+          const p = await Partner.findOne({ phone: u.phone }).select('_id').lean();
+          canSeeDocs = !!p && String(p._id) === owner;
+        }
+      }
+    }
+    const documents = canSeeDocs ? await PropertyDocument.findOne({ propertyId: id }) : null;
     res.json({ property, roomTypes, documents });
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -1057,37 +1092,31 @@ export const revealContact = async (req, res) => {
       }
 
       if (leadUserId) {
-        const pType = (property.propertyType || 'pg').toLowerCase();
-        const bookingId = `CALL-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+        const rawType = (property.propertyType || 'pg').toLowerCase();
+        const pType = Booking.schema.path('propertyType').enumValues.includes(rawType) ? rawType : (/sale|buy/i.test(property.transactionType || '') ? 'buy' : 'rent');
         const leadBudget = pType === 'buy'
           ? (property.buyDetails?.expectedPrice || 0)
           : (pType === 'rent'
             ? (property.rentDetails?.monthlyRent || 0)
             : (property.pgDetails?.monthlyRent || property.startingPrice || property.minPrice || 0));
 
-        const lead = new Booking({
-          bookingId,
-          userModel: leadUserModel,
+        const { lead } = await recordLead({
           userId: leadUserId,
-          propertyId: property._id,
+          userModel: leadUserModel,
+          property,
           propertyType: pType,
-          isInquiry: true,
-          bookingStatus: 'pending',
-          guests: { adults: 1, children: 0 },
-          inquiryMetadata: {
-            preferredDate: new Date(),
-            message: `Revealed contact / requested call on Hoomzo (${new Date().toLocaleDateString('en-GB')})`,
-            budget: leadBudget,
-            status: 'new'
-          }
+          action: 'contact_reveal',
+          context: readLeadContext(req.query),
+          message: `Revealed contact / requested call on Hoomzo (${new Date().toLocaleDateString('en-GB')})`,
+          budget: leadBudget,
+          bookingIdPrefix: 'CALL',
         });
-        await lead.save();
 
         if (partner._id) {
-          notificationService.sendToUser(partner._id, {
+          notificationService.sendToPropertyOwner(partner._id, {
             title: 'Contact Revealed! 📞',
             body: `${leadGuestName} viewed your contact number for ${property.propertyName}.`
-          }, { type: 'contact_revealed', bookingId: lead._id, url: '/partner/bookings' }, 'partner').catch(e => console.error(e));
+          }, { type: 'contact_revealed', bookingId: lead._id, url: '/partner/bookings' }).catch(e => console.error(e));
         }
       }
     } catch (leadErr) {

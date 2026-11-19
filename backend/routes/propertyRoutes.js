@@ -22,7 +22,7 @@ router.get('/', getPublicProperties);
 router.get('/recommended-sellers', getRecommendedSellers);
 router.get('/my', protect, authorizedRoles('partner', 'admin', 'user'), getMyProperties);
 router.get('/:id/reveal-contact', optionalProtect, revealContact);
-router.get('/:id', getPropertyDetails);
+router.get('/:id', optionalProtect, getPropertyDetails);
 
 router.post('/', protect, authorizedRoles('partner', 'admin', 'user'), createProperty);
 router.post('/:id/publish', protect, authorizedRoles('partner', 'admin', 'user'), publishDraftProperty);

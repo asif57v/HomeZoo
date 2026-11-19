@@ -104,7 +104,15 @@ export const testFcmNotification = async (req, res) => {
       }
     }
 
-    // Case 4: No specific token/user provided -> lookup registered tokens from database
+    // Case 4: broadcast to registered tokens. Admin-only: this route is public, so anonymous callers must never be able to push to other people's devices.
+    const isAdminCaller = ['admin', 'superadmin'].includes(req.user?.role);
+    if (targetTokens.length === 0 && !isAdminCaller) {
+      return res.status(200).json({
+        success: false,
+        message: `No FCM token found for your account on platform '${platform}'. Open the app on a real device, allow notifications, then try again.`,
+        data: { platform, channel, successCount: 0, failureCount: 0, results: [] }
+      });
+    }
     if (targetTokens.length === 0) {
       const matchPlatform = platform.toLowerCase();
       const tokenMap = new Map(); // to avoid duplicates

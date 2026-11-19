@@ -2,6 +2,7 @@ import Review from '../models/Review.js';
 import Property from '../models/Property.js';
 import mongoose from 'mongoose';
 import notificationService from '../services/notificationService.js';
+import { ownsProperty, ownerIdsFor } from '../utils/partnerResolver.js';
 
 export const getPropertyReviews = async (req, res) => {
   try {
@@ -94,7 +95,7 @@ export const createReview = async (req, res) => {
 export const getPartnerReviewStats = async (req, res) => {
   try {
     // 1. Get all properties for this partner
-    const properties = await Property.find({ partnerId: req.user._id }).select('_id');
+    const properties = await Property.find({ partnerId: { $in: await ownerIdsFor(req.user) } }).select('_id');
     const propertyIds = properties.map(p => p._id);
 
     // 2. Count reviews that have no reply
@@ -124,7 +125,7 @@ export const getPartnerReviews = async (req, res) => {
     const { status } = req.query; // optional filter: 'pending', 'replied'
 
     // Get all partner properties
-    const properties = await Property.find({ partnerId: req.user._id }).select('_id propertyName');
+    const properties = await Property.find({ partnerId: { $in: await ownerIdsFor(req.user) } }).select('_id propertyName');
     const propertyIds = properties.map(p => p._id);
 
     const query = { propertyId: { $in: propertyIds } };
@@ -157,7 +158,7 @@ export const replyToReview = async (req, res) => {
     if (!review) return res.status(404).json({ message: 'Review not found' });
 
     // Verify ownership
-    if (String(review.propertyId.partnerId) !== String(req.user._id)) {
+    if (!(await ownsProperty(req.user, review.propertyId))) {
       return res.status(403).json({ message: 'Not authorized to reply to this review' });
     }
 

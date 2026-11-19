@@ -80,3 +80,30 @@ export const resolvePartnerForUser = async (userObj) => {
   console.log(`[resolvePartnerForUser] Auto-bridged user ${userObj.name} (${userObj.phone}) to partner ${partner._id}`);
   return partner;
 };
+
+/**
+ * The Partner _id that property.partnerId uses for this logged-in account (lookup only, never creates).
+ * In the unified app a partner logs in as a User (different _id, same phone), so comparing
+ * property.partnerId with req.user._id alone wrongly rejects the real owner.
+ */
+export const resolveOwnerId = async (userObj) => {
+  if (!userObj) return null;
+  let partner = await Partner.findById(userObj._id).select('_id');
+  if (!partner && userObj.phone) partner = await Partner.findOne({ phone: userObj.phone }).select('_id');
+  return String(partner ? partner._id : userObj._id);
+};
+
+/** True when this logged-in account owns the property (as User or as linked Partner). */
+export const ownsProperty = async (userObj, property) => {
+  const ownerId = String(property?.partnerId?._id || property?.partnerId || '');
+  if (!userObj || !ownerId) return false;
+  if (String(userObj._id) === ownerId) return true;
+  return (await resolveOwnerId(userObj)) === ownerId;
+};
+
+/** All ids a property of this account may be stored under (User id and linked Partner id). */
+export const ownerIdsFor = async (userObj) => {
+  const ids = new Set([String(userObj._id)]);
+  ids.add(await resolveOwnerId(userObj));
+  return [...ids];
+};

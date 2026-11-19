@@ -100,6 +100,17 @@ const offerSchema = new mongoose.Schema({
     default: true
   },
 
+  // Optional: where the offer card redirects on tap (NONE = default behaviour)
+  linkType: {
+    type: String,
+    enum: ['NONE', 'CATEGORY', 'PROPERTY', 'EXTERNAL_URL'],
+    default: 'NONE'
+  },
+  linkValue: {
+    type: String,
+    default: '' // category slug, property id, or external URL
+  },
+
   isActive: {
     type: Boolean,
     default: true

@@ -2,6 +2,7 @@ import Property from '../models/Property.js';
 import RoomType from '../models/RoomType.js';
 import Booking from '../models/Booking.js';
 import AvailabilityLedger from '../models/AvailabilityLedger.js';
+import { ownsProperty, ownerIdsFor } from '../utils/partnerResolver.js';
 
 const parseDate = (value) => {
   const d = new Date(value);
@@ -97,7 +98,7 @@ export const createWalkIn = async (req, res) => {
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    if (String(property.partnerId) !== String(req.user._id)) {
+    if (!(await ownsProperty(req.user, property))) {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -160,7 +161,7 @@ export const createExternalBooking = async (req, res) => {
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    if (String(property.partnerId) !== String(req.user._id)) {
+    if (!(await ownsProperty(req.user, property))) {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -225,7 +226,7 @@ export const createManualBlock = async (req, res) => {
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    if (String(property.partnerId) !== String(req.user._id)) {
+    if (!(await ownsProperty(req.user, property))) {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -293,7 +294,7 @@ export const deleteLedgerEntry = async (req, res) => {
     const property = await Property.findById(ledger.propertyId);
     if (!property) return res.status(404).json({ message: 'Property not found' });
 
-    if (String(property.partnerId) !== String(req.user._id)) {
+    if (!(await ownsProperty(req.user, property))) {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
@@ -309,7 +310,7 @@ export const getPartnerLedger = async (req, res) => {
   try {
     const { propertyId, roomTypeId, source, page = 1, limit = 20 } = req.query;
 
-    const myProps = await Property.find({ partnerId: req.user._id }).select('_id');
+    const myProps = await Property.find({ partnerId: { $in: await ownerIdsFor(req.user) } }).select('_id');
     const propertyIds = myProps.map(p => p._id);
 
     if (!propertyIds.length) {

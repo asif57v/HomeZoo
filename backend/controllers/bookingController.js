@@ -17,6 +17,9 @@ import referralService from '../services/referralService.js';
 import User from '../models/User.js';
 import Partner from '../models/Partner.js';
 import SubscriptionPlan from '../models/SubscriptionPlan.js';
+import { recordLead, readLeadContext } from '../utils/leadTracker.js';
+
+import { ownsProperty, resolveOwnerId } from '../utils/partnerResolver.js';
 
 /**
  * Helper: Check if a partner has a valid subscription or free trial lead allowance
@@ -180,31 +183,40 @@ export const createBooking = async (req, res) => {
         )
       ) || 0;
 
-      const inquiry = new Booking({
-        bookingId,
-        userModel,
+      // Sharing / room the user picked: explicit value from the client, else the room type's category
+      const context = readLeadContext(req.body);
+      if (roomType) {
+        const CAT = { triple: 'Triple Sharing', double: 'Double Sharing', private: 'Private Room', shared: 'Shared Dorm' };
+        if (!context.sharingType && roomType.roomCategory) context.sharingType = CAT[roomType.roomCategory.toLowerCase()] || roomType.roomCategory;
+        if (!context.roomName) context.roomName = roomType.name;
+        if (!context.roomPrice) context.roomPrice = roomType.pricePerNight;
+      }
+      if (!context.sharingType && property.pgDetails?.occupancy && property.pgDetails.occupancy !== 'Other') {
+        context.sharingType = `${property.pgDetails.occupancy} Sharing`;
+      }
+
+      const { lead: inquiry } = await recordLead({
         userId: req.user._id,
-        propertyId,
+        userModel,
+        property,
         propertyType: pType,
+        action: 'enquiry_form',
+        context,
+        message: req.body.message || 'I am interested in this property.',
+        budget: context.roomPrice || inquiryBudget,
+        preferredDate: checkInDate ? new Date(checkInDate) : new Date(),
         roomTypeId: roomTypeId || null,
-        isInquiry: true,
-        bookingStatus: 'pending',
-        inquiryMetadata: {
-          preferredDate: checkInDate ? new Date(checkInDate) : new Date(),
-          message: req.body.message || 'I am interested in this property.',
-          budget: inquiryBudget,
-          status: 'new'
-        }
+        bookingUnit: roomType?.inventoryType,
+        guests: context.beds ? { adults: context.beds, children: 0 } : undefined,
+        bookingIdPrefix: 'INQ',
       });
 
-      await inquiry.save();
-
-      // Notify Partner
+      // Notify Partner (Partner + linked User account)
       if (property.partnerId) {
-        notificationService.sendToUser(property.partnerId, {
+        notificationService.sendToPropertyOwner(property.partnerId, {
           title: 'New Property Inquiry! 🎯',
-          body: `You have a new inquiry for ${property.propertyName} from ${req.user.name || 'a guest'}.`
-        }, { type: 'new_inquiry', bookingId: inquiry._id, url: '/partner/bookings' }, 'partner').catch(e => console.error(e));
+          body: `${req.user.name || 'A guest'} sent an enquiry for ${property.propertyName}${context.sharingType ? ` (${context.sharingType})` : ''}.`
+        }, { type: 'new_inquiry', bookingId: inquiry._id, url: '/partner/bookings' }).catch(e => console.error(e));
       }
 
       // Notify User
@@ -773,7 +785,7 @@ export const getPartnerBookings = async (req, res) => {
 export const getPartnerBookingDetail = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
-      .populate('userId', 'name email phone')
+      .populate('userId', 'name email phone profileImage address createdAt')
       .populate('propertyId') // Need full property for partnerId check
       .populate('roomTypeId');
 
@@ -786,7 +798,7 @@ export const getPartnerBookingDetail = async (req, res) => {
       return res.status(403).json({ message: 'Booking data invalid (property link missing)' });
     }
 
-    if (req.user.role !== 'admin' && booking.propertyId.partnerId.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin' && !(await ownsProperty(req.user, booking.propertyId))) {
       return res.status(403).json({ message: 'Not authorized to view this booking' });
     }
 
@@ -796,7 +808,7 @@ export const getPartnerBookingDetail = async (req, res) => {
     if (bObj.isInquiry) {
       const subCheck = req.user.role === 'admin'
         ? { isValid: true, reason: 'admin' }
-        : await checkPartnerSubscriptionValid(req.user._id);
+        : await checkPartnerSubscriptionValid(await resolveOwnerId(req.user));
 
       if (!subCheck.isValid) {
         bObj.isLocked = true;
@@ -875,7 +887,11 @@ export const generateViewLead = async (req, res) => {
       createdAt: { $gte: fourHoursAgo }
     });
 
-    if (recentLead) {
+    const context = readLeadContext(req.body);
+    const action = req.body.action === 'call_click' ? 'call_click' : 'property_view';
+
+    // A lead the partner is already working on (scheduled/negotiating/...) is left untouched
+    if (recentLead && recentLead.inquiryMetadata?.status !== 'new') {
       return res.json({
         success: true,
         message: 'Lead already generated recently',
@@ -884,41 +900,37 @@ export const generateViewLead = async (req, res) => {
       });
     }
 
-    // 3. Create lead as Booking inquiry
+    // 3. Create lead (or add this view/call to the recent open lead)
     const pType = (property.propertyType || 'pg').toLowerCase();
-    const bookingId = `LEAD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
-
     const leadBudget = pType === 'buy'
       ? (property.buyDetails?.expectedPrice || 0)
       : (pType === 'rent'
         ? (property.rentDetails?.monthlyRent || 0)
         : (property.pgDetails?.monthlyRent || property.startingPrice || 0));
 
-    const lead = new Booking({
-      bookingId,
-      userModel,
+    const { lead, created } = await recordLead({
       userId: user._id,
-      propertyId: property._id,
-      propertyType: pType,
-      isInquiry: true,
-      bookingStatus: 'pending',
-      guests: { adults: 1, children: 0 },
-      inquiryMetadata: {
-        preferredDate: new Date(),
-        message: `Viewed property on Hoomzo (${new Date().toLocaleDateString('en-GB')})`,
-        budget: leadBudget,
-        status: 'new'
-      }
+      userModel,
+      property,
+      propertyType: Booking.schema.path('propertyType').enumValues.includes(pType) ? pType : (/sale|buy/i.test(property.transactionType || '') ? 'buy' : 'rent'),
+      action,
+      context,
+      message: action === 'call_click'
+        ? `Tapped Call owner on Hoomzo (${new Date().toLocaleDateString('en-GB')})`
+        : `Viewed property on Hoomzo (${new Date().toLocaleDateString('en-GB')})`,
+      budget: leadBudget,
     });
 
-    await lead.save();
+    if (!created) {
+      return res.json({ success: true, message: 'Lead updated', booking: lead, deduplicated: true });
+    }
 
-    // 4. Real-time Notification to Partner
+    // 4. Real-time Notification to Partner (Partner + linked User account)
     if (property.partnerId) {
-      notificationService.sendToUser(property.partnerId, {
+      notificationService.sendToPropertyOwner(property.partnerId, {
         title: 'New Lead Generated! 🎯',
-        body: `${user.name || 'A customer'} viewed ${property.propertyName || 'your property'}. Check your enquiries!`
-      }, { type: 'new_lead', bookingId: lead._id, url: '/hotel/bookings' }, 'partner').catch(e => console.error('Partner lead notification error:', e));
+        body: `${user.name || 'A customer'} viewed ${property.propertyName || 'your property'}${context.screen ? ` from ${context.screen}` : ''}. Check your enquiries!`
+      }, { type: 'new_lead', bookingId: lead._id, url: '/hotel/bookings' }).catch(e => console.error('Partner lead notification error:', e));
     }
 
     return res.status(201).json({
@@ -1094,7 +1106,7 @@ export const markBookingAsPaid = async (req, res) => {
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
     // Auth Check
-    if (booking.propertyId.partnerId.toString() !== req.user._id.toString()) {
+    if (!(await ownsProperty(req.user, booking.propertyId))) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -1134,7 +1146,7 @@ export const markBookingNoShow = async (req, res) => {
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
     // Auth Check
-    if (booking.propertyId.partnerId.toString() !== req.user._id.toString()) {
+    if (!(await ownsProperty(req.user, booking.propertyId))) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -1232,7 +1244,7 @@ export const markCheckIn = async (req, res) => {
 
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
-    if (booking.propertyId.partnerId.toString() !== req.user._id.toString()) {
+    if (!(await ownsProperty(req.user, booking.propertyId))) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -1264,7 +1276,7 @@ export const markCheckOut = async (req, res) => {
 
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
-    if (booking.propertyId.partnerId.toString() !== req.user._id.toString()) {
+    if (!(await ownsProperty(req.user, booking.propertyId))) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -1329,7 +1341,7 @@ export const updateInquiryStatus = async (req, res) => {
     if (!inquiry) return res.status(404).json({ message: 'Inquiry not found' });
 
     // Auth Check
-    if (inquiry.propertyId.partnerId.toString() !== req.user._id.toString()) {
+    if (!(await ownsProperty(req.user, inquiry.propertyId))) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
