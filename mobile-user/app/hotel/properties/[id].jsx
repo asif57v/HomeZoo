@@ -6,7 +6,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MapPin, Users, BedDouble, ArrowLeft, CheckCircle, X, ChevronRight, Clock, Calendar, Phone, ExternalLink, Check, AlertCircle, Eye, Building2, FileText, Image as ImageIcon, Utensils } from 'lucide-react-native';
 import { Text } from '../../../src/components/ui';
 import { propertyService } from '../../../src/services/apiService';
-import { errMsg } from '../../../src/utils/format';
+import { errMsg, roomSharingLabel } from '../../../src/utils/format';
 import { colors } from '../../../src/theme';
 
 const P = '#005CA8';
@@ -86,7 +86,7 @@ export default function PartnerPropertyDetails() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             <Kv k="Property Name" v={property.propertyName} /><Kv k="Contact Number" v={property.contactNumber || 'Not provided'} />
             <Kv k="Category" v={property.dynamicCategory?.displayName} /><Kv k="Hotel Category" v={property.hotelCategory} /><Kv k="Star Rating" v={property.starRating ? `★ ${property.starRating} Star` : null} /><Kv k="Resort Type" v={property.resortType} />
-            {pType === 'pg' ? (<><Kv k="PG Gender / Type" v={property.pgType || property.pgDetails?.gender || 'Co-ed'} /><Kv k="Occupancy Type" v={property.pgDetails?.occupancy} /><Kv k="Security Deposit" v={property.pgDetails?.securityDeposit ? `₹${property.pgDetails.securityDeposit}` : null} /><Kv k="Minimum Stay" v={property.pgDetails?.minStay} /></>) : null}
+            {pType === 'pg' ? (<><Kv k="PG Gender / Type" v={property.pgType || property.pgDetails?.gender || 'Co-ed'} /><Kv k="Sharing" v={roomSharingLabel(roomTypes, property.pgDetails?.occupancy)} /><Kv k="Security Deposit" v={property.pgDetails?.securityDeposit ? `₹${property.pgDetails.securityDeposit}` : null} /><Kv k="Minimum Stay" v={property.pgDetails?.minStay} /></>) : null}
             {pType === 'hostel' ? <Kv k="Hostel Type" v={property.hostelType} /> : null}
             {pType === 'plot' && property.plotDetails ? (<><Kv k="Plot Area" v={`${property.plotDetails.plotArea} ${property.plotDetails.unit || 'sqyrd'}`} /><Kv k="Expected Price" v={`₹${property.plotDetails.expectedPrice?.toLocaleString() || 'N/A'}`} /><Kv k="Facing" v={property.plotDetails.facing} /><Kv k="Land Type" v={property.plotDetails.landType} /></>) : null}
             {pType === 'buy' && property.buyDetails ? (<><Kv k="Property Type" v={property.buyDetails.type || 'Residential'} /><Kv k="Expected Price" v={`₹${property.buyDetails.expectedPrice?.toLocaleString() || 'N/A'}`} /><Kv k="Carpet Area" v={property.buyDetails.area?.carpet ? `${property.buyDetails.area.carpet} ${property.buyDetails.area.unit || 'sqft'}` : null} /></>) : null}

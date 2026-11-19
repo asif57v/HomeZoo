@@ -13,6 +13,7 @@ import { reelService } from '../../services/reelService';
 import { storage } from '../../lib/storage';
 import toast from '../../store/toastStore';
 import { colors } from '../../theme';
+import { realRating } from '../../utils/format';
 
 const Skel = ({ style }) => <View style={[{ backgroundColor: 'rgba(209,213,219,0.7)', borderRadius: 8 }, style]} />;
 
@@ -503,8 +504,8 @@ export const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
           </View>
           <Text numberOfLines={2} style={{ fontSize: 24, fontWeight: '900', color: '#fff' }}>{cur.propertyName}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><MapPin size={14} color="#fff" /><Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{cur.address?.city}, {cur.address?.state}</Text></View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}><Star size={14} color={colors.yellow400} fill={colors.yellow400} /><Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>{cur.avgRating?.toFixed(1) || '4.0'}</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><MapPin size={14} color="#fff" /><Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{[cur.address?.area, cur.address?.city].filter(Boolean).join(', ') || cur.address?.state || 'Location not added'}</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}><Star size={14} color={colors.yellow400} fill={colors.yellow400} /><Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>{realRating(cur)}</Text></View>
           </View>
           <View style={{ marginTop: 8, flexDirection: 'row' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 999 }}><Text style={{ fontSize: 12, fontWeight: '900', color: '#000' }}>View Details</Text><ArrowRight size={14} color="#000" /></View>

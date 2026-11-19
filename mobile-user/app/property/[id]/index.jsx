@@ -13,7 +13,7 @@ import { propertyService, legalService, reviewService, offerService, availabilit
 import { storage } from '../../../src/lib/storage';
 import toast from '../../../src/store/toastStore';
 import { colors } from '../../../src/theme';
-import { errMsg } from '../../../src/utils/format';
+import { errMsg, roomSharingLabel } from '../../../src/utils/format';
 import { setCheckoutState } from '../../../src/lib/checkoutState';
 import { useKeyboardOpen } from '../../../src/hooks/useKeyboardOpen';
 
@@ -74,6 +74,8 @@ export default function PropertyDetails() {
   const [availability, setAvailability] = useState(null);
   const [checking, setChecking] = useState(false);
   const [revealedNumber, setRevealedNumber] = useState(null);
+  // Owner viewing their own listing (backend isOwner): no Enquire / Contact, so no self leads
+  const [isOwner, setIsOwner] = useState(false);
   const [revealLoading, setRevealLoading] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -94,8 +96,9 @@ export default function PropertyDetails() {
       const response = await propertyService.getDetails(id);
       if (response && response.property) {
         const p = response.property; const rts = response.roomTypes || [];
+        setIsOwner(!!response.isOwner);
         setProperty({
-          ...p, _id: p._id, name: p.propertyName, description: p.description, address: p.address, avgRating: p.avgRating || 0,
+          ...p, _id: p._id, name: p.propertyName, description: p.description, address: p.address, avgRating: p.totalReviews > 0 ? (p.avgRating || 0) : 0, // schema default is 3: no reviews => "New"
           images: { cover: p.coverImage, gallery: p.propertyImages || [] },
           propertyType: p.propertyType ? p.propertyType.charAt(0).toUpperCase() + p.propertyType.slice(1) : '',
           amenities: p.amenities || [],
@@ -300,7 +303,7 @@ export default function PropertyDetails() {
 
   const sharingLabel = (room) => {
     if (room?.roomCategory) return { triple: 'Triple Sharing', double: 'Double Sharing', private: 'Private Room', shared: 'Shared Dorm' }[room.roomCategory.toLowerCase()] || room.roomCategory;
-    if (!room && pgDetails?.occupancy && pgDetails.occupancy !== 'Other') return `${pgDetails.occupancy} Sharing`;
+    if (!room && !inventory?.length && pgDetails?.occupancy && pgDetails.occupancy !== 'Other') return `${pgDetails.occupancy} Sharing`;
     return undefined;
   };
 
@@ -450,7 +453,7 @@ export default function PropertyDetails() {
           {(pgDetails && (propertyType === 'PG' || propertyType === 'Hostel')) || config?.pgType ? (
             <Box2 title="PG / Co-Living Details" tone="yellow">
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                <Kv k="Occupancy" v={pgDetails?.occupancy} /><Kv k="Gender" v={pgDetails?.gender || config?.pgType} /><Kv k="Min Stay" v={pgDetails?.minStay} />
+                <Kv k="Sharing" v={roomSharingLabel(inventory, pgDetails?.occupancy)} /><Kv k="Gender" v={pgDetails?.gender || config?.pgType} /><Kv k="Min Stay" v={pgDetails?.minStay} />
                 <Kv k="Notice Period" v={pgDetails?.noticePeriod || config?.noticePeriod} /><Kv k="Security Deposit" v={pgDetails?.securityDeposit ? `₹${pgDetails.securityDeposit}` : null} />
                 <Kv k="Available From" v={pgDetails?.availableFrom ? new Date(pgDetails.availableFrom).toLocaleDateString() : null} />
                 {pgDetails?.foodIncluded ? <Kv k="Food Included" v={[pgDetails.foodIncluded.breakfast && 'Breakfast', pgDetails.foodIncluded.lunch && 'Lunch', pgDetails.foodIncluded.dinner && 'Dinner'].filter(Boolean).join(', ') || 'None'} /> : null}
@@ -702,7 +705,12 @@ export default function PropertyDetails() {
             ) : null}
             {extraPricingLabels.length > 0 ? <Text numberOfLines={1} style={{ fontSize: 10, color: colors.gray400 }}>{extraPricingLabels.join(' • ')}</Text> : null}
           </View>
-          {isLeadType ? (
+          {isOwner ? (
+            <TouchableOpacity onPress={() => router.push(`/hotel/properties/${id}`)} style={{ flex: 1, backgroundColor: colors.emerald50, borderWidth: 1, borderColor: colors.emerald100, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontWeight: '800', fontSize: 12, color: colors.emerald700 }}>This is your property</Text>
+              <Text style={{ fontSize: 10, color: colors.gray500, marginTop: 2 }}>Tap to manage it in your hotel dashboard</Text>
+            </TouchableOpacity>
+          ) : isLeadType ? (
             <View style={{ flex: 1, flexDirection: 'row', gap: 8 }}>
               <TouchableOpacity onPress={revealedNumber ? call : handleReveal} disabled={revealLoading} style={{ flex: 1, backgroundColor: revealedNumber ? '#f0f7fd' : '#fff', borderWidth: 2, borderColor: '#005CA8', borderRadius: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 {revealLoading ? <ActivityIndicator color="#005CA8" /> : (<><Phone size={15} color="#005CA8" /><Text style={{ fontWeight: '900', fontSize: 12, color: revealedNumber ? colors.emerald700 : '#005CA8' }}>{revealedNumber ? 'Call Now' : 'Contact'}</Text></>)}

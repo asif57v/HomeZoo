@@ -1,5 +1,5 @@
 import SubscriptionPlan from '../models/SubscriptionPlan.js';
-import { resolvePartnerForUser } from '../utils/partnerResolver.js';
+import { resolvePartnerForUser, ownsProperty } from '../utils/partnerResolver.js';
 import mongoose from 'mongoose';
 import Property from '../models/Property.js';
 import RoomType from '../models/RoomType.js';
@@ -676,9 +676,20 @@ export const getPublicProperties = async (req, res) => {
         matchConditions.$or = genderMatch.$or;
       }
     }
+    // Sharing filter is applied after the room lookup (see step 4b): the real sharing lives on the rooms
+    let occupancyMatch = null;
     if (occupancy) {
-      const occList = occupancy.split(',').map(o => new RegExp(`^${o.trim()}$`, 'i'));
-      matchConditions['pgDetails.occupancy'] = { $in: occList };
+      const OCC_TO_ROOM = { single: 'private', double: 'double', triple: 'triple', other: 'shared' };
+      const occNames = occupancy.split(',').map(o => o.trim().toLowerCase()).filter(Boolean);
+      const roomCats = occNames.map(o => OCC_TO_ROOM[o]).filter(Boolean);
+      const occList = occNames.map(o => new RegExp(`^${o.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'));
+      occupancyMatch = {
+        $or: [
+          { 'roomTypes.roomCategory': { $in: roomCats } },
+          // properties without rooms fall back to the property-level field
+          { roomTypes: { $size: 0 }, 'pgDetails.occupancy': { $in: occList } }
+        ]
+      };
     }
     if (landType) {
       const landList = landType.split(',').map(l => new RegExp(`^${l.trim()}$`, 'i'));
@@ -783,6 +794,9 @@ export const getPublicProperties = async (req, res) => {
         }
       }
     });
+
+    // 4b. Sharing filter (Single / Double / Triple) against the active rooms
+    if (occupancyMatch) pipeline.push({ $match: occupancyMatch });
 
     // 5. Calculate Starting Price (Min Price of valid rooms)
     pipeline.push({
@@ -964,7 +978,9 @@ export const getPropertyDetails = async (req, res) => {
       }
     }
     const documents = canSeeDocs ? await PropertyDocument.findOne({ propertyId: id }) : null;
-    res.json({ property, roomTypes, documents });
+    // isOwner: the app hides Enquire / Call on the owner's own listing
+    const isOwner = !!u && !(['admin', 'superadmin'].includes(u.role)) && await ownsProperty(u, property);
+    res.json({ property, roomTypes, documents, isOwner });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -1018,6 +1034,11 @@ export const revealContact = async (req, res) => {
 
     const partner = property.partnerId;
     if (!partner) return res.status(404).json({ message: 'Partner details missing' });
+
+    // Owner looking at their own listing: show the number, but no lead and no lead quota used
+    if (req.user && await ownsProperty(req.user, property)) {
+      return res.json({ success: true, contactNumber: property.contactNumber || partner.phone, ownProperty: true });
+    }
 
     const sub = partner.subscription;
     const plan = sub?.planId;

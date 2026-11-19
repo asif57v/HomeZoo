@@ -20,7 +20,30 @@ export const errMsg = (err, fallback = 'Something went wrong') => {
   return err.message || err.error || err?.response?.data?.message || fallback;
 };
 
-export const formatDate = (d, opts = { day: 'numeric', month: 'short', year: 'numeric' }) => {
+// PG/Hostel sharing comes from the owner's rooms (RoomType.roomCategory). pgDetails.occupancy was always
+// saved as 'Single' by the post wizard, so it is only a fallback when a property has no rooms.
+const SHARING_ORDER = ['private', 'double', 'triple', 'shared'];
+const SHARING_SHORT = { private: 'Single', double: 'Double', triple: 'Triple', shared: 'Dorm' };
+export const roomSharingLabel = (roomTypes, occupancy) => {
+  const cats = [...new Set((Array.isArray(roomTypes) ? roomTypes : [])
+    .filter((r) => r && r.isActive !== false)
+    .map((r) => String(r.roomCategory || '').toLowerCase())
+    .filter((c) => SHARING_SHORT[c]))]
+    .sort((a, b) => SHARING_ORDER.indexOf(a) - SHARING_ORDER.indexOf(b));
+  if (cats.length === 1) return cats[0] === 'shared' ? 'Shared dorm' : `${SHARING_SHORT[cats[0]]} sharing`;
+  if (cats.length > 1) return `${cats.map((c) => SHARING_SHORT[c]).join(' / ')} sharing`;
+  if (Array.isArray(roomTypes) && roomTypes.length) return null; // rooms exist but none has a sharing category
+  return occupancy && occupancy !== 'Other' ? `${occupancy} sharing` : null;
+};
+
+// The Property schema defaults avgRating to 3, so a property with no reviews must read "New", not 3.0
+export const realRating = (item) => {
+  const reviews = Number(item?.totalReviews || 0);
+  const r = Number(item?.avgRating ?? item?.rating);
+  return reviews > 0 && r > 0 ? r.toFixed(1) : 'New';
+};
+
+export const formatDate =(d, opts = { day: 'numeric', month: 'short', year: 'numeric' }) => {
   if (!d) return '';
   const dt = new Date(d);
   if (isNaN(dt.getTime())) return '';

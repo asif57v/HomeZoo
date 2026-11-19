@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, ScrollView, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, BackHandler } from 'react-native';
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, BackHandler, Keyboard, TextInput, Dimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, X, CheckCircle, Home, MapPin, Plus, Trash2, FileText, Bed } from 'lucide-react-native';
@@ -11,6 +11,7 @@ import { checkPartnerCanAddProperty } from '../../../utils/subscriptionGuard';
 import { sanitizePhoneNumber, isValidPhoneNumber } from '../../../utils/phone';
 import { getWizardParams, clearWizardParams } from '../../../lib/wizardState';
 import draftStore from '../../../lib/draftStore';
+import DatePickerField from '../../DatePickerField';
 import toast from '../../../store/toastStore';
 import { errMsg } from '../../../utils/format';
 import {
@@ -39,6 +40,9 @@ const emptyForm = (kind) => ({
   isVerified: false, isFeatured: false, isUrgent: false, isNegotiable: false, virtualTourLink: '', availabilityStatus: 'Available',
 });
 
+// pgDetails.occupancy mirrors the owner's room categories (was hardcoded 'Single'); search and the Private Room filter use it
+const OCC = { private: 'Single', double: 'Double', triple: 'Triple', shared: 'Other' };
+const occupancyFromRooms = (list) => { const o = [...new Set((list || []).map((r) => OCC[String(r.roomCategory || '').toLowerCase()]).filter(Boolean))]; return o.length === 1 ? o[0] : o.length ? (o.find((x) => x !== 'Other') || 'Other') : 'Single'; };
 const newRoom = () => ({ id: Date.now().toString() + Math.random().toString(36).slice(2), name: '', inventoryType: 'bed', roomCategory: 'shared', maxAdults: '', maxChildren: 0, bedsPerRoom: '', totalInventory: 99, pricePerNight: '', securityDeposit: '', availableFrom: '', extraAdultPrice: 0, extraChildPrice: 0, images: [], amenities: [], isActive: true });
 
 export default function PropertyWizard({ kind, categoryId: routeCategoryId }) {
@@ -86,6 +90,29 @@ export default function PropertyWizard({ kind, categoryId: routeCategoryId }) {
   const [done, setDone] = useState(false);
   const [booted, setBooted] = useState(false);
   const scrollRef = useRef(null);
+  const scrollY = useRef(0);
+  // Keyboard: the Android window does not shrink (edge-to-edge), so pad the form by the keyboard height,
+  // hide the sticky footer and scroll the focused field (e.g. About Property) above the keyboard.
+  const [kbH, setKbH] = useState(0);
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvt, (e) => {
+      const h = e?.endCoordinates?.height || 0;
+      const kbTop = e?.endCoordinates?.screenY || (Dimensions.get('screen').height - h);
+      setKbH(h);
+      setTimeout(() => {
+        const input = TextInput.State?.currentlyFocusedInput?.();
+        if (!input?.measureInWindow) return;
+        input.measureInWindow((x, y, w, ih) => {
+          const overflow = y + Math.min(ih, 140) + 24 - kbTop;
+          if (overflow > 0) scrollRef.current?.scrollTo({ y: scrollY.current + overflow, animated: true });
+        });
+      }, 120);
+    });
+    const hide = Keyboard.addListener(hideEvt, () => setKbH(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
   const { uploading, run } = useUploader(setError);
 
   const STORAGE_KEY = isPg ? `hoomzo_pg_wizard_draft_${existing?._id || 'new'}` : `hoomzo_hotel_wizard_draft_${existing?._id || (categoryId ? `dynamic_${categoryId}` : 'new')}`;
@@ -242,7 +269,7 @@ export default function PropertyWizard({ kind, categoryId: routeCategoryId }) {
         amenities: form.amenities, checkInTime: form.checkInTime, checkOutTime: form.checkOutTime, cancellationPolicy: form.cancellationPolicy, houseRules: form.houseRules, documents: form.documents,
         ...(isPg ? {
           pgType: form.pgType,
-          pgDetails: { occupancy: 'Single', gender: form.pgType === 'boys' ? 'Boys' : form.pgType === 'girls' ? 'Girls' : 'Co-ed', minStay: form.minStay, noticePeriod: form.noticePeriod, securityDeposit: Number(form.securityDeposit || 0), availableFrom: form.availableFrom, foodIncluded: { breakfast: form.foodIncluded?.breakfast || false, lunch: form.foodIncluded?.lunch || false, dinner: form.foodIncluded?.dinner || false }, rules: { smoking: form.smoking, drinking: form.drinking, visitors: form.visitors, curfew: form.curfew, ageRange: form.ageRange } },
+          pgDetails: { occupancy: occupancyFromRooms(rooms), gender: form.pgType === 'boys' ? 'Boys' : form.pgType === 'girls' ? 'Girls' : 'Co-ed', minStay: form.minStay, noticePeriod: form.noticePeriod, securityDeposit: Number(form.securityDeposit || 0), availableFrom: form.availableFrom, foodIncluded: { breakfast: form.foodIncluded?.breakfast || false, lunch: form.foodIncluded?.lunch || false, dinner: form.foodIncluded?.dinner || false }, rules: { smoking: form.smoking, drinking: form.drinking, visitors: form.visitors, curfew: form.curfew, ageRange: form.ageRange } },
         } : {
           rentDetails: isRent ? form.rentDetails : undefined, buyDetails: isBuy ? form.buyDetails : undefined, plotDetails: isPlot ? form.plotDetails : undefined, videoUrl: form.videoUrl,
         }),
@@ -391,7 +418,7 @@ export default function PropertyWizard({ kind, categoryId: routeCategoryId }) {
           {isPg ? (<>
             <Label>Security Amount (₹)</Label><TInput value={editRoom.securityDeposit} onChange={(v) => er({ securityDeposit: v.replace(/[^0-9]/g, '') })} keyboardType="number-pad" placeholder="5000" prefix="₹" />
             <Label>Beds per Room</Label><TInput value={editRoom.bedsPerRoom} onChange={(v) => er({ bedsPerRoom: v.replace(/[^0-9]/g, ''), maxAdults: v.replace(/[^0-9]/g, '') })} keyboardType="number-pad" placeholder="1" />
-            <Label>Available From (YYYY-MM-DD)</Label><TInput value={editRoom.availableFrom} onChange={(v) => er({ availableFrom: v })} placeholder="2026-01-01" />
+            <Label>Available From</Label><DatePickerField date={editRoom.availableFrom ? String(editRoom.availableFrom).slice(0, 10) : ''} onChange={(v) => er({ availableFrom: v })} onClear={() => er({ availableFrom: '' })} placeholder="Select date" />
           </>) : (<>
             <Label>Max Adults</Label><TInput value={editRoom.maxAdults} onChange={(v) => er({ maxAdults: v.replace(/[^0-9]/g, '') })} keyboardType="number-pad" />
             <Label>Max Children</Label><TInput value={editRoom.maxChildren} onChange={(v) => er({ maxChildren: v.replace(/[^0-9]/g, '') })} keyboardType="number-pad" />
@@ -484,13 +511,13 @@ export default function PropertyWizard({ kind, categoryId: routeCategoryId }) {
       </View>
       <View style={{ height: 4, backgroundColor: colors.gray200 }}><View style={{ height: 4, width: `${progress}%`, backgroundColor: colors.emerald600 }} /></View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 16, paddingBottom: 120 + footerPad }} keyboardShouldPersistTaps="handled">
+        <ScrollView ref={scrollRef} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} scrollEventThrottle={32} contentContainerStyle={{ padding: 16, paddingBottom: kbH ? kbH + 48 : 120 + footerPad }} keyboardShouldPersistTaps="handled">
           <Text style={{ fontSize: 24, fontWeight: '800', color: colors.gray900, marginBottom: 20 }}>{cur.label}</Text>
           <View style={{ backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: colors.gray100, padding: 16 }}>
             {loading && isEdit && !booted ? <ActivityIndicator color={P} /> : renderStep()}
           </View>
         </ScrollView>
-        {!subEditing ? (
+        {!subEditing && !kbH ? (
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,0.97)', padding: 16, paddingBottom: footerPad, borderTopWidth: 1, borderTopColor: colors.gray100, flexDirection: 'row', alignItems: 'stretch', gap: 10 }}>
             {/* Web footer: [Back] [Clear Step] [Continue] */}
             <TouchableOpacity disabled={step === 1 || loading} onPress={handleBack} style={{ paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, borderColor: colors.gray200, justifyContent: 'center', opacity: step === 1 || loading ? 0.5 : 1 }}><Text style={{ fontWeight: '700', color: colors.gray700 }}>Back</Text></TouchableOpacity>

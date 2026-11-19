@@ -101,6 +101,24 @@ export const ownsProperty = async (userObj, property) => {
   return (await resolveOwnerId(userObj)) === ownerId;
 };
 
+/**
+ * Every id this person has (User and Partner docs sharing the phone). Used to hide the owner's own
+ * views/enquiries on their own properties ("self leads").
+ */
+export const accountIdsFor = async (userObj) => {
+  if (!userObj) return [];
+  const ids = new Set([String(userObj._id), await resolveOwnerId(userObj)]);
+  if (userObj.phone) {
+    const [u, p] = await Promise.all([
+      User.findOne({ phone: userObj.phone }).select('_id'),
+      Partner.findOne({ phone: userObj.phone }).select('_id'),
+    ]);
+    if (u) ids.add(String(u._id));
+    if (p) ids.add(String(p._id));
+  }
+  return [...ids];
+};
+
 /** All ids a property of this account may be stored under (User id and linked Partner id). */
 export const ownerIdsFor = async (userObj) => {
   const ids = new Set([String(userObj._id)]);

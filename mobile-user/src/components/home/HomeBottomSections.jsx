@@ -10,12 +10,6 @@ import { propertyService } from '../../services/apiService';
 import { API_BASE_URL } from '../../config';
 import { colors } from '../../theme';
 
-const DEFAULT_NEWS = [
-  { _id: 'default-1', title: 'Why Residential Plots Are Overperforming Urban Apartments in 2026', description: 'An in-depth market analysis revealing how smart infrastructure improvements and express highway corridors are fueling record returns in land investment.', publishedAt: '2026-07-24T00:00:00.000Z', category: 'Market Insights', image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=80', readTime: '5 min read' },
-  { _id: 'default-2', title: 'Essential Legal Checklist Before Investing in Agricultural & Residential Land', description: 'Learn the crucial title verification steps, RERA compliance check procedures, and zoning laws to ensure your property purchase is 100% secure.', publishedAt: '2026-07-20T00:00:00.000Z', category: 'Legal Guide', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=700&q=80', readTime: '7 min read' },
-  { _id: 'default-3', title: "The Rise of Eco-Friendly Gated Plot Communities Across India's IT Hubs", description: 'Modern homeowners are shifting towards customizable villa plots within solar-powered, green luxury townships offering resort-like amenities.', publishedAt: '2026-07-15T00:00:00.000Z', category: 'Lifestyle & Design', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=700&q=80', readTime: '4 min read' },
-];
-
 const THEMES = {
   diamond: { bg: ['#1C2F8F', '#060B2D', '#03051A'], border: '#7B3FFB', badge: ['#1C2F8F', '#7B3FFB', '#E94CFF'], text: '#fff', sub: '#C4B5FD', accent: '#39D5FF', quote: 'rgba(11,19,66,0.7)', dark: true },
   gold: { bg: ['#EAB031', '#FCE38A', '#D59821'], border: '#FEEAA7', badge: ['#FFF0B3', '#FCE38A', '#FCE38A'], text: '#523600', sub: '#7A5200', accent: '#8F6100', quote: 'rgba(255,240,179,0.6)', dark: false },
@@ -43,7 +37,8 @@ export default function HomeBottomSections() {
   useEffect(() => {
     axios.get(`${API_BASE_URL}/info/platform/top-rated-section`, { timeout: 15000 }).then((r) => setSection(r.data)).catch(() => {});
     propertyService.getRecommendedSellers().then((d) => setPartners(d || [])).catch(() => {});
-    propertyService.getNewsArticles({ limit: 6 }).then((res) => setNews(res?.articles?.length ? res.articles : DEFAULT_NEWS)).catch(() => setNews(DEFAULT_NEWS));
+    // Only real articles from the admin panel; the section hides itself when there are none
+    propertyService.getNewsArticles({ limit: 6 }).then((res) => setNews(res?.articles || [])).catch(() => setNews([]));
   }, []);
 
   const shown = partners.slice(0, section?.maxPartners || 6);
@@ -80,12 +75,13 @@ export default function HomeBottomSections() {
                         {(p.address?.city || p.address?.locality) ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}><MapPin size={10} color={th.accent} /><Text style={{ fontSize: 9, fontWeight: '600', color: th.sub }}>{p.address.locality || p.address.city}</Text></View> : null}
                       </View>
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.9)' }}><Star size={10} color={colors.amber400} fill={colors.amber400} /><Text style={{ fontSize: 9, fontWeight: '900', color: colors.amber700 }}>{p.rating}</Text></View>
+                    {Number(p.rating) > 0 ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.9)' }}><Star size={10} color={colors.amber400} fill={colors.amber400} /><Text style={{ fontSize: 9, fontWeight: '900', color: colors.amber700 }}>{Number(p.rating).toFixed(1)}</Text></View> : null}
                   </View>
-                  <View style={{ flexDirection: 'row', gap: 6, padding: 8, borderRadius: 8, backgroundColor: th.quote }}>
-                    <Quote size={12} color={th.accent} />
-                    <Text numberOfLines={3} style={{ flex: 1, fontSize: 10, fontWeight: '600', color: th.text }}>"{p.tagline || 'Trusted partner with complete knowledge about the locality.'}"</Text>
-                  </View>
+                  {p.tagline ? (
+                    <View style={{ flexDirection: 'row', gap: 6, padding: 8, borderRadius: 8, backgroundColor: th.quote }}>
+                      <Quote size={12} color={th.accent} />
+                      <Text numberOfLines={3} style={{ flex: 1, fontSize: 10, fontWeight: '600', color: th.text }}>"{p.tagline}"</Text>
+                    </View>) : null}
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: 8 }}>
                     <View style={{ flexDirection: 'row', gap: 14 }}>
                       <View><Text style={{ fontSize: 7.5, fontWeight: '800', color: th.sub }}>EXPERIENCE</Text><Text style={{ fontSize: 12, fontWeight: '900', color: th.text }}>{p.experienceYears || 0}+ Yrs</Text></View>
@@ -99,6 +95,7 @@ export default function HomeBottomSections() {
         </View>
       ) : null}
 
+      {news.length > 0 ? (
       <View>
         <View style={{ paddingHorizontal: 14, marginBottom: 16 }}>
           <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: '#EEF2FF', marginBottom: 12 }}><TrendingUp size={14} color={colors.indigo600} /><Text style={{ fontSize: 12, fontWeight: '800', color: colors.indigo600 }}>Market Intelligence</Text></View>
@@ -126,6 +123,7 @@ export default function HomeBottomSections() {
           ))}
         </ScrollView>
       </View>
+      ) : null}
 
       <Sheet visible={!!selected} onClose={() => setSelected(null)} maxHeight="92%">
         {selected ? (

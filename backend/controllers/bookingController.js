@@ -19,7 +19,7 @@ import Partner from '../models/Partner.js';
 import SubscriptionPlan from '../models/SubscriptionPlan.js';
 import { recordLead, readLeadContext } from '../utils/leadTracker.js';
 
-import { ownsProperty, resolveOwnerId } from '../utils/partnerResolver.js';
+import { ownsProperty, resolveOwnerId, accountIdsFor } from '../utils/partnerResolver.js';
 
 /**
  * Helper: Check if a partner has a valid subscription or free trial lead allowance
@@ -171,6 +171,10 @@ export const createBooking = async (req, res) => {
 
     // --- HANDLE INQUIRY FLOW (BUY/PLOT/RENT/PG/HOSTEL) ---
     if (isInquiry) {
+      // The owner (same phone: User + Partner account) cannot send an enquiry to their own listing
+      if (await ownsProperty(req.user, property)) {
+        return res.status(400).json({ success: false, ownProperty: true, message: 'This is your own property, so an enquiry cannot be sent.' });
+      }
       const bookingId = `INQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const userModel = req.user.constructor.modelName;
 
@@ -640,6 +644,11 @@ export const getMyBookings = async (req, res) => {
     const { type } = req.query; // 'upcoming', 'ongoing', 'completed', 'cancelled'
     const query = { userId: req.user._id };
 
+    // Leave out enquiries/views the user made on their own listings (same phone = same person as the owner)
+    const ownIds = (await accountIdsFor(req.user)).filter((x) => mongoose.Types.ObjectId.isValid(x)).map((x) => new mongoose.Types.ObjectId(x));
+    const ownProps = await Property.find({ partnerId: { $in: ownIds } }).select('_id').lean();
+    if (ownProps.length) query.propertyId = { $nin: ownProps.map((p) => p._id) };
+
     if (type === 'upcoming') {
       // Upcoming: Confirmed. NOT checked-in.
       // Hiding 'pending'/'awaiting_payment' to ensure only finalized bookings appear
@@ -704,7 +713,9 @@ export const getPartnerBookings = async (req, res) => {
 
     // 2. Find bookings for these properties
     const { status } = req.query;
-    const query = { propertyId: { $in: propertyIds } };
+    // Hide "self leads": the owner's own views/enquiries on their own properties
+    const selfIds = (await accountIdsFor(req.user)).filter((x) => mongoose.Types.ObjectId.isValid(x)).map((x) => new mongoose.Types.ObjectId(x));
+    const query = { propertyId: { $in: propertyIds }, userId: { $nin: selfIds } };
 
     if (status) {
       if (status === 'upcoming') {
@@ -860,8 +871,8 @@ export const generateViewLead = async (req, res) => {
     if (user) {
       userModel = user.constructor.modelName || (user.isPartner ? 'Partner' : 'User');
 
-      // Prevent self-lead if owner views their own property
-      if (property.partnerId && property.partnerId.toString() === user._id.toString()) {
+      // Prevent self-lead if owner views their own property (logged in as the User or the Partner doc)
+      if (await ownsProperty(user, property)) {
         return res.json({ success: true, message: 'Owner viewing own property, lead skipped', skipped: true });
       }
     } else {

@@ -9,7 +9,7 @@ import { userService } from '../services/apiService';
 import { storage } from '../lib/storage';
 import toast from '../store/toastStore';
 import { colors } from '../theme';
-import { formatCompactPrice, cleanImageUrl, errMsg } from '../utils/format';
+import { formatCompactPrice, cleanImageUrl, errMsg, roomSharingLabel, realRating } from '../utils/format';
 
 const PLACEHOLDER = 'https://via.placeholder.com/400x300?text=No+Image';
 
@@ -98,9 +98,8 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
   const typeRaw = (propertyType || '').toString();
   const normalizedType = typeRaw ? (typeRaw.toLowerCase() === 'pg' ? 'PG' : typeRaw.charAt(0).toUpperCase() + typeRaw.slice(1).toLowerCase()) : '';
   const typeLabel = dynamicCatName ? dynamicCatName.toUpperCase() : (normalizedType || typeRaw).toString().toUpperCase();
-  const rawRating = item.avgRating !== undefined ? item.avgRating : item.rating !== undefined ? item.rating : rating;
-  const reviewCount = item.totalReviews || item.reviews || 0;
-  const displayRating = Number(rawRating) > 0 ? Number(rawRating).toFixed(1) : 'New';
+  const reviewCount = item.totalReviews || 0;
+  const displayRating = realRating({ ...item, avgRating: item.avgRating ?? item.rating ?? rating });
   const rawPrice = startingPrice ?? item.rentDetails?.monthlyRent ?? item.pgDetails?.monthlyRent ?? item.buyDetails?.expectedPrice
     ?? item.plotDetails?.expectedPrice ?? item.minPrice ?? item.min_price ?? item.price ?? item.costPerNight ?? item.amount ?? null;
   const displayPrice = typeof rawPrice === 'number' && rawPrice > 0 ? rawPrice : null;
@@ -108,7 +107,10 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
   const badgeTypeKey = normalizedType || typeRaw;
   const formattedPrice = displayPrice ? displayPrice.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : 'Price on Request';
   const priceSuffix = ['PG', 'Hostel', 'Rent'].includes(badgeTypeKey) ? '/month' : ['Buy', 'Plot'].includes(badgeTypeKey) ? '' : '/night';
-  const locationText = `${address?.city || item.city || 'Indore'}, ${address?.state || item.state || 'Madhya Pradesh'}`;
+  // Real address only (no default city): area, city, state as the owner entered them
+  const city = address?.city || item.city;
+  const area = address?.area && address.area !== city ? address.area : null;
+  const locationText = [area || city, area ? city : (address?.state || item.state)].filter(Boolean).join(', ') || 'Location not added';
   const isPremium = item.rankingWeight > 0 || item.isFeatured;
   const badgeLabel = badgeTypeKey === 'Rent' ? 'For Rent' : badgeTypeKey === 'Buy' ? 'For Sale' : typeLabel;
 
@@ -144,11 +146,11 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
   if (variant === 'stay') {
     const gender = item.pgDetails?.gender || item.pgType;
     const GENDER = { Boys: '#0EA5E9', Girls: '#EC4899', 'Co-ed': '#8B5CF6' };
-    const occupancy = item.pgDetails?.occupancy;
+    const sharing = roomSharingLabel(item.roomTypes, item.pgDetails?.occupancy);
     const food = item.pgDetails?.foodIncluded || {};
     const mealCount = ['breakfast', 'lunch', 'dinner'].filter((m) => food[m]).length;
     const mealsLabel = mealCount === 3 ? 'All meals' : mealCount > 0 ? `${mealCount} meal${mealCount > 1 ? 's' : ''}/day` : null;
-    const chips = [occupancy && { Icon: BedDouble, label: occupancy === 'Other' ? 'Sharing' : `${occupancy} sharing` }, mealsLabel && { Icon: UtensilsCrossed, label: mealsLabel }].filter(Boolean);
+    const chips = [sharing && { Icon: BedDouble, label: sharing }, mealsLabel && { Icon: UtensilsCrossed, label: mealsLabel }].filter(Boolean);
     return (
       <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ backgroundColor: '#fff', borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: '#BFDBFE', borderLeftWidth: 4, borderLeftColor: colors.emerald600, shadowColor: colors.emerald600, shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3, marginVertical: 4 }, style]}>
         <View style={{ height: 128, backgroundColor: colors.gray100 }}>
