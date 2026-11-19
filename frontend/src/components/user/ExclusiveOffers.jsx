@@ -37,6 +37,15 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
     }
   }, [propOffers, city]);
 
+  const handleOfferClick = (offer) => {
+    if (offer.linkValue) {
+      if (offer.linkType === 'CATEGORY') return navigate(`/search?category=${offer.linkValue}`);
+      if (offer.linkType === 'PROPERTY') return navigate(`/hotel/${offer.linkValue}`);
+      if (offer.linkType === 'EXTERNAL_URL') return window.open(offer.linkValue, '_blank', 'noopener,noreferrer');
+    }
+    navigate('/search');
+  };
+
   const handleCopyCode = (e, code) => {
     e.stopPropagation();
     if (code) {
@@ -88,7 +97,7 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
             key={offer._id || offer.id}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => navigate('/search')}
+            onClick={() => handleOfferClick(offer)}
             className="
               min-w-[260px] sm:min-w-[300px] md:min-w-[340px]
               bg-white

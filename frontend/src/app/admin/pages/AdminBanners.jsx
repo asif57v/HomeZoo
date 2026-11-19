@@ -9,6 +9,7 @@ import {
 import toast from 'react-hot-toast';
 import adminService from '../../../services/adminService';
 import { compressImage } from '../../../utils/imageCompressor';
+import LinkActionPicker from '../components/LinkActionPicker';
 
 const PLACEMENTS = [
   { value: 'HOME_TOP', label: 'Home Top Carousel (Hero)', badge: 'bg-blue-50 text-blue-700' },
@@ -16,19 +17,12 @@ const PLACEMENTS = [
   { value: 'CATEGORY_PAGE', label: 'Category / Listing Page', badge: 'bg-emerald-50 text-emerald-700' },
 ];
 
-const LINK_TYPES = [
-  { value: 'NONE', label: 'None (Info Banner only)' },
-  { value: 'CATEGORY', label: 'Specific Category' },
-  { value: 'OFFER', label: 'Specific Offer / Promo' },
-  { value: 'PROPERTY', label: 'Property Details' },
-  { value: 'EXTERNAL_URL', label: 'External Website URL' },
-];
-
 const POPULAR_CITIES = ['Indore', 'Bhopal', 'Mumbai', 'Pune', 'Delhi', 'Bengaluru', 'Goa', 'Ujjain'];
 
 const AdminBanners = () => {
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -60,7 +54,17 @@ const AdminBanners = () => {
   useEffect(() => {
     fetchBanners();
     fetchCategories();
+    fetchOffers();
   }, [statusFilter, placementFilter]);
+
+  const fetchOffers = async () => {
+    try {
+      const res = await adminService.getAllOffers({ limit: 100 });
+      setOffers(res.offers || (Array.isArray(res) ? res : []));
+    } catch (e) {
+      console.error('Failed to load offers', e);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -659,55 +663,14 @@ const AdminBanners = () => {
                   </div>
 
                   {/* Link Redirection */}
-                  <div className="p-3 bg-gray-50 rounded-xl space-y-3 border border-gray-100">
-                    <label className="block font-bold text-gray-700 uppercase tracking-wider">Tap / Click Action</label>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-gray-500 mb-1">Action Type</label>
-                        <select
-                          value={formData.linkType}
-                          onChange={(e) => setFormData({ ...formData, linkType: e.target.value, linkValue: '' })}
-                          className="w-full px-2.5 py-1.5 border rounded-lg bg-white outline-none"
-                        >
-                          {LINK_TYPES.map(t => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-gray-500 mb-1">Target Value</label>
-                        {formData.linkType === 'CATEGORY' ? (
-                          <select
-                            value={formData.linkValue}
-                            onChange={(e) => setFormData({ ...formData, linkValue: e.target.value })}
-                            className="w-full px-2.5 py-1.5 border rounded-lg bg-white outline-none"
-                          >
-                            <option value="">Select category...</option>
-                            {categories.map(c => (
-                              <option key={c.slug || c._id} value={c.slug || c._id}>
-                                {c.displayName || c.name} ({c.slug})
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            type="text"
-                            disabled={formData.linkType === 'NONE'}
-                            value={formData.linkValue}
-                            onChange={(e) => setFormData({ ...formData, linkValue: e.target.value })}
-                            className="w-full px-2.5 py-1.5 border rounded-lg bg-white outline-none disabled:bg-gray-100 disabled:text-gray-400"
-                            placeholder={
-                              formData.linkType === 'OFFER' ? 'e.g. HOOMZO50' :
-                              formData.linkType === 'PROPERTY' ? 'Property ID' :
-                              formData.linkType === 'EXTERNAL_URL' ? 'https://example.com' : 'No link'
-                            }
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  <LinkActionPicker
+                    linkType={formData.linkType}
+                    linkValue={formData.linkValue}
+                    categories={categories}
+                    offers={offers}
+                    noneLabel="None (Info Banner only)"
+                    onChange={(v) => setFormData(prev => ({ ...prev, ...v }))}
+                  />
 
                   {/* Schedule Dates */}
                   <div className="grid grid-cols-2 gap-4">

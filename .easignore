@@ -1,0 +1,9 @@
+backend/
+frontend/
+*.zip
+*.md
+check_*.js
+!mobile-user/*.md
+mobile-user/node_modules/
+mobile-user/.expo/
+mobile-user/dist/

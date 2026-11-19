@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import adminService from '../../../services/adminService';
 import { compressImage } from '../../../utils/imageCompressor';
+import LinkActionPicker from '../components/LinkActionPicker';
 
 const POPULAR_CITIES = ['Indore', 'Bhopal', 'Mumbai', 'Pune', 'Delhi', 'Bengaluru', 'Goa', 'Ujjain'];
 
@@ -43,6 +44,8 @@ const AdminOffers = () => {
     applicableCategories: [],
     firstBookingOnly: false,
     showOnHome: true,
+    linkType: 'NONE',
+    linkValue: '',
     isActive: true
   });
 
@@ -114,6 +117,8 @@ const AdminOffers = () => {
       applicableCategories: offer.applicableCategories ? offer.applicableCategories.map(c => typeof c === 'object' ? c._id : c) : [],
       firstBookingOnly: !!offer.firstBookingOnly,
       showOnHome: offer.showOnHome !== undefined ? !!offer.showOnHome : true,
+      linkType: offer.linkType || 'NONE',
+      linkValue: offer.linkValue || '',
       isActive: offer.isActive ?? true
     });
     setSelectedOfferId(offer._id);
@@ -289,7 +294,7 @@ const AdminOffers = () => {
                 description: '', startDate: new Date().toISOString().split('T')[0],
                 endDate: '', usageLimit: '1000', userLimit: '1',
                 cities: [], applicableCategories: [], firstBookingOnly: false,
-                showOnHome: true, isActive: true
+                showOnHome: true, linkType: 'NONE', linkValue: '', isActive: true
               });
               setImagePreview('');
               setImageFile(null);
@@ -849,6 +854,15 @@ const AdminOffers = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Tap / Click redirect (optional) */}
+                  <LinkActionPicker
+                    linkType={formData.linkType}
+                    linkValue={formData.linkValue}
+                    categories={categories}
+                    noneLabel="None (default: open search)"
+                    onChange={(v) => setFormData(prev => ({ ...prev, ...v }))}
+                  />
 
                   {/* Checkbox Toggles */}
                   <div className="p-3 bg-gray-50 rounded-xl space-y-2 border border-gray-100">
