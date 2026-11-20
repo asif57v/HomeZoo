@@ -243,6 +243,15 @@ const connectWithRetry = async (retries = 5, delay = 5000) => {
       const userCount = await mongoose.connection.db.collection('users').countDocuments();
       console.log(`📊 DB Status - Admins: ${adminCount}, Users: ${userCount}`);
 
+      // Give old properties their unique property code (HZ-PG-1001); no-op once all have one
+      try {
+        const { backfillPropertyCodes } = await import('./models/Property.js');
+        const added = await backfillPropertyCodes();
+        if (added) console.log(`🏷️ Property codes assigned to ${added} existing properties`);
+      } catch (e) {
+        console.error('Property code backfill failed:', e.message);
+      }
+
       // Start server only after successful DB connection
       server.listen(PORT, () => {
         console.log(`🚀 Server is running on port ${PORT}`);

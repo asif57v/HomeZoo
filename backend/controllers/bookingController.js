@@ -750,7 +750,7 @@ export const getPartnerBookings = async (req, res) => {
 
     const rawBookings = await Booking.find(query)
       .populate('userId', 'name email phone avatar')
-      .populate('propertyId', 'propertyName address location coverImage')
+      .populate('propertyId', 'propertyName propertyCode address location coverImage')
       .populate('roomTypeId', 'name')
       .sort({ createdAt: -1 });
 

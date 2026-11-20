@@ -103,6 +103,7 @@ export default function PartnerProperties() {
                   <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: p.status === 'published' ? colors.green100 : colors.amber100, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 }}><Text style={{ fontSize: 10, fontWeight: '700', color: p.status === 'published' ? colors.green700 : colors.amber700 }}>{p.status === 'published' ? 'Active' : p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : 'Pending'}</Text></View>
                 </View>
                 <View style={{ padding: 14, gap: 4 }}>
+                  {p.propertyCode ? <Text style={{ fontSize: 10, fontWeight: '700', color: colors.gray400, letterSpacing: 1 }}>PROPERTY ID: {p.propertyCode}</Text> : null}
                   <Text numberOfLines={1} style={{ fontWeight: '800', fontSize: 16, color: colors.gray900 }}>{p.propertyName}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><MapPin size={14} color={colors.gray400} /><Text style={{ fontSize: 12, color: colors.gray500 }}>{p.address?.city || 'Unknown City'}, {p.address?.state || ''}</Text></View>
                   <Text numberOfLines={2} style={{ fontSize: 12, color: colors.gray500, marginTop: 2 }}>{p.shortDescription || 'No description provided'}</Text>

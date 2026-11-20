@@ -845,6 +845,9 @@ const AdminHotelDetail = () => {
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">{hotel.propertyName}</h1>
+                            {hotel.propertyCode && (
+                                <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 border border-gray-200 text-[10px] font-bold rounded-full tracking-wider">ID: {hotel.propertyCode}</span>
+                            )}
                             {hotel.status === 'suspended' ? (
                                 <span className="px-2.5 py-0.5 bg-red-100 text-red-700 border border-red-200 text-[10px] font-bold rounded-full flex items-center uppercase">
                                     <Ban size={10} className="mr-1" /> SUSPENDED
