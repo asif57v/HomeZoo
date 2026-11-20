@@ -319,6 +319,7 @@ export const getAllHotels = async (req, res) => {
     if (search) {
       query.$or = [
         { propertyName: { $regex: search, $options: 'i' } },
+        { propertyCode: { $regex: search, $options: 'i' } },
         { 'address.city': { $regex: search, $options: 'i' } },
         { 'address.state': { $regex: search, $options: 'i' } }
       ];
@@ -369,7 +370,7 @@ export const getAllBookings = async (req, res) => {
       const userIds = users.map(u => u._id);
 
       // 2. Find matching Properties
-      const properties = await Property.find({ propertyName: searchRegex }).select('_id');
+      const properties = await Property.find({ $or: [{ propertyName: searchRegex }, { propertyCode: searchRegex }] }).select('_id');
       const propertyIds = properties.map(p => p._id);
 
       // 3. Construct OR query

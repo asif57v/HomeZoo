@@ -58,7 +58,7 @@ const BookingCard = ({ booking }) => {
         : booking.userId?.phone ? <TouchableOpacity onPress={() => Linking.openURL(`tel:${booking.userId.phone}`)} style={{ padding: 8, borderRadius: 999, backgroundColor: colors.green50 }}><Phone size={14} color={colors.green600} /></TouchableOpacity> : null}
       </View>
       {isLocked ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Lock size={12} color={colors.amber600} /><Text style={{ fontSize: 11, color: colors.amber700 }}>Contact locked • Active subscription required</Text></View> : null}
-      <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: '600', color: colors.gray700 }}>{booking.propertyId?.propertyName || booking.propertyId?.name || 'Property'} • <Text style={{ fontSize: 13, color: colors.gray500 }}>{pType}</Text></Text>
+      <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: '600', color: colors.gray700 }}>{booking.propertyId?.propertyName || booking.propertyId?.name || 'Property'} • <Text style={{ fontSize: 13, color: colors.gray500 }}>{pType}</Text>{booking.propertyId?.propertyCode ? <Text style={{ fontSize: 12, color: colors.gray400 }}> • {booking.propertyId.propertyCode}</Text> : null}</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
         <Meta Icon={Calendar} text={`${fmt(booking.checkInDate || booking.checkIn || booking.inquiryMetadata?.preferredDate)}${!isBuyPlot ? ` - ${fmt(booking.checkOutDate || booking.checkOut)}` : ''}`} />
         {!isBuyPlot ? <Meta Icon={Clock} text={duration} /> : null}

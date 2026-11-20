@@ -417,6 +417,7 @@ export default function PropertyDetails() {
             {rating !== undefined && rating !== null ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,158,11,0.1)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}><Star size={10} color={colors.honey} fill={colors.honey} /><Text style={{ fontSize: 10, fontWeight: '700', color: colors.amber700 }}>{Number(rating) > 0 ? Number(rating).toFixed(1) : 'New'}</Text></View> : null}
           </View>
           <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textDark, marginBottom: 4 }}>{name}</Text>
+          {property.propertyCode ? <Text style={{ fontSize: 11, fontWeight: '600', color: colors.gray400, letterSpacing: 0.5, marginBottom: 4 }}>Property ID: {property.propertyCode}</Text> : null}
           <View style={{ flexDirection: 'row', gap: 6 }}>
             <MapPin size={14} color={colors.gray500} style={{ marginTop: 2 }} />
             <Text style={{ flex: 1, fontSize: 12, color: colors.gray500 }}>{address?.fullAddress}{address?.city ? `, ${address.city}` : ''}{address?.state ? `, ${address.state}` : ''}{address?.pincode ? ` - ${address.pincode}` : ''}</Text>

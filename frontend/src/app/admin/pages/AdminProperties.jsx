@@ -215,7 +215,7 @@ const AdminProperties = () => {
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search properties by name or city..."
+                        placeholder="Search by name, city or property ID..."
                         value={filters.search}
                         onChange={(e) => handleFilterChange('search', e.target.value)}
                         className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-xs font-bold uppercase focus:bg-white focus:border-black outline-none transition-all tracking-tight"
@@ -289,6 +289,9 @@ const AdminProperties = () => {
                                                             <Building2 size={18} />
                                                         </div>
                                                         <div>
+                                                            {property.propertyCode && (
+                                                                <p className="text-[10px] font-bold text-gray-400 tracking-wider">ID: {property.propertyCode}</p>
+                                                            )}
                                                             <div className="flex items-center gap-2">
                                                                 <p className="text-sm font-bold text-gray-900 uppercase tracking-tight">{property.propertyName || 'Untitled'}</p>
                                                                 {property.avgRating > 0 && (

@@ -84,7 +84,7 @@ export default function PartnerPropertyDetails() {
 
         <Card icon={Building2} title="Basic Information" badge={property.propertyType}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            <Kv k="Property Name" v={property.propertyName} /><Kv k="Contact Number" v={property.contactNumber || 'Not provided'} />
+            <Kv k="Property ID" v={property.propertyCode} /><Kv k="Property Name" v={property.propertyName} /><Kv k="Contact Number" v={property.contactNumber || 'Not provided'} />
             <Kv k="Category" v={property.dynamicCategory?.displayName} /><Kv k="Hotel Category" v={property.hotelCategory} /><Kv k="Star Rating" v={property.starRating ? `★ ${property.starRating} Star` : null} /><Kv k="Resort Type" v={property.resortType} />
             {pType === 'pg' ? (<><Kv k="PG Gender / Type" v={property.pgType || property.pgDetails?.gender || 'Co-ed'} /><Kv k="Sharing" v={roomSharingLabel(roomTypes, property.pgDetails?.occupancy)} /><Kv k="Security Deposit" v={property.pgDetails?.securityDeposit ? `₹${property.pgDetails.securityDeposit}` : null} /><Kv k="Minimum Stay" v={property.pgDetails?.minStay} /></>) : null}
             {pType === 'hostel' ? <Kv k="Hostel Type" v={property.hostelType} /> : null}

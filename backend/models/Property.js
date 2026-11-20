@@ -1,5 +1,18 @@
 // models/Property.js
 import mongoose from "mongoose";
+import { nextSequence } from "./Counter.js";
+
+/** Short readable prefix per listing type, used in the property code (HZ-PG-1001). */
+const CODE_PREFIX = {
+  pg: "PG", hostel: "HS", hotel: "HT", resort: "RS", villa: "VL",
+  homestay: "HM", tent: "TN", rent: "RN", buy: "BY", plot: "PL"
+};
+
+export const makePropertyCode = async (propertyType) => {
+  const prefix = CODE_PREFIX[String(propertyType || "").toLowerCase()] || "PR";
+  const seq = await nextSequence("propertyCode", 1000);
+  return `HZ-${prefix}-${seq}`;
+};
 
 const nearbyPlaceSchema = new mongoose.Schema({
   name: String,
@@ -13,6 +26,8 @@ const nearbyPlaceSchema = new mongoose.Schema({
 const propertySchema = new mongoose.Schema({
 
   // BASIC INFO
+  // Unique readable ID shown to owners, users and admin (e.g. HZ-PG-1001). Set once, never changes.
+  propertyCode: { type: String, unique: true, sparse: true, immutable: true },
   propertyName: { type: String, required: true },
   contactNumber: { type: String },
   propertyType: {
@@ -213,4 +228,25 @@ const propertySchema = new mongoose.Schema({
 
 propertySchema.index({ location: "2dsphere" });
 
-export default mongoose.model("Property", propertySchema);
+// Every new property gets its unique code automatically
+propertySchema.pre("validate", async function () {
+  if (!this.propertyCode) this.propertyCode = await makePropertyCode(this.propertyType);
+});
+
+const Property = mongoose.model("Property", propertySchema);
+
+/**
+ * Gives a code to properties created before propertyCode existed (oldest first).
+ * Runs on server start; does nothing once every property has a code.
+ */
+export const backfillPropertyCodes = async () => {
+  const missing = await Property.find({ propertyCode: { $exists: false } })
+    .sort({ createdAt: 1 }).select("_id propertyType").lean();
+  for (const p of missing) {
+    const code = await makePropertyCode(p.propertyType);
+    await Property.updateOne({ _id: p._id, propertyCode: { $exists: false } }, { $set: { propertyCode: code } });
+  }
+  return missing.length;
+};
+
+export default Property;
