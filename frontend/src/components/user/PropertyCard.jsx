@@ -224,6 +224,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
             <span className="truncate">{displayName}</span>
             {item.hasVerifiedTag && <BadgeCheck size={16} className="shrink-0 fill-blue-500 text-white" />}
           </h3>
+          {item.propertyCode && <p className="text-[9px] font-bold tracking-wider text-white/70">ID: {item.propertyCode}</p>}
           <div className="mt-1.5 flex items-baseline gap-0.5">
             <IndianRupee size={14} className="self-center" strokeWidth={2.5} />
             <span className="text-base font-extrabold">{formattedPrice}</span>
@@ -724,6 +725,9 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
       <div className={`${compact ? 'p-2 gap-0.5' : 'p-2.5 gap-1'} flex flex-col`}>
         {/* Title & Info */}
         <div>
+          {item.propertyCode && (
+            <p className="text-[9px] font-bold tracking-wider text-gray-400 leading-none mb-0.5">ID: {item.propertyCode}</p>
+          )}
           <div className="flex items-center justify-between gap-2">
             <h3 className={`font-bold ${compact ? 'text-[13px]' : 'text-sm'} text-gray-900 line-clamp-1 group-hover:text-emerald-700 transition-colors`}>
               {displayName}

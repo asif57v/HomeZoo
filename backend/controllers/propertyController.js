@@ -1206,8 +1206,30 @@ export const getRecommendedSellers = async (req, res) => {
           }
         }
       },
+      // The app lets people set their photo on the linked User account (same phone),
+      // so prefer that photo over the Partner copy to keep both in sync.
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'phone',
+          foreignField: 'phone',
+          pipeline: [{ $project: { profileImage: 1 } }],
+          as: 'linkedUser'
+        }
+      },
+      {
+        $addFields: {
+          profileImage: {
+            $let: {
+              vars: { u: { $arrayElemAt: ['$linkedUser.profileImage', 0] } },
+              in: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$$u', ''] } }, 0] }, '$$u', '$profileImage'] }
+            }
+          }
+        }
+      },
       {
         $project: {
+          linkedUser: 0,
           password: 0,
           otp: 0,
           otpExpires: 0,

@@ -297,15 +297,15 @@ const PayHostelFeesSection = ({ title }) => {
       {/* Payment Entry Modal */}
       <AnimatePresence>
         {isModalOpen && !receiptData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto">
+          <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center sm:p-4 bg-slate-950/70 backdrop-blur-xs">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-gray-100"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[92dvh] sm:max-h-[85vh] overflow-y-auto overscroll-contain shadow-2xl border border-gray-100"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-slate-900 to-indigo-950 p-6 text-white flex justify-between items-center relative">
+              <div className="bg-gradient-to-r from-slate-900 to-indigo-950 px-4 py-4 sm:p-6 text-white flex justify-between items-center sticky top-0 z-10">
                 <div>
                   <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest mb-1">
                     <ShieldCheck size={14} />
@@ -325,7 +325,7 @@ const PayHostelFeesSection = ({ title }) => {
               </div>
 
               {/* Form */}
-              <form onSubmit={handleProceedPayment} className="p-6 space-y-4">
+              <form onSubmit={handleProceedPayment} className="p-4 sm:p-6 space-y-3 sm:space-y-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5 flex items-center gap-1.5">
                     <User size={14} className="text-blue-600" />
@@ -338,11 +338,11 @@ const PayHostelFeesSection = ({ title }) => {
                     value={formData.studentName}
                     onChange={handleInputChange}
                     placeholder="Enter student full name"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
+                    className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-base sm:text-sm font-medium"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5 flex items-center gap-1.5">
                       <Hash size={14} className="text-blue-600" />
@@ -355,7 +355,7 @@ const PayHostelFeesSection = ({ title }) => {
                       value={formData.studentId}
                       onChange={handleInputChange}
                       placeholder="e.g. Room 204"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
+                      className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-base sm:text-sm font-medium"
                     />
                   </div>
 
@@ -370,7 +370,7 @@ const PayHostelFeesSection = ({ title }) => {
                       value={formData.feePeriod}
                       onChange={handleInputChange}
                       placeholder="August 2026"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
+                      className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-base sm:text-sm font-medium"
                     />
                   </div>
                 </div>
@@ -387,7 +387,7 @@ const PayHostelFeesSection = ({ title }) => {
                     value={formData.hostelName}
                     onChange={handleInputChange}
                     placeholder="Enter Hostel or PG name"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
+                    className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-base sm:text-sm font-medium"
                   />
                 </div>
 
@@ -415,7 +415,7 @@ const PayHostelFeesSection = ({ title }) => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full py-4 rounded-xl font-extrabold text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${selectedMethod?.btnClass || 'bg-blue-600 text-white'}`}
+                    className={`w-full py-3.5 sm:py-4 rounded-xl font-extrabold text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${selectedMethod?.btnClass || 'bg-blue-600 text-white'}`}
                   >
                     {loading ? (
                       <>
@@ -439,7 +439,7 @@ const PayHostelFeesSection = ({ title }) => {
       {/* Payment Receipt Modal */}
       <AnimatePresence>
         {receiptData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}

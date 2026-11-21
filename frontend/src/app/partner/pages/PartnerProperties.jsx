@@ -281,7 +281,10 @@ const PartnerProperties = () => {
                         <h3 className="text-[18px] font-bold text-slate-900 leading-tight mb-2.5 truncate">
                           {property.propertyName}
                         </h3>
-                        
+                        {property.propertyCode && (
+                          <p className="text-[11px] font-bold tracking-wider text-gray-400 mb-2">ID: {property.propertyCode}</p>
+                        )}
+
                         <div className="flex items-center gap-1.5 text-gray-500 text-[13px] font-medium mb-1">
                           <MapPin size={14} className="text-gray-400 flex-shrink-0" />
                           <span className="truncate">

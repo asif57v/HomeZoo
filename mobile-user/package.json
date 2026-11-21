@@ -43,7 +43,7 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "lint": "eslint .",
     "doctor": "expo-doctor",
     "export": "expo export --platform android"

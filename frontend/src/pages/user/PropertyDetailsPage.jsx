@@ -937,6 +937,9 @@ const PropertyDetailsPage = () => {
                       </div>
                     )}
                   </div>
+                  {property?.propertyCode && (
+                    <p className="text-[11px] font-bold tracking-wider text-gray-400 mb-1">Property ID: {property.propertyCode}</p>
+                  )}
                   <h1 className="text-xl md:text-3xl font-bold text-textDark mb-1 leading-tight">{name}</h1>
                   <div className="flex items-start gap-1.5 text-gray-500 text-xs md:text-sm">
                     <MapPin size={14} className="mt-0.5 shrink-0" />
