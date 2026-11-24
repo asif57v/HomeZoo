@@ -43,7 +43,7 @@ const UserNav = ({ pathname }) => {
   };
   return (
     <View style={{ backgroundColor: '#fff', paddingBottom: Math.max(insets.bottom, 10), borderTopLeftRadius: 22, borderTopRightRadius: 22, borderTopWidth: 1, borderTopColor: 'rgba(241,245,249,0.9)', shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 12, elevation: 12 }}>
-      <View style={{ height: 62, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
+      <View style={{ height: 62, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, width: '100%', maxWidth: 640, alignSelf: 'center' }}>
         {items.map((it) => {
           const isActive = active === it.name && !it.center;
           const color = isActive ? colors.navActive : colors.navInactive;
@@ -92,7 +92,7 @@ const PartnerNav = ({ pathname }) => {
   ];
   return (
     <View style={{ backgroundColor: 'rgba(255,255,255,0.95)', paddingBottom: Math.max(insets.bottom, 10), borderTopLeftRadius: 28, borderTopRightRadius: 28, borderTopWidth: 1, borderTopColor: 'rgba(243,244,246,0.8)', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 15, elevation: 12 }}>
-      <View style={{ height: 64, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
+      <View style={{ height: 64, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, width: '100%', maxWidth: 640, alignSelf: 'center' }}>
         {items.map((it) => {
           const isActive = active === it.name;
           const color = isActive ? colors.primary : colors.gray400;

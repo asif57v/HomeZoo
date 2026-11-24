@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import { API_BASE_URL } from '../config/apiConfig';
 import useFeatureFlagsStore from '../store/featureFlagsStore';
+import { LOGIN_REDIRECT_KEY } from '../utils/authGate';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -46,6 +47,19 @@ api.interceptors.response.use(
     if (featureCode === 'RAZORPAY_DISABLED' || featureCode === 'SUBSCRIPTION_DISABLED') {
       useFeatureFlagsStore.getState().fetchFlags();
       error.message = error.response.data.message || error.message;
+    }
+
+    const sentToken = !!error.config?.headers?.Authorization;
+    if (status === 401 && !sentToken) {
+      // Guest (not logged in). Background reads just fail quietly so the public
+      // site keeps working; an action (POST/PUT/PATCH/DELETE) needs an account,
+      // so send the guest to login and bring them back here afterwards.
+      const method = (error.config?.method || 'get').toLowerCase();
+      if (method !== 'get' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
+        try { sessionStorage.setItem(LOGIN_REDIRECT_KEY, `${window.location.pathname}${window.location.search}`); } catch { /* storage blocked */ }
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
     }
 
     if (status === 401 || (status === 403 && isBlocked)) {

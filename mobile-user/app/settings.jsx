@@ -6,6 +6,7 @@ import { Text } from '../src/components/ui';
 import { BlueHeader } from '../src/components/Common';
 import useAuthStore from '../src/store/authStore';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 // Admin stays on the web: only the user / host switch is shown in the app
 export default function Settings() {
@@ -26,7 +27,7 @@ export default function Settings() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <BlueHeader title="Settings"><Text style={{ fontSize: 24, fontWeight: '900', color: '#fff' }}>App Preferences</Text></BlueHeader>
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 20 }, CENTER]}>
         {sections.map((s) => (
           <View key={s.title}>
             <Text style={{ fontWeight: '700', color: colors.gray400, fontSize: 12, marginBottom: 12 }}>{s.title}</Text>

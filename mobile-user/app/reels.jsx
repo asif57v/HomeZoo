@@ -17,6 +17,7 @@ import { errMsg } from '../src/utils/format';
 import { storage } from '../src/lib/storage';
 import useAuthStore from '../src/store/authStore';
 import { colors } from '../src/theme';
+import { CENTER_WIDE, WIDE_MAX, TABLET_MIN, LARGE_MIN } from '../src/lib/responsive';
 
 const MAX_SIZE_MB = 60;
 const CATEGORIES = ['General', 'PG', 'Rent', 'Buy', 'Plot'];
@@ -213,10 +214,13 @@ export default function ReelsPage() {
   const viewable = useRef({ itemVisiblePercentThreshold: 60 });
   const onViewable = useRef(({ viewableItems }) => { if (viewableItems.length > 0 && viewableItems[0].index != null) setActiveIndex(viewableItems[0].index); });
 
+  // 3 columns on phones, 4 on tablets, 5 on large tablets
+  const gridCols = width >= LARGE_MIN ? 5 : width >= TABLET_MIN ? 4 : 3;
+  const gridW = Math.floor((Math.min(width, WIDE_MAX) - 32 - 8 * (gridCols - 1)) / gridCols);
   const Grid = ({ list, unsave }) => (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {list.map((reel) => (
-        <TouchableOpacity key={reel._id} activeOpacity={0.9} onPress={() => setModalReel(reel)} style={{ width: (width - 32 - 16) / 3, aspectRatio: 9 / 16, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.gray900, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+        <TouchableOpacity key={reel._id} activeOpacity={0.9} onPress={() => setModalReel(reel)} style={{ width: gridW, aspectRatio: 9 / 16, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.gray900, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
           {reel.thumbnailUrl ? <Image source={{ uri: reel.thumbnailUrl }} style={StyleSheet.absoluteFill} contentFit="cover" /> : null}
           <View style={{ position: 'absolute', top: 6, left: 6, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}><Text style={{ fontSize: 9, fontWeight: '700', color: '#60aee3' }}>#{reel.category?.toLowerCase() || 'general'}</Text></View>
           <TouchableOpacity onPress={() => (unsave ? onSave(reel._id) : onDelete(reel._id))} style={{ position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' }}>{unsave ? <Bookmark size={13} color={colors.amber400} fill={colors.amber400} /> : <Trash2 size={13} color="#f87171" />}</TouchableOpacity>
@@ -295,7 +299,7 @@ export default function ReelsPage() {
       ) : null}
 
       {tab === 'my' ? (
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <ScrollView contentContainerStyle={[{ padding: 16 }, CENTER_WIDE]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <View><View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Video size={20} color="#3b93d6" /><Text style={{ fontSize: 18, fontWeight: '800', color: '#fff' }}>My Uploaded Reels</Text></View><Text style={{ fontSize: 12, color: colors.gray400 }}>Manage and view engagement on your reels</Text></View>
             <View style={{ backgroundColor: '#00172e', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(59,147,214,0.3)' }}><Text style={{ fontSize: 12, fontWeight: '700', color: '#60aee3' }}>{myReels.length} {myReels.length === 1 ? 'Reel' : 'Reels'}</Text></View>
@@ -305,7 +309,7 @@ export default function ReelsPage() {
       ) : null}
 
       {tab === 'saved' ? (
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <ScrollView contentContainerStyle={[{ padding: 16 }, CENTER_WIDE]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <View><View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Bookmark size={20} color={colors.amber400} /><Text style={{ fontSize: 18, fontWeight: '800', color: '#fff' }}>Saved Reels</Text></View><Text style={{ fontSize: 12, color: colors.gray400 }}>Reels and property tours you bookmarked</Text></View>
             <View style={{ backgroundColor: '#451a03', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)' }}><Text style={{ fontSize: 12, fontWeight: '700', color: colors.amber400 }}>{saved.length} Saved</Text></View>

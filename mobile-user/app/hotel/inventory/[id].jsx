@@ -9,6 +9,7 @@ import { propertyService, availabilityService } from '../../../src/services/apiS
 import toast from '../../../src/store/toastStore';
 import { errMsg } from '../../../src/utils/format';
 import { colors } from '../../../src/theme';
+import { CENTER } from '../../../src/lib/responsive';
 
 const P = '#005CA8';
 const addDay = (s) => { const d = new Date(s); d.setDate(d.getDate() + 1); return toYMD(d); };
@@ -77,7 +78,7 @@ export default function PartnerInventory() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerBack title="Inventory Manager" subtitle={property?.propertyName} right={<CalendarIcon size={20} color={P} />} />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 110 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 110 }, CENTER]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           {roomTypes.map((rt) => <TouchableOpacity key={rt._id} onPress={() => setSelectedRoom(rt)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: selectedRoom?._id === rt._id ? P : '#fff', borderWidth: 1, borderColor: selectedRoom?._id === rt._id ? P : colors.gray200 }}><BedDouble size={14} color={selectedRoom?._id === rt._id ? '#fff' : colors.gray600} /><Text style={{ fontSize: 12, fontWeight: '700', color: selectedRoom?._id === rt._id ? '#fff' : colors.gray600 }}>{rt.name}</Text></TouchableOpacity>)}
         </ScrollView>
@@ -112,7 +113,7 @@ export default function PartnerInventory() {
       <TouchableOpacity onPress={() => openFor(toYMD(new Date()))} style={{ position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: P, alignItems: 'center', justifyContent: 'center', elevation: 8 }}><Plus size={28} color="#fff" /></TouchableOpacity>
 
       <Sheet visible={open} onClose={() => setOpen(false)} title="Update Inventory" maxHeight="90%">
-        <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={{ gap: 12, paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={[{ gap: 12, paddingBottom: 12 }, CENTER]} keyboardShouldPersistTaps="handled">
           <Text style={{ fontSize: 12, color: colors.gray500, marginTop: -6 }}>{selectedRoom?.name}</Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             {[{ id: 'walk_in', label: 'Walk-in', Icon: Users }, { id: 'external', label: 'Ext. Booking', Icon: Globe }, { id: 'block', label: 'Block', Icon: Lock }].map((t) => (

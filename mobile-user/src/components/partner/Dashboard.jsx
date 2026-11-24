@@ -12,14 +12,17 @@ import { handleNavigateToAddProperty } from '../../utils/subscriptionGuard';
 import toast from '../../store/toastStore';
 import { inr } from '../../utils/format';
 import { colors } from '../../theme';
+import { CENTER_WIDE, useResponsive } from '../../lib/responsive';
 
 const P = '#005CA8';
 
 // Web: shadow-[0_1px_3px_rgba(15,23,42,0.04)]
 const SOFT = { shadowColor: '#0f172a', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 };
 
-const Stat = ({ Icon, label, value, actionLabel, onPress, valueColor }) => (
-  <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={{ width: '48%', backgroundColor: '#fff', padding: 14, borderRadius: 16, borderWidth: 1, borderColor: colors.gray100, ...SOFT }}>
+const Stat = ({ Icon, label, value, actionLabel, onPress, valueColor }) => {
+  const { isTablet } = useResponsive();
+  return (
+  <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={{ width: isTablet ? '23.5%' : '48%', backgroundColor: '#fff', padding: 14, borderRadius: 16, borderWidth: 1, borderColor: colors.gray100, ...SOFT }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
       <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: colors.blue50, alignItems: 'center', justifyContent: 'center' }}><Icon size={16} color={P} /></View>
       <Text style={{ flex: 1, fontSize: 12, lineHeight: 16, color: colors.gray500, fontWeight: '500' }}>{label}</Text>
@@ -27,7 +30,8 @@ const Stat = ({ Icon, label, value, actionLabel, onPress, valueColor }) => (
     <Text style={{ marginTop: 10, fontSize: 24, lineHeight: 30, fontWeight: '700', color: valueColor || colors.gray900, letterSpacing: -0.3 }}>{value}</Text>
     <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center' }}><Text style={{ fontSize: 12, fontWeight: '600', color: P }}>{actionLabel}</Text><ChevronRight size={13} color={P} /></View>
   </TouchableOpacity>
-);
+  );
+};
 
 const Card = ({ title, onAll, children }) => (
   <View style={{ backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: colors.gray100, overflow: 'hidden', ...SOFT }}>
@@ -85,7 +89,7 @@ export default function PartnerDashboard() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 30 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 30 }, CENTER_WIDE]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 22, lineHeight: 30, fontWeight: '700', color: colors.slate900, letterSpacing: -0.3 }}>Welcome back, {user?.name?.split(' ')[0] || 'Partner'}! 👋</Text>

@@ -10,6 +10,7 @@ import toast from '../../../src/store/toastStore';
 import { errMsg } from '../../../src/utils/format';
 import { colors } from '../../../src/theme';
 import { getCurrentEnquiry } from '../../../src/lib/enquiryState';
+import { CENTER } from '../../../src/lib/responsive';
 
 const P = '#005CA8';
 const confirm = (title, msg, okText = 'Confirm') => new Promise((res) => Alert.alert(title, msg, [{ text: 'Cancel', style: 'cancel', onPress: () => res(false) }, { text: okText, onPress: () => res(true) }], { cancelable: true, onDismiss: () => res(false) }));
@@ -136,7 +137,7 @@ export default function PartnerBookingDetail() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerBack title="Enquiry Details" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 14, paddingBottom: 40 }, CENTER]}>
         <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.gray100, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View><Text style={{ fontSize: 10, color: colors.gray400, fontWeight: '700' }}>ENQUIRY ID</Text><Text style={{ fontWeight: '800', color: colors.gray900 }}>#{booking.bookingId || booking._id}</Text></View>
           <View style={{ backgroundColor: colors.blue50, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999 }}><Text style={{ fontSize: 11, fontWeight: '700', color: colors.blue700, textTransform: 'uppercase' }}>{status}</Text></View>

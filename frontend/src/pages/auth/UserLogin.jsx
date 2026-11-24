@@ -7,6 +7,7 @@ import { authService, userService } from '../../services/apiService';
 import { requestNotificationPermission, detectPlatform } from '../../utils/firebase';
 import toast from 'react-hot-toast';
 import AuthLegalLinks from '../../components/ui/AuthLegalLinks';
+import { consumeLoginRedirect } from '../../utils/authGate';
 
 const UserLogin = () => {
     const navigate = useNavigate();
@@ -125,8 +126,8 @@ const UserLogin = () => {
                 console.warn('FCM update failed', fcmError);
             }
 
-            const dest = location.state?.from?.pathname || location.state?.from || '/';
-            navigate(dest);
+            const dest = consumeLoginRedirect(location.state?.from);
+            navigate(dest, { replace: true });
         } catch (err) {
             // Check if error is due to account not found
             if (err.response?.data?.requiresRegistration ||

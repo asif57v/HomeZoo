@@ -4,6 +4,7 @@ import { Wifi, Coffee, Car, Shield, Utensils, Users, Dumbbell, Snowflake, Tv, Br
 import { Text } from '../../../src/components/ui';
 import { BlueHeader } from '../../../src/components/Common';
 import { colors } from '../../../src/theme';
+import { CENTER } from '../../../src/lib/responsive';
 
 const LIST = [
   { category: 'Popular', items: [[Wifi, 'Free Wifi'], [Car, 'Parking Facility'], [Snowflake, 'AC'], [Tv, 'TV']] },
@@ -16,7 +17,7 @@ export default function Amenities() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <BlueHeader title="All Amenities" />
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 20 }, CENTER]}>
         {LIST.map((s) => (
           <View key={s.category} style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: colors.gray100 }}>
             <Text style={{ fontSize: 16, fontWeight: '700', color: colors.surface, marginBottom: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: colors.gray50 }}>{s.category}</Text>

@@ -7,6 +7,7 @@ import { Text } from '../../../src/components/ui';
 import { bookingService } from '../../../src/services/apiService';
 import { colors } from '../../../src/theme';
 import { setCurrentEnquiry } from '../../../src/lib/enquiryState';
+import { CENTER } from '../../../src/lib/responsive';
 
 const P = '#005CA8';
 const TABS = [{ id: 'upcoming', label: 'New Leads' }, { id: 'in_house', label: 'Ongoing' }, { id: 'completed', label: 'Completed' }, { id: 'cancelled', label: 'Cancelled' }];
@@ -99,7 +100,7 @@ export default function PartnerBookings() {
           </View>
         </View>
       </SafeAreaView>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12, flexGrow: 1 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} />}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 12, flexGrow: 1 }, CENTER]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} />}>
         {!valid ? (
           <View style={{ backgroundColor: colors.amber50, borderWidth: 1, borderColor: '#FDE68A', borderRadius: 16, padding: 16, gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Crown size={22} color={colors.amber600} /><Text style={{ fontWeight: '800', color: '#78350F' }}>Unlock Your Customer Leads</Text></View>

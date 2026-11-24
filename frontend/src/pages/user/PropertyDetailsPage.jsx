@@ -11,6 +11,7 @@ import {
 import toast from 'react-hot-toast';
 import ModernDatePicker from '../../components/ui/ModernDatePicker';
 import { useKeyboardOpen } from '../../utils/imageSource';
+import { requireLogin } from '../../utils/authGate';
 
 const PropertyDetailsPage = () => {
   const keyboardOpen = useKeyboardOpen();
@@ -275,10 +276,7 @@ const PropertyDetailsPage = () => {
   }, [id]);
 
   const handleToggleSave = async () => {
-    if (!localStorage.getItem('token')) {
-      toast.error("Please login to save properties");
-      return;
-    }
+    if (!requireLogin(navigate, 'Please login to save properties')) return;
     const targetId = id || property?._id || property?.id;
     if (!targetId) {
       toast.error("Invalid property ID");
@@ -328,10 +326,7 @@ const PropertyDetailsPage = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!localStorage.getItem('token')) {
-      toast.error('Please login to submit a review');
-      return;
-    }
+    if (!requireLogin(navigate, 'Please login to submit a review')) return;
     setSubmitReviewLoading(true);
     try {
       await reviewService.createReview({
@@ -627,11 +622,7 @@ const PropertyDetailsPage = () => {
   };
 
   const handleInquiry = async () => {
-    if (!localStorage.getItem('token')) {
-      toast.error("Please login to send inquiry");
-      navigate('/login', { state: { from: `/hotel/${id}` } });
-      return;
-    }
+    if (!requireLogin(navigate, 'Please login to send enquiry')) return;
 
     setBookingLoading(true);
     try {
@@ -710,11 +701,7 @@ const PropertyDetailsPage = () => {
       return;
     }
 
-    if (!localStorage.getItem('token')) {
-      toast.error("Please login to book");
-      navigate('/login', { state: { from: `/hotel/${id}` } });
-      return;
-    }
+    if (!requireLogin(navigate, 'Please login to book')) return;
 
     if (!priceBreakdown) {
       toast.error("Unable to calculate price. Please check dates.");
@@ -756,6 +743,7 @@ const PropertyDetailsPage = () => {
 
   const handleRevealContact = async () => {
     if (revealLoading) return;
+    if (!requireLogin(navigate, 'Please login to view owner contact')) return;
     setRevealLoading(true);
     try {
       const response = await propertyService.revealContact(id);
@@ -1792,7 +1780,7 @@ const PropertyDetailsPage = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => setShowReviewForm(!showReviewForm)}
+                    onClick={() => { if (!showReviewForm && !requireLogin(navigate, 'Please login to write a review')) return; setShowReviewForm(!showReviewForm); }}
                     className="text-xs font-bold text-surface border border-surface px-3 py-1.5 rounded bg-surface/5 hover:bg-surface hover:text-white transition-all flex items-center gap-1.5"
                   >
                     <MessageSquare size={14} /> <span>Write a Review</span>

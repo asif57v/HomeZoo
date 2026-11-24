@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, CornerDownRight, Trash2 } from 'lucide-react';
 import { reelService } from '../../services/reelService';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { requireLogin } from '../../utils/authGate';
 
 export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdded, onCommentDeleted }) {
   const [comments, setComments] = useState([]);
@@ -12,6 +14,7 @@ export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdde
   const [text, setText] = useState('');
   const [replyingTo, setReplyingTo] = useState(null); // Comment object replying to
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const currentUser = useMemo(() => {
     try {
@@ -53,6 +56,7 @@ export default function ReelCommentsSheet({ isOpen, onClose, reel, onCommentAdde
     e.preventDefault();
     const trimmed = text.trim();
     if (!trimmed || submitting) return;
+    if (!requireLogin(navigate, 'Please login to comment')) return;
     setSubmitting(true);
     try {
       const res = await reelService.comment(reel._id, trimmed, replyingTo?._id || null);

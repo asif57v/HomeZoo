@@ -15,6 +15,7 @@ import { storage } from '../../src/lib/storage';
 import toast from '../../src/store/toastStore';
 import { errMsg } from '../../src/utils/format';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const EMPTY_ADDR = { street: '', city: '', state: '', zipCode: '', country: 'India', coordinates: { lat: null, lng: null } };
 
@@ -132,7 +133,7 @@ export default function ProfileEdit() {
         <View style={{ width: 36 }} />
       </View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={[{ padding: 24, paddingBottom: 40 }, CENTER]} keyboardShouldPersistTaps="handled">
           <View style={{ alignItems: 'center', marginBottom: 28 }}>
             <TouchableOpacity activeOpacity={0.85} onPress={changePhoto}>
               <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: '#fff', overflow: 'hidden', elevation: 6 }}>

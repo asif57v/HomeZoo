@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useKeyboardOpen } from '../../utils/imageSource';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { handleNavigateToAddProperty } from '../../utils/subscriptionGuard';
+import { requireLogin } from '../../utils/authGate';
 
 // Premium SVG Icon Components with Active & Inactive States
 const HomeIcon = ({ isActive }) => (
@@ -122,11 +123,7 @@ const BottomNavbar = () => {
 
     const handleNavClick = (item) => {
         if (item.name === 'Post' || item.name === 'Add Property' || item.isCenter) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                navigate('/login', { state: { from: { pathname: '/hotel/join' } } });
-                return;
-            }
+            if (!requireLogin(navigate, 'Please login to post your property', '/hotel/join')) return;
             handleNavigateToAddProperty(navigate);
             return;
         }

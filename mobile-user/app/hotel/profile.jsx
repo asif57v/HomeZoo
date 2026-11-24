@@ -12,6 +12,7 @@ import { pickImages } from '../../src/lib/imagePicker';
 import toast from '../../src/store/toastStore';
 import { errMsg } from '../../src/utils/format';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const P = '#005CA8';
 
@@ -102,7 +103,7 @@ export default function PartnerProfile() {
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       {/* Web uses the plain partner header (logo, guest view, bell, wallet); Wallet / Settings / Log out live in the drawer */}
       <PartnerHeader />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 48 }, CENTER]} keyboardShouldPersistTaps="handled">
         {/* Avatar section (web: 80px circle, blue gradient, white 4px border, white camera button) */}
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <TouchableOpacity onPress={changePhoto} disabled={uploading} activeOpacity={0.85}>

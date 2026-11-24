@@ -10,6 +10,7 @@ import { getCheckoutState, setConfirmationState } from '../src/lib/checkoutState
 import toast from '../src/store/toastStore';
 import { errMsg } from '../src/utils/format';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 // Web: /payment with router state { booking }. Booking comes from the in-memory hand-off.
 export default function Payment() {
@@ -41,7 +42,7 @@ export default function Payment() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <Header title="Payment Checkout" />
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 120 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 20, paddingBottom: 120 }, CENTER]}>
         <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: colors.gray100, gap: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><Tag size={18} color={colors.surface} /><Text style={{ fontWeight: '700', color: colors.surface }}>Price Breakdown</Text></View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={{ fontSize: 14, color: colors.gray600 }}>Base Amount</Text><Text style={{ fontWeight: '700', color: colors.surface }}>₹{pricing.baseAmount?.toLocaleString('en-IN')}</Text></View>

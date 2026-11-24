@@ -5,6 +5,7 @@ import { Text, Loader } from '../src/components/ui';
 import { BlueHeader } from '../src/components/Common';
 import { legalService } from '../src/services/apiService';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const DEFAULT = 'HoomZo helps you discover, compare and book stays that match your style, from budget hostels to premium villas, with a mobile-first experience.';
 
@@ -20,7 +21,7 @@ export default function About() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <BlueHeader title="About Us" subtitle="Learn more about the story, mission and values behind HoomZo." />
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20 }, CENTER]}>
         {error ? <View style={{ marginBottom: 16, backgroundColor: colors.amber50, borderWidth: 1, borderColor: '#FDE68A', borderRadius: 12, padding: 12 }}><Text style={{ fontSize: 12, color: colors.amber700 }}>{error}</Text></View> : null}
         {loading ? <Loader /> : (
           <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: colors.gray100, gap: 12 }}>

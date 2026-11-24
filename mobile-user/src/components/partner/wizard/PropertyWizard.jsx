@@ -14,6 +14,7 @@ import draftStore from '../../../lib/draftStore';
 import DatePickerField from '../../DatePickerField';
 import toast from '../../../store/toastStore';
 import { errMsg } from '../../../utils/format';
+import { CENTER } from '../../../lib/responsive';
 import {
   P, ErrorBanner, Label, TInput, Choice, Check, YesNo, Chips, SectionTitle, useUploader, removeRemoteImage,
   ImageSlot, Gallery, LocationStep, NearbyStep, DocsStep,
@@ -511,7 +512,7 @@ export default function PropertyWizard({ kind, categoryId: routeCategoryId }) {
       </View>
       <View style={{ height: 4, backgroundColor: colors.gray200 }}><View style={{ height: 4, width: `${progress}%`, backgroundColor: colors.emerald600 }} /></View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView ref={scrollRef} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} scrollEventThrottle={32} contentContainerStyle={{ padding: 16, paddingBottom: kbH ? kbH + 48 : 120 + footerPad }} keyboardShouldPersistTaps="handled">
+        <ScrollView ref={scrollRef} onScroll={(e) => { scrollY.current = e.nativeEvent.contentOffset.y; }} scrollEventThrottle={32} contentContainerStyle={[{ padding: 16, paddingBottom: kbH ? kbH + 48 : 120 + footerPad }, CENTER]} keyboardShouldPersistTaps="handled">
           <Text style={{ fontSize: 24, fontWeight: '800', color: colors.gray900, marginBottom: 20 }}>{cur.label}</Text>
           <View style={{ backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: colors.gray100, padding: 16 }}>
             {loading && isEdit && !booted ? <ActivityIndicator color={P} /> : renderStep()}

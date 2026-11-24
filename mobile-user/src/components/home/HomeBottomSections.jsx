@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, ScrollView, Share, useWindowDimensions } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Share } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,7 @@ import { Text, Sheet } from '../ui';
 import { propertyService } from '../../services/apiService';
 import { API_BASE_URL } from '../../config';
 import { colors } from '../../theme';
+import { useResponsive } from '../../lib/responsive';
 
 const THEMES = {
   diamond: { bg: ['#1C2F8F', '#060B2D', '#03051A'], border: '#7B3FFB', badge: ['#1C2F8F', '#7B3FFB', '#E94CFF'], text: '#fff', sub: '#C4B5FD', accent: '#39D5FF', quote: 'rgba(11,19,66,0.7)', dark: true },
@@ -28,7 +29,8 @@ const fmtDate = (v) => { if (!v) return 'Recent'; try { return new Date(v).toLoc
 
 export default function HomeBottomSections() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width: winW, wideW, isTablet } = useResponsive();
+  const width = isTablet ? Math.min(wideW * 0.55, 520) : winW;
   const [partners, setPartners] = useState([]);
   const [news, setNews] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -106,7 +108,7 @@ export default function HomeBottomSections() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 14, gap: 16 }}>
           {news.map((item, i) => (
             <TouchableOpacity key={item._id || item.id || i} activeOpacity={0.92} onPress={() => setSelected(item)} style={{ width: width * 0.85, backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(241,245,249,0.9)', overflow: 'hidden', elevation: 3 }}>
-              <View style={{ height: 176, backgroundColor: colors.slate100 }}>
+              <View style={{ height: isTablet ? 240 : 176, backgroundColor: colors.slate100 }}>
                 <Image source={{ uri: item.image }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                 <View style={{ position: 'absolute', top: 12, left: 12, flexDirection: 'row', gap: 6 }}>
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.95)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 }}><Text style={{ fontSize: 10, fontWeight: '800', color: colors.slate800 }}>{item.category}</Text></View>

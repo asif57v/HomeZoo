@@ -8,6 +8,7 @@ import { TrendingUp, Calendar, Clock, ArrowRight, Search, X, Share2, BookOpen, C
 import { Text, Sheet } from '../src/components/ui';
 import { propertyService } from '../src/services/apiService';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const CATEGORIES = ['All', 'Market Insights', 'Legal Guide', 'Lifestyle & Design', 'Infrastructure', 'Investment'];
 const fmt = (d) => { if (!d) return 'Recent'; try { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return 'Recent'; } };
@@ -31,7 +32,7 @@ export default function News() {
 
   return (
     <View style={{ flex: 1, backgroundColor: 'rgba(248,250,252,0.7)' }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[{ paddingBottom: 40 }, CENTER]} keyboardShouldPersistTaps="handled">
         <LinearGradient colors={['#0f172a', '#1e293b', '#0f172a']} style={{ borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
           <SafeAreaView edges={['top']} style={{ padding: 20, paddingBottom: 24 }}>
             <TouchableOpacity onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={{ alignSelf: 'flex-start', padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 999, marginBottom: 16 }}><ChevronLeft size={20} color="#fff" /></TouchableOpacity>
@@ -82,7 +83,7 @@ export default function News() {
       </ScrollView>
       <Sheet visible={!!sel} onClose={() => setSel(null)} maxHeight="94%">
         {sel ? (
-          <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
+          <ScrollView contentContainerStyle={[{ paddingBottom: 16 }, CENTER]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><View style={{ backgroundColor: '#DBEAFE', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999 }}><Text style={{ fontSize: 12, fontWeight: '800', color: '#1d4ed8' }}>{sel.category}</Text></View><Clock size={12} color={colors.slate500} /><Text style={{ fontSize: 12, color: colors.slate500, fontWeight: '600' }}>{sel.readTime}</Text></View>
               <View style={{ flexDirection: 'row', gap: 4 }}>

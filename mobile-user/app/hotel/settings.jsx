@@ -6,6 +6,7 @@ import { Text } from '../../src/components/ui';
 import { PartnerHeader } from '../../src/components/partner/PartnerKit';
 import useAuthStore from '../../src/store/authStore';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 // Only the options the web page actually wires (saved bank details + sign out). The web's other rows
 // (toggles, language, 2FA, dark mode) are non-functional placeholders there and are not carried over.
@@ -15,7 +16,7 @@ export default function PartnerSettings() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="Settings" subtitle="Preferences" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 12 }, CENTER]}>
         <Text style={{ fontSize: 11, fontWeight: '800', color: colors.gray400, letterSpacing: 1, textTransform: 'uppercase' }}>Payments</Text>
         <TouchableOpacity onPress={() => router.push('/hotel/bank-details')} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: colors.gray100 }}>
           <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.blue50, alignItems: 'center', justifyContent: 'center' }}><CreditCard size={18} color="#005CA8" /></View>

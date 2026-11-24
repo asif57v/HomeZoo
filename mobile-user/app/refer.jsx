@@ -8,6 +8,7 @@ import { ArrowLeft, Gift, Copy, Share2, Users, Wallet, Clock, CheckCircle, Trend
 import { Text } from '../src/components/ui';
 import { referralService } from '../src/services/apiService';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const HOW = [
   { step: 1, title: 'Share Your Code', desc: 'Send your unique referral code to friends', icon: Share2 },
@@ -47,7 +48,7 @@ export default function Refer() {
           <TouchableOpacity onPress={() => router.push('/wallet')} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 999 }}><Wallet size={20} color="#fff" /></TouchableOpacity>
         </View>
       </SafeAreaView>
-      <ScrollView contentContainerStyle={{ paddingBottom: 110 }}>
+      <ScrollView contentContainerStyle={[{ paddingBottom: 110 }, CENTER]}>
         <View style={{ alignItems: 'center', paddingHorizontal: 20, paddingBottom: 32 }}>
           <LinearGradient colors={[colors.honey, '#ea580c']} style={{ width: 96, height: 96, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 20, elevation: 10 }}>
             <Gift size={48} color="#fff" />

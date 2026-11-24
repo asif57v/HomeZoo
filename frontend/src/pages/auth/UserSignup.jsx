@@ -7,6 +7,7 @@ import { authService, userService } from '../../services/apiService';
 import { requestNotificationPermission, detectPlatform } from '../../utils/firebase';
 import toast from 'react-hot-toast';
 import AuthLegalLinks from '../../components/ui/AuthLegalLinks';
+import { consumeLoginRedirect } from '../../utils/authGate';
 
 const UserSignup = () => {
     const navigate = useNavigate();
@@ -140,7 +141,7 @@ const UserSignup = () => {
                 console.warn('FCM update failed after signup', fcmError);
             }
 
-            navigate('/');
+            navigate(consumeLoginRedirect(), { replace: true });
         } catch (err) {
             setError(err.message || 'Verification failed');
         } finally {

@@ -6,6 +6,7 @@ import { PartnerHeader } from '../../src/components/partner/PartnerKit';
 import { LegalContent } from '../../src/components/Common';
 import { faqService, legalService } from '../../src/services/apiService';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 export default function PartnerSupport() {
   const [faqs, setFaqs] = useState([]);
@@ -20,7 +21,7 @@ export default function PartnerSupport() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="Support Center" subtitle="We are here to help" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 40 }, CENTER]}>
         {support?.content ? <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.gray100, gap: 6 }}><LegalContent content={support.content} />{support.supportHours ? <Text style={{ fontSize: 12, color: colors.gray500 }}>{support.supportHours}</Text> : null}</View> : null}
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${wa}`)} style={{ flex: 1, alignItems: 'center', gap: 8, backgroundColor: colors.green50, borderWidth: 1, borderColor: colors.green100, borderRadius: 16, padding: 18 }}><MessageSquare size={20} color={colors.green600} /><Text style={{ fontSize: 13, fontWeight: '700', color: colors.green700 }}>WhatsApp Chat</Text></TouchableOpacity>

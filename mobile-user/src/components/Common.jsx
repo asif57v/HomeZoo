@@ -6,13 +6,14 @@ import { ArrowLeft, FileText } from 'lucide-react-native';
 import { Text } from './ui';
 import { legalService } from '../services/apiService';
 import { colors } from '../theme';
+import { CENTER } from '../lib/responsive';
 
 // Blue rounded page header used by most user pages (web: "bg-surface text-white p-6 rounded-b-[30px]")
 export const BlueHeader = ({ title, subtitle, right, children, onBack }) => {
   const router = useRouter();
   return (
     <View style={{ backgroundColor: colors.surface, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, elevation: 6 }}>
-      <SafeAreaView edges={['top']} style={{ paddingHorizontal: 24, paddingBottom: 24, paddingTop: 14 }}>
+      <SafeAreaView edges={['top']} style={[{ paddingHorizontal: 24, paddingBottom: 24, paddingTop: 14 }, CENTER]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: subtitle || children ? 14 : 0 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
             <TouchableOpacity onPress={onBack || (() => (router.canGoBack() ? router.back() : router.replace('/')))} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 999 }}><ArrowLeft size={20} color="#fff" /></TouchableOpacity>
@@ -86,7 +87,7 @@ export const PolicyPage = ({ audience = 'user', slug, eyebrowUser = 'Hoomzo Stay
   return (
     <View style={{ flex: 1, backgroundColor: colors.slate50 }}>
       <LegalHeader eyebrow={isPartner ? 'Partner Portal' : eyebrowUser} title={title} />
-      <ScrollView contentContainerStyle={{ padding: 12 }}>
+      <ScrollView contentContainerStyle={[{ padding: 12 }, CENTER]}>
         <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.slate100 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.slate100 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

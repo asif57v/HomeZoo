@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { CheckCircle, ShieldCheck, Package, Crown, Zap, Star, AlertCircle, Check, CalendarDays, Home, Users, TrendingUp, Sparkles, ArrowRight } from 'lucide-react-native';
+import { CheckCircle, ShieldCheck, Package, Crown, Zap, Star, AlertCircle, Check, CalendarDays, Home, Users, TrendingUp, Sparkles, ArrowRight, ChevronRight } from 'lucide-react-native';
 import { Text } from '../../src/components/ui';
 import { PartnerHeader } from '../../src/components/partner/PartnerKit';
 import subscriptionService from '../../src/services/subscriptionService';
@@ -28,6 +28,34 @@ export const themeFor = (plan) => {
   return w >= 5 ? THEMES.diamond : w === 4 ? THEMES.platinum : w === 3 ? THEMES.gold : w === 2 ? THEMES.gold_basic : THEMES.silver;
 };
 
+// Dark "luxe" palette for the plan cards (glossy dark card, light metallic accent, bright pill CTA).
+const LUX = {
+  5: { bg: ['#3b1460', '#1f0a36', '#0d0418'], line: '#E9C9FF', accent: '#E3B8FF', glow: '216,180,254', cta: ['#F0D4FF', '#C98BFF'] },
+  4: { bg: ['#0f3a5c', '#071f36', '#030d19'], line: '#B9E6FF', accent: '#9FDCFF', glow: '125,211,252', cta: ['#C9EEFF', '#7CCBFF'] },
+  3: { bg: ['#6b4c10', '#2e2006', '#120c02'], line: '#E8C566', accent: '#FFD36A', glow: '255,211,106', cta: ['#FFE08A', '#F7C948'] },
+  2: { bg: ['#6a3412', '#2e1607', '#140902'], line: '#F2B27A', accent: '#FFB984', glow: '255,170,110', cta: ['#FFD0A8', '#FB9F5B'] },
+  1: { bg: ['#3a4556', '#1b222d', '#0b0f15'], line: '#D5DEE9', accent: '#E2E8F0', glow: '203,213,225', cta: ['#F1F5F9', '#CBD5E1'] },
+};
+const luxFor = (th) => LUX[th.weight] || LUX[1];
+const INK = '#1a1206';
+
+// Soft light blob (RN has no blur; stacked translucent circles fake a glow).
+const Glow = ({ rgb, size, style }) => (
+  <View pointerEvents="none" style={[{ position: 'absolute', width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style]}>
+    {[1, 0.72, 0.46, 0.24].map((k, i) => (
+      <View key={i} style={{ position: 'absolute', width: size * k, height: size * k, borderRadius: size, backgroundColor: `rgba(${rgb},${0.05 + i * 0.03})` }} />
+    ))}
+  </View>
+);
+
+const LuxFeature = ({ lx, children, tag }) => (
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+    <Check size={15} color={lx.accent} strokeWidth={3} />
+    <Text style={{ flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.82)', fontWeight: '600' }}>{children}</Text>
+    {tag ? <View style={{ borderWidth: 1, borderColor: `rgba(${lx.glow},0.45)`, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}><Text style={{ fontSize: 9, fontWeight: '800', color: lx.accent }}>{tag}</Text></View> : null}
+  </View>
+);
+
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-');
 const Usage = ({ Icon, label, used, cap, color, finiteOnly }) => {
   const limited = cap > 0 || finiteOnly; const pct = cap > 0 ? Math.min(100, Math.round((used / cap) * 100)) : 0;
@@ -39,19 +67,20 @@ const Usage = ({ Icon, label, used, cap, color, finiteOnly }) => {
     </View>
   );
 };
-const Feature = ({ theme, children, tag }) => (
-  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-    <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: theme.pill, alignItems: 'center', justifyContent: 'center' }}><Check size={11} color={theme.accent} strokeWidth={3} /></View>
-    <Text style={{ flex: 1, fontSize: 13, color: colors.gray700 }}>{children}</Text>
-    {tag ? <View style={{ backgroundColor: theme.pill, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}><Text style={{ fontSize: 9, fontWeight: '800', color: theme.accent }}>{tag}</Text></View> : null}
-  </View>
-);
 
 export default function PartnerSubscriptions() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const user = useAuthStore((s) => s.user) || {};
   const scrollRef = useRef(null);
+  // Responsive: 1 column on phones, 2 on tablets, 3 on large tablets / landscape.
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 700;
+  const cols = width >= 1100 ? 3 : isTablet ? 2 : 1;
+  const MAX_W = 1200;
+  const pad = isTablet ? 24 : 16;
+  const GAP = isTablet ? 20 : 16;
+  const cardW = cols === 1 ? '100%' : Math.floor((Math.min(width, MAX_W) - pad * 2 - GAP * (cols - 1)) / cols);
   const plansY = useRef(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -101,7 +130,7 @@ export default function PartnerSubscriptions() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="Subscription Plans" subtitle="Partner visibility boosters" />
-      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}>
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: pad, gap: 16, paddingBottom: 40, width: '100%', maxWidth: MAX_W, alignSelf: 'center' }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}>
         <View>
           <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.blue50, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, marginBottom: 8 }}><TrendingUp size={13} color="#005CA8" /><Text style={{ fontSize: 11, fontWeight: '800', color: '#005CA8' }}>Partner Visibility Boosters</Text></View>
           <Text style={{ fontSize: 24, fontWeight: '900', color: colors.slate900 }}>Subscription Plans</Text>
@@ -156,40 +185,78 @@ export default function PartnerSubscriptions() {
           <View onLayout={(e) => { plansY.current = e.nativeEvent.layout.y; }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}><Text style={{ fontSize: 18, fontWeight: '900', color: colors.gray900 }}>Available Plans</Text><Text style={{ fontSize: 11, color: colors.gray500 }}>{plans.length} options</Text></View>
             <Text style={{ fontSize: 12, color: colors.gray500, marginBottom: 12 }}>Select the tier and search ranking weight that best fits your portfolio.</Text>
-            <View style={{ gap: 16 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: GAP }}>
               {plans.map((plan) => {
-                const th = themeFor(plan); const isCurrent = currentSub?.planId?._id === plan._id && active; const isMax = th.weight >= 5 || plan.tier === 'diamond'; const isSilver = th.weight === 1;
+                const th = themeFor(plan); const lx = luxFor(th); const isCurrent = currentSub?.planId?._id === plan._id && active; const isMax = th.weight >= 5 || plan.tier === 'diamond'; const isSilver = th.weight === 1;
+                const perMonth = plan.durationDays > 30 ? `≈ ₹${Math.round((plan.price / plan.durationDays) * 30).toLocaleString('en-IN')} / month` : isSilver ? 'Affordable entry for local listing' : '30-day listing & inquiries';
                 return (
-                  <View key={plan._id} style={{ backgroundColor: th.bg, borderRadius: 24, borderWidth: isCurrent ? 3 : 2, borderColor: isCurrent ? th.ring : th.border, overflow: 'hidden' }}>
-                    <LinearGradient colors={th.sheen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 5 }} />
-                    <View style={{ padding: 18, gap: 14 }}>
-                      {th.badge && !isCurrent ? <View style={{ alignSelf: 'flex-start', backgroundColor: th.pill, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 }}><Text style={{ fontSize: 10, fontWeight: '900', color: th.accent }}>{th.badge}</Text></View> : null}
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                        <LinearGradient colors={th.header} style={{ width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}><th.Icon size={24} color="#fff" strokeWidth={2.4} /></LinearGradient>
-                        <View style={{ flex: 1 }}><View style={{ alignSelf: 'flex-start', backgroundColor: th.pill, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, marginBottom: 2 }}><Text style={{ fontSize: 10, fontWeight: '800', color: th.accent }}>{isCurrent ? 'Current Plan' : `Weight ${th.weight}x`}</Text></View><Text style={{ fontSize: 18, fontWeight: '900', color: colors.gray900 }}>{plan.name}</Text></View>
+                  <View key={plan._id} style={{ width: cardW, borderRadius: 28, borderWidth: isCurrent ? 2.5 : 1.5, borderColor: lx.line, overflow: 'hidden', backgroundColor: lx.bg[2], shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}>
+                    <LinearGradient colors={lx.bg} start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} style={{ flex: 1, paddingHorizontal: isTablet ? 22 : 20, paddingTop: 20, paddingBottom: 18, gap: 18 }}>
+                      <Glow rgb={lx.glow} size={220} style={{ top: -90, right: -80 }} />
+                      <Glow rgb={lx.glow} size={180} style={{ bottom: -70, left: -70 }} />
+
+                      {/* Top row: badge + weight */}
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 22 }}>
+                        {th.badge && !isCurrent ? <View style={{ borderWidth: 1, borderColor: `rgba(${lx.glow},0.5)`, backgroundColor: `rgba(${lx.glow},0.12)`, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 }}><Text style={{ fontSize: 10, fontWeight: '900', color: lx.accent }}>{th.badge}</Text></View> : <View />}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isCurrent ? lx.accent : 'rgba(255,255,255,0.08)', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 }}>
+                          {isCurrent ? <CheckCircle size={11} color={INK} /> : <TrendingUp size={11} color={lx.accent} />}
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: isCurrent ? INK : lx.accent }}>{isCurrent ? 'Current Plan' : `Weight ${th.weight}x`}</Text>
+                        </View>
                       </View>
-                      <Text style={{ fontSize: 12, color: colors.gray500 }}>{plan.description || th.tagline}</Text>
+
+                      {/* Title block (centered, like a brand mark) */}
+                      <View style={{ alignItems: 'center', gap: 6 }}>
+                        <View style={{ width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, borderColor: `rgba(${lx.glow},0.6)`, backgroundColor: `rgba(${lx.glow},0.12)`, alignItems: 'center', justifyContent: 'center' }}><th.Icon size={24} color={lx.accent} strokeWidth={2.2} /></View>
+                        <Text style={{ fontSize: 24, fontWeight: '900', color: '#fff', textAlign: 'center', letterSpacing: 0.3 }}>{plan.name}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ width: 54, height: 1.5, backgroundColor: lx.accent, opacity: 0.8 }} />
+                          <Text style={{ fontSize: 11, fontWeight: '800', color: lx.accent, letterSpacing: 1.5 }}>{th.weight}x PRIORITY{isMax ? ' • MAX' : ''}</Text>
+                          <View style={{ width: 54, height: 1.5, backgroundColor: lx.accent, opacity: 0.8 }} />
+                        </View>
+                        <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.62)', textAlign: 'center', lineHeight: 17, paddingHorizontal: 6 }}>{plan.description || th.tagline}</Text>
+                      </View>
+
+                      {/* Features */}
+                      <View style={{ gap: 11, paddingHorizontal: 4 }}>
+                        <LuxFeature lx={lx}>Up to <Text style={{ fontSize: 13, fontWeight: '900', color: '#fff' }}>{plan.maxProperties} properties</Text> listed</LuxFeature>
+                        <LuxFeature lx={lx} tag={plan.leadCap === 0 ? 'Unlimited' : null}><Text style={{ fontSize: 13, fontWeight: '900', color: '#fff' }}>{plan.leadCap > 0 ? `${plan.leadCap} Leads` : 'Unlimited leads'}</Text> / month</LuxFeature>
+                        <LuxFeature lx={lx}>Ranking boost (<Text style={{ fontSize: 13, fontWeight: '900', color: '#fff' }}>Level {th.weight}</Text> Priority)</LuxFeature>
+                        {plan.hasVerifiedTag ? <LuxFeature lx={lx} tag="Verified">Verified partner badge & trust seal</LuxFeature> : null}
+                        {plan.bannerType && plan.bannerType !== 'none' ? <LuxFeature lx={lx} tag="Banner">{plan.bannerType} banner presence</LuxFeature> : null}
+                        {plan.pauseDaysAllowed > 0 ? <LuxFeature lx={lx}><Text style={{ fontSize: 13, fontWeight: '900', color: '#fff' }}>{plan.pauseDaysAllowed} days</Text> subscription pause</LuxFeature> : null}
+                      </View>
+
+                      {/* Spacer: keeps price + button aligned at the bottom when cards sit side by side */}
+                      <View style={{ flexGrow: 1, marginTop: -18 }} />
+
+                      {/* Ranking power meter */}
                       <View style={{ gap: 6 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><TrendingUp size={13} color={th.accent} /><Text style={{ fontSize: 11, fontWeight: '700', color: colors.gray600 }}>Ranking Power</Text></View><Text style={{ fontSize: 11, fontWeight: '800', color: th.accent }}>{th.weight}x Priority {isMax ? '(MAX)' : ''}</Text></View>
-                        <View style={{ flexDirection: 'row', gap: 4 }}>{[1, 2, 3, 4, 5].map((s) => <View key={s} style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: s <= th.weight ? th.filled : colors.gray200 }} />)}</View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.6)' }}>Ranking Power</Text><Text style={{ fontSize: 11, fontWeight: '800', color: lx.accent }}>{th.weight}/5</Text></View>
+                        <View style={{ flexDirection: 'row', gap: 4 }}>{[1, 2, 3, 4, 5].map((s) => <View key={s} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: s <= th.weight ? lx.accent : 'rgba(255,255,255,0.14)' }} />)}</View>
                       </View>
-                      <View><View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6 }}><Text style={{ fontSize: 32, fontWeight: '900', color: colors.gray900 }}>₹{plan.price.toLocaleString('en-IN')}</Text><Text style={{ fontSize: 12, color: colors.gray500, marginBottom: 6 }}>/ {plan.durationDays} days</Text></View><Text style={{ fontSize: 11, color: colors.gray500 }}>{plan.durationDays > 30 ? `≈ ₹${Math.round((plan.price / plan.durationDays) * 30).toLocaleString('en-IN')} / month` : isSilver ? '⚡ Affordable entry for local listing' : '⚡ 30-day listing & inquiries'}</Text></View>
-                      <View style={{ gap: 10 }}>
-                        <Feature theme={th}>Up to <Text style={{ fontSize: 13, fontWeight: '800', color: colors.gray900 }}>{plan.maxProperties} properties</Text> listed</Feature>
-                        <Feature theme={th} tag={plan.leadCap === 0 ? 'Unlimited' : null}><Text style={{ fontSize: 13, fontWeight: '800', color: colors.gray900 }}>{plan.leadCap > 0 ? `${plan.leadCap} Leads` : 'Unlimited leads'}</Text> / month</Feature>
-                        <Feature theme={th} tag={th.weight >= 3 ? `${th.weight}x Priority` : null}>Ranking boost (<Text style={{ fontSize: 13, fontWeight: '800', color: colors.gray900 }}>Level {th.weight}</Text> Priority)</Feature>
-                        {plan.hasVerifiedTag ? <Feature theme={th} tag="Verified">Verified partner badge & trust seal</Feature> : null}
-                        {plan.bannerType && plan.bannerType !== 'none' ? <Feature theme={th} tag="Banner">{plan.bannerType} banner presence</Feature> : null}
-                        {plan.pauseDaysAllowed > 0 ? <Feature theme={th}><Text style={{ fontSize: 13, fontWeight: '800', color: colors.gray900 }}>{plan.pauseDaysAllowed} days</Text> subscription pause</Feature> : null}
+
+                      {/* Price option (selected-pill look) */}
+                      <View style={{ borderRadius: 22, borderWidth: 1.5, borderColor: `rgba(${lx.glow},0.55)`, backgroundColor: `rgba(${lx.glow},0.1)`, paddingHorizontal: 18, paddingVertical: 14, flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: lx.accent }}>{plan.durationDays} Days Subscription</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 2 }}>
+                            <Text style={{ fontSize: 26, fontWeight: '900', color: '#fff' }}>₹{plan.price.toLocaleString('en-IN')}</Text>
+                            <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 5, flexShrink: 1 }}>{perMonth}</Text>
+                          </View>
+                        </View>
+                        <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: lx.accent, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: lx.accent }} /></View>
                       </View>
+
+                      {/* CTA */}
                       {isCurrent ? (
-                        <View style={{ backgroundColor: colors.slate900, borderRadius: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}><CheckCircle size={18} color="#fff" /><Text style={{ color: '#fff', fontWeight: '900' }}>Current Active Plan</Text></View>
+                        <View style={{ borderRadius: 999, borderWidth: 1.5, borderColor: lx.accent, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}><CheckCircle size={18} color={lx.accent} /><Text style={{ color: lx.accent, fontWeight: '900', fontSize: 15 }}>Current Active Plan</Text></View>
                       ) : (
                         <TouchableOpacity disabled={processing} onPress={() => purchase(plan)} activeOpacity={0.85} style={{ opacity: processing ? 0.6 : 1 }}>
-                          <LinearGradient colors={th.btn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Text style={{ color: th.btnText, fontWeight: '900' }}>Choose {th.tierName}</Text><ArrowRight size={16} color={th.btnText} /></LinearGradient>
+                          <LinearGradient colors={lx.cta} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 999, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Text style={{ color: INK, fontWeight: '900', fontSize: 16 }}>Subscribe {th.tierName}</Text><ChevronRight size={18} color={INK} strokeWidth={3} /></LinearGradient>
                         </TouchableOpacity>
                       )}
-                    </View>
+                      <Text style={{ textAlign: 'center', fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>Secure payment  •  Non-refundable  •  Upgrade anytime</Text>
+                    </LinearGradient>
                   </View>
                 );
               })}

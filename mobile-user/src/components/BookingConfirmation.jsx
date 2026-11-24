@@ -10,6 +10,7 @@ import { getConfirmationState } from '../lib/checkoutState';
 import toast from '../store/toastStore';
 import { colors } from '../theme';
 import { errMsg } from '../utils/format';
+import { CENTER } from '../lib/responsive';
 
 const D = (v) => new Date(v).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 const Card = ({ children, style }) => <View style={[{ backgroundColor: '#fff', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: colors.gray100 }, style]}>{children}</View>;
@@ -71,7 +72,7 @@ export default function BookingConfirmation() {
         <Text style={{ fontSize: 17, fontWeight: '700', color: colors.gray900 }}>Booking Confirmation</Text>
         <TouchableOpacity onPress={share} style={{ padding: 8 }}><Share2 size={20} color={colors.gray600} /></TouchableOpacity>
       </View>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 40 }, CENTER]}>
         <Card style={{ alignItems: 'center', padding: 32, overflow: 'hidden' }}>
           <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.green50, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}><CheckCircle size={40} color={colors.green600} /></View>
           <Text style={{ fontSize: 24, fontWeight: '900', color: colors.gray900, marginBottom: 8 }}>Booking Confirmed!</Text>

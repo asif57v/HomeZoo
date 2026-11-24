@@ -11,6 +11,7 @@ import useAuthStore from '../../src/store/authStore';
 import toast from '../../src/store/toastStore';
 import { errMsg } from '../../src/utils/format';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const P = '#005CA8';
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
@@ -88,7 +89,7 @@ export default function PartnerWallet() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="Wallet" subtitle="Balance & payouts" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} />}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 40 }, CENTER]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} />}>
         <LinearGradient colors={[P, '#003768']} style={{ borderRadius: 24, padding: 22 }}>
           <Text style={{ fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.7)' }}>Available Balance</Text>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 4 }}><Text style={{ fontSize: 22, color: '#fff', marginTop: 4 }}>₹</Text><Text style={{ fontSize: 40, fontWeight: '900', color: '#fff' }}>{wallet?.balance?.toLocaleString('en-IN') || '0'}</Text></View>
@@ -126,7 +127,7 @@ export default function PartnerWallet() {
       </ScrollView>
 
       <Sheet visible={!!modal} onClose={() => !submitting && setModal(null)} title={showBankForm ? 'Add Bank Details' : modal === 'withdraw' ? 'Withdraw Funds' : 'Add Money'} maxHeight="90%">
-        <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={{ gap: 12, paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={[{ gap: 12, paddingBottom: 12 }, CENTER]} keyboardShouldPersistTaps="handled">
           <Text style={{ fontSize: 12, color: colors.gray500 }}>{showBankForm ? 'We need your bank details to process payouts via Razorpay.' : modal === 'withdraw' ? 'Transfer funds directly to your verified bank account.' : 'Add funds to your wallet using UPI or Cards.'}</Text>
           {showBankForm ? [['accountHolderName', 'Account Holder Name', 'default'], ['accountNumber', 'Account Number', 'number-pad'], ['ifscCode', 'IFSC Code', 'default'], ['bankName', 'Bank Name', 'default']].map(([k, ph, kb]) => (
             <Input key={k} value={bank[k]} onChangeText={(v) => setBank({ ...bank, [k]: k === 'ifscCode' ? v.toUpperCase() : v })} placeholder={ph} keyboardType={kb} autoCapitalize={k === 'ifscCode' ? 'characters' : 'words'} style={{ borderWidth: 1, borderColor: colors.gray200, borderRadius: 12, padding: 12, backgroundColor: colors.gray50 }} />

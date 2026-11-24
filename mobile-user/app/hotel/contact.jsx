@@ -6,6 +6,7 @@ import { PartnerHeader } from '../../src/components/partner/PartnerKit';
 import { legalService } from '../../src/services/apiService';
 import { errMsg } from '../../src/utils/format';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 export default function PartnerContact() {
   const [f, setF] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -23,7 +24,7 @@ export default function PartnerContact() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="Contact Partner Support" subtitle="Reach the HoomZo team" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 14, paddingBottom: 40 }, CENTER]} keyboardShouldPersistTaps="handled">
         <TouchableOpacity onPress={() => Linking.openURL('tel:6232314147')} style={{ backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.gray100, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.blue50, alignItems: 'center', justifyContent: 'center' }}><Phone size={18} color="#005CA8" /></View>
           <View><Text style={{ fontSize: 11, fontWeight: '700', color: colors.gray700 }}>Phone</Text><Text style={{ fontSize: 14, color: colors.gray600 }}>+91 6232314147</Text></View>

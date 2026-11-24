@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback, memo, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { requireLogin } from '../../utils/authGate';
 import {
   Heart,
   MessageCircle,
@@ -241,6 +242,7 @@ const ReelCard = memo(function ReelCard({
 
   const handleNotInterestedClick = useCallback(async () => {
     setMenuOpen(false);
+    if (!requireLogin(navigate, 'Please login to continue')) return;
     try {
       await reelService.setNotInterested(reel._id);
       toast.success('We will show fewer reels like this');
@@ -248,7 +250,7 @@ const ReelCard = memo(function ReelCard({
     } catch {
       toast.error('Failed to update recommendation preferences');
     }
-  }, [reel._id, onNotInterested]);
+  }, [reel._id, onNotInterested, navigate]);
 
   const user = reel.user || {};
   const displayName = user.name || 'User';

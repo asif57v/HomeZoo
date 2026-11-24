@@ -1,6 +1,7 @@
 import toast from 'react-hot-toast';
 import subscriptionService from '../services/subscriptionService';
 import useFeatureFlagsStore from '../store/featureFlagsStore';
+import { requireLogin } from './authGate';
 
 /**
  * Evaluates whether a partner is currently eligible to add a new property.
@@ -119,6 +120,9 @@ export const checkPartnerCanAddProperty = async () => {
  */
 export const handleNavigateToAddProperty = async (navigate, options = {}) => {
   const { targetRoute = '/hotel/join', state = {} } = options;
+
+  // Guests must login first; they come back to the add-property flow afterwards.
+  if (!requireLogin(navigate, 'Please login to post your property', targetRoute)) return;
 
   const result = await checkPartnerCanAddProperty();
 

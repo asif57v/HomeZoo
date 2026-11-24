@@ -2,26 +2,19 @@ import React from 'react';
 import { Building, Plus, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { handleNavigateToAddProperty } from '../../utils/subscriptionGuard';
+import { requireLogin } from '../../utils/authGate';
 
 const HostPartnerHubBanner = ({ className = '' }) => {
   const navigate = useNavigate();
 
   const handlePostClick = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login', { state: { from: { pathname: '/hotel/join' } } });
-      return;
-    }
+    if (!requireLogin(navigate, 'Please login to post your property', '/hotel/join')) return;
     handleNavigateToAddProperty(navigate);
   };
 
   const handleDashboardClick = (e) => {
     e.stopPropagation();
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login', { state: { from: { pathname: '/hotel/partner-dashboard' } } });
-      return;
-    }
+    if (!requireLogin(navigate, 'Please login to continue', '/hotel/partner-dashboard')) return;
     navigate('/hotel/partner-dashboard');
   };
 

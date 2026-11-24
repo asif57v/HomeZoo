@@ -26,6 +26,7 @@ import { api } from '../../services/apiService';
 import paymentService from '../../services/paymentService';
 import { isFlutterApp, pickVideo } from '../../utils/flutterBridge';
 import toast from 'react-hot-toast';
+import { requireLogin, isLoggedIn } from '../../utils/authGate';
 
 const MAX_SIZE_MB = 60;
 const MAX_CAPTION_LENGTH = 500;
@@ -92,7 +93,7 @@ export default function ReelsPage() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
-    if (tabParam === 'saved' || tabParam === 'my') {
+    if ((tabParam === 'saved' || tabParam === 'my') && isLoggedIn()) {
       setActiveTab(tabParam);
       const reelIdParam = params.get('reel');
       if (reelIdParam) {
@@ -203,6 +204,7 @@ export default function ReelsPage() {
   // Initial load based on tab
   useEffect(() => {
     loadFeed();
+    if (!isLoggedIn()) return;
     // Load property options for linking
     api
       .get('/properties/my')
@@ -230,6 +232,7 @@ export default function ReelsPage() {
 
   // Like Toggle
   const handleLikeToggle = useCallback(async (reelId) => {
+    if (!requireLogin(navigate, 'Please login to like reels')) return;
     const updateList = (prev) =>
       prev.map((r) => {
         if (r._id !== reelId) return r;
@@ -271,10 +274,11 @@ export default function ReelsPage() {
     } catch (err) {
       toast.error('Failed to update like');
     }
-  }, [selectedReelForModal]);
+  }, [selectedReelForModal, navigate]);
 
   // Save Toggle
   const handleSaveToggle = useCallback(async (reelId) => {
+    if (!requireLogin(navigate, 'Please login to save reels')) return;
     const updateList = (prev) =>
       prev.map((r) => {
         if (r._id !== reelId) return r;
@@ -325,7 +329,7 @@ export default function ReelsPage() {
     } catch (err) {
       toast.error('Failed to update save');
     }
-  }, [selectedReelForModal]);
+  }, [selectedReelForModal, navigate]);
 
   // Delete Reel
   const handleDeleteReel = useCallback(async (reelId) => {
@@ -704,6 +708,7 @@ export default function ReelsPage() {
   };
 
   const handleUploadClick = () => {
+    if (!requireLogin(navigate, 'Please login to post a reel')) return;
     if (isFlutterApp()) {
       pickVideo(
         async (file) => {
@@ -793,7 +798,10 @@ export default function ReelsPage() {
           <button
             key={tab.key}
             type="button"
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              if (tab.key !== 'discover' && !requireLogin(navigate, 'Please login to see your reels')) return;
+              setActiveTab(tab.key);
+            }}
             className={`relative py-1.5 text-[13px] font-bold whitespace-nowrap transition-colors ${
               activeTab === tab.key ? 'text-white' : 'text-white/50 hover:text-white/80'
             }`}

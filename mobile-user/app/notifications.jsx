@@ -6,6 +6,7 @@ import { BlueHeader } from '../src/components/Common';
 import { userService } from '../src/services/apiService';
 import toast from '../src/store/toastStore';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const ICON = { booking: [Calendar, colors.green100, colors.green600], offer: [Tag, '#F3E8FF', '#9333EA'] };
 
@@ -53,7 +54,7 @@ export default function Notifications() {
           ) : null}
         </View>
       </BlueHeader>
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 12 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 12 }, CENTER]}>
         {loading ? <View style={{ paddingVertical: 60, alignItems: 'center' }}><ActivityIndicator size="large" color={colors.surface} /></View> : (<>
           {list.map((n) => {
             const [Icon, bg, fg] = ICON[n.type] || [Info, colors.blue100, colors.blue600];

@@ -3,12 +3,13 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, usePathname } from 'expo-router';
-import { MapPin, Star, IndianRupee, Heart, BadgeCheck, BedDouble, ChevronRight, UtensilsCrossed } from 'lucide-react-native';
+import { MapPin, Star, IndianRupee, Heart, BadgeCheck, BedDouble, ChevronRight, UtensilsCrossed, Building2, Maximize2, Compass } from 'lucide-react-native';
 import { Text } from './ui';
 import { userService } from '../services/apiService';
 import { storage } from '../lib/storage';
 import toast from '../store/toastStore';
 import { colors } from '../theme';
+import { useResponsive } from '../lib/responsive';
 import { formatCompactPrice, cleanImageUrl, errMsg, roomSharingLabel, realRating } from '../utils/format';
 
 const PLACEHOLDER = 'https://via.placeholder.com/400x300?text=No+Image';
@@ -47,12 +48,20 @@ const Price = ({ price, formatted, suffix, size = 16, color = '#fff', suffixColo
   </View>
 );
 
+// Small spec pill on the white info panel (type, area, facing)
+const SpecChip = ({ Icon, label }) => (
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.slate50, borderWidth: 1, borderColor: colors.slate200, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 }}>
+    <Icon size={11} color={colors.slate500} /><Text numberOfLines={1} style={{ fontSize: 10, fontWeight: '600', color: colors.slate700 }}>{label}</Text>
+  </View>
+);
+
 // Fallback lead source when the parent does not pass one
 const SCREEN_NAMES = { '/': 'Home', '/search': 'Search results', '/saved-places': 'Wishlist' };
 
 const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact = false, variant = 'default', onSavedChange, source }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { isTablet } = useResponsive();
   const [isSaved, setIsSaved] = useState(initialIsSaved || false);
   const [saveLoading, setSaveLoading] = useState(false);
 
@@ -113,11 +122,15 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
   const locationText = [area || city, area ? city : (address?.state || item.state)].filter(Boolean).join(', ') || 'Location not added';
   const isPremium = item.rankingWeight > 0 || item.isFeatured;
   const badgeLabel = badgeTypeKey === 'Rent' ? 'For Rent' : badgeTypeKey === 'Buy' ? 'For Sale' : typeLabel;
+  // Readable property code (HZ-PG-1001), shown on every card like the web
+  const codeLine = (color) => (item.propertyCode
+    ? <Text numberOfLines={1} style={{ fontSize: 9, fontWeight: '700', letterSpacing: 0.6, color }}>ID: {item.propertyCode}</Text>
+    : null);
 
 
   if (variant === 'featured') {
     return (
-      <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ height: 192, borderRadius: 20, backgroundColor: colors.gray200, overflow: 'hidden' }, style]}>
+      <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ height: isTablet ? 280 : 192, borderRadius: 20, backgroundColor: colors.gray200, overflow: 'hidden' }, style]}>
         <CardImg uri={imageSrc} /><Fade />
         <View style={{ position: 'absolute', top: 10, left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           {isPremium ? <Premium /> : badgeLabel ? (
@@ -137,6 +150,7 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
             <Text numberOfLines={1} style={{ flexShrink: 1, fontSize: 15, fontWeight: '800', color: '#fff' }}>{displayName}</Text>
             {item.hasVerifiedTag && <BadgeCheck size={16} color="#fff" />}
           </View>
+          {codeLine('rgba(255,255,255,0.7)')}
           <View style={{ marginTop: 6 }}><Price price={displayPrice} formatted={formattedPrice} suffix={priceSuffix} /></View>
         </View>
       </TouchableOpacity>
@@ -153,7 +167,7 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
     const chips = [sharing && { Icon: BedDouble, label: sharing }, mealsLabel && { Icon: UtensilsCrossed, label: mealsLabel }].filter(Boolean);
     return (
       <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ backgroundColor: '#fff', borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: '#BFDBFE', borderLeftWidth: 4, borderLeftColor: colors.emerald600, shadowColor: colors.emerald600, shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3, marginVertical: 4 }, style]}>
-        <View style={{ height: 128, backgroundColor: colors.gray100 }}>
+        <View style={{ height: isTablet ? 170 : 128, backgroundColor: colors.gray100 }}>
           <CardImg uri={imageSrc} /><Fade colorsArr={['transparent', 'rgba(0,0,0,0.35)']} start={{ x: 0, y: 0.5 }} />
           {gender ? <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: GENDER[gender] || colors.gray700, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>{gender}</Text></View> : null}
           <View style={{ position: 'absolute', top: 8, right: 8 }}><SaveBtn saved={isSaved} onPress={handleToggleSave} /></View>
@@ -169,6 +183,7 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
             <Text numberOfLines={1} style={{ flexShrink: 1, fontSize: 13, fontWeight: '700', color: colors.gray900 }}>{displayName}</Text>
             {item.hasVerifiedTag && <Verified size={14} />}
           </View>
+          {codeLine(colors.gray400)}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 }}>
             <MapPin size={10} color={colors.gray400} /><Text numberOfLines={1} style={{ flex: 1, fontSize: 11, color: colors.gray500 }}>{locationText}</Text>
           </View>
@@ -191,29 +206,46 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
     );
   }
 
+  // Rent + sale cards: photo on top, details on a white panel below, so text stays readable on any photo.
+  const CARD_SHADOW = { shadowColor: '#0f172a', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3 };
+  const ratingChip = (
+    <View style={{ position: 'absolute', bottom: 8, left: 8, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(255,255,255,0.95)', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 }}>
+      <Star size={10} color={colors.amber400} fill={colors.amber400} />
+      <Text style={{ fontSize: 10, fontWeight: '800', color: colors.gray900 }}>{displayRating}</Text>
+      {reviewCount > 0 ? <Text style={{ fontSize: 10, color: colors.gray400 }}>({reviewCount})</Text> : null}
+    </View>
+  );
+
   if (variant === 'tile') {
     const r = item.rentDetails || {};
     const bhk = r.type || r.bhkType || item.bhkType || item.bhk || item.roomType || 'For Rent';
+    const furnish = r.furnishing || r.furnishingStatus;
     return (
-      <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ aspectRatio: 3 / 4, borderRadius: 16, backgroundColor: colors.gray200, overflow: 'hidden', shadowColor: '#0f172a', shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 }, style]}>
-        <CardImg uri={imageSrc} /><Fade />
-        <View style={{ position: 'absolute', top: 8, left: 8, right: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
-          {isPremium ? <Premium small /> : <View />}
-          <SaveBtn saved={isSaved} onPress={handleToggleSave} bg="rgba(0,0,0,0.3)" inactive="#fff" />
-        </View>
-        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4, marginBottom: 4 }}>
-            <View style={{ flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#7C3AED', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
-              <BedDouble size={9} color="#fff" /><Text numberOfLines={1} style={{ color: '#fff', fontSize: 9, fontWeight: '700' }}>{bhk}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}><Star size={9} color={colors.amber400} fill={colors.amber400} /><Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>{displayRating}</Text></View>
+      <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#EDE9FE', ...CARD_SHADOW }, style]}>
+        <View style={{ aspectRatio: 1, backgroundColor: colors.gray100 }}>
+          <CardImg uri={imageSrc} />
+          <Fade colorsArr={['rgba(0,0,0,0.28)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.35 }} />
+          <View style={{ position: 'absolute', top: 8, left: 8, right: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            {isPremium ? <Premium small /> : <View />}
+            <SaveBtn saved={isSaved} onPress={handleToggleSave} />
           </View>
-          {displayPrice ? <Price price={displayPrice} formatted={formattedPrice} suffix="/mo" size={15} /> : <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Price on request</Text>}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-            <Text numberOfLines={1} style={{ flexShrink: 1, color: '#fff', fontSize: 12, fontWeight: '600' }}>{displayName}</Text>
+          <View style={{ position: 'absolute', bottom: 8, left: 8, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#7C3AED', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8, maxWidth: '75%' }}>
+            <BedDouble size={10} color="#fff" /><Text numberOfLines={1} style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>{bhk}</Text>
+          </View>
+        </View>
+        <View style={{ padding: 10, gap: 3, flexGrow: 1 }}>
+          {displayPrice ? <Price price={displayPrice} formatted={formattedPrice} suffix="/mo" size={15} color={colors.gray900} suffixColor={colors.gray500} /> : <Text style={{ color: colors.gray700, fontSize: 12, fontWeight: '700' }}>Price on request</Text>}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text numberOfLines={1} style={{ flexShrink: 1, color: colors.gray800, fontSize: 12, fontWeight: '700' }}>{displayName}</Text>
             {item.hasVerifiedTag && <Verified size={12} />}
           </View>
-          <Text numberOfLines={1} style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>{locationText}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <MapPin size={10} color={colors.gray400} /><Text numberOfLines={1} style={{ flex: 1, color: colors.gray500, fontSize: 10 }}>{locationText}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}><Star size={10} color={colors.amber400} fill={colors.amber400} /><Text style={{ fontSize: 10, fontWeight: '700', color: colors.gray700 }}>{displayRating}</Text></View>
+            {furnish ? <Text numberOfLines={1} style={{ flexShrink: 1, fontSize: 9, fontWeight: '600', color: '#7C3AED' }}>{furnish}</Text> : null}
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -222,28 +254,47 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
   if (variant === 'sale') {
     const b = item.buyDetails || {};
     const area = b.area?.superBuiltUp || b.area?.carpet;
-    const specs = [b.type, area && `${Number(area).toLocaleString('en-IN')} ${b.area?.unit || 'sqft'}`, b.facing && `${b.facing} facing`].filter(Boolean);
+    const specs = [
+      b.type && { Icon: Building2, label: b.type },
+      area && { Icon: Maximize2, label: `${Number(area).toLocaleString('en-IN')} ${b.area?.unit || 'sqft'}` },
+      b.facing && { Icon: Compass, label: `${b.facing} facing` },
+    ].filter(Boolean);
     return (
-      <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ aspectRatio: 4 / 5, borderRadius: 24, backgroundColor: colors.gray200, overflow: 'hidden', shadowColor: '#0f172a', shadowOpacity: 0.25, shadowRadius: 14, elevation: 6 }, style]}>
-        <CardImg uri={imageSrc} /><Fade colorsArr={['rgba(0,0,0,0.25)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.3 }} />
-        <View style={{ position: 'absolute', top: 10, left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-            <View style={{ backgroundColor: colors.blue600, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>For Sale</Text></View>
-            {isPremium ? <Premium small /> : null}
+      <TouchableOpacity activeOpacity={0.9} onPress={handleView} style={[{ backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: colors.blue100, ...CARD_SHADOW }, style]}>
+        <View style={{ aspectRatio: 16 / 11, backgroundColor: colors.gray100 }}>
+          <CardImg uri={imageSrc} />
+          <Fade colorsArr={['rgba(0,0,0,0.3)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.35 }} />
+          <View style={{ position: 'absolute', top: 10, left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+              <View style={{ backgroundColor: colors.blue600, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 }}><Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>For Sale</Text></View>
+              {isPremium ? <Premium small /> : null}
+            </View>
+            <SaveBtn saved={isSaved} onPress={handleToggleSave} box={32} size={16} />
           </View>
-          <SaveBtn saved={isSaved} onPress={handleToggleSave} bg="rgba(255,255,255,0.25)" inactive="#fff" box={32} size={16} />
+          {ratingChip}
         </View>
-        <View style={{ position: 'absolute', bottom: 8, left: 8, right: 8, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.45)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', padding: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            {displayPrice ? <View style={{ flexDirection: 'row', alignItems: 'center' }}><IndianRupee size={14} color="#fff" strokeWidth={2.5} /><Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{formatCompactPrice(displayPrice)}</Text></View> : <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>Price on request</Text>}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Star size={11} color={colors.amber400} fill={colors.amber400} /><Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>{displayRating}</Text></View>
+        <View style={{ padding: 12, gap: 4, flexGrow: 1 }}>
+          {displayPrice ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <IndianRupee size={17} color={colors.surface} strokeWidth={2.6} />
+              <Text style={{ color: colors.surface, fontSize: 20, fontWeight: '900' }}>{formatCompactPrice(displayPrice)}</Text>
+            </View>
+          ) : <Text style={{ color: colors.gray700, fontSize: 14, fontWeight: '700' }}>Price on request</Text>}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text numberOfLines={1} style={{ flexShrink: 1, color: colors.gray900, fontSize: 14, fontWeight: '800' }}>{displayName}</Text>
+            {item.hasVerifiedTag && <Verified size={14} />}
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
-            <Text numberOfLines={1} style={{ flexShrink: 1, color: '#fff', fontSize: 13, fontWeight: '700' }}>{displayName}</Text>
-            {item.hasVerifiedTag && <Verified size={13} />}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <MapPin size={11} color={colors.gray400} /><Text numberOfLines={1} style={{ flex: 1, color: colors.gray500, fontSize: 11 }}>{locationText}</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}><MapPin size={9} color="rgba(255,255,255,0.8)" /><Text numberOfLines={1} style={{ flex: 1, color: 'rgba(255,255,255,0.8)', fontSize: 10 }}>{locationText}</Text></View>
-          {specs.length > 0 ? <Text numberOfLines={1} style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, fontWeight: '500', marginTop: 4 }}>{specs.join('  ·  ')}</Text> : null}
+          {specs.length > 0 ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>{specs.map((s) => <SpecChip key={s.label} {...s} />)}</View> : null}
+          <View style={{ flexGrow: 1 }} />
+          <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.gray100, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            {codeLine(colors.gray400) || <View />}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.surface }}>View details</Text><ChevronRight size={14} color={colors.surface} />
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -269,6 +320,7 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
             <Text numberOfLines={1} style={{ flexShrink: 1, fontSize: 13, fontWeight: '700', color: colors.gray900 }}>{displayName}</Text>
             {item.hasVerifiedTag && <Verified size={13} />}
           </View>
+          {codeLine(colors.gray400)}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 }}>
             <MapPin size={9} color={colors.gray400} /><Text numberOfLines={1} style={{ flex: 1, fontSize: 10, color: colors.gray500 }}>{locationText}</Text>
           </View>
@@ -303,6 +355,7 @@ const PropertyCard = ({ property, data, style, isSaved: initialIsSaved, compact 
         </View>
       </View>
       <View style={{ padding: compact ? 8 : 10, gap: 4 }}>
+        {codeLine(colors.gray400)}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <Text numberOfLines={1} style={{ flex: 1, fontSize: compact ? 13 : 15, fontWeight: '700', color: colors.gray900 }}>{displayName}</Text>
           {(badgeTypeKey === 'PG' || badgeTypeKey === 'Hostel') && (item.pgDetails?.gender || item.pgType) ? (

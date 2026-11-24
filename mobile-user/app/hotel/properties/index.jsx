@@ -11,6 +11,8 @@ import { setWizardParams } from '../../../src/lib/wizardState';
 import toast from '../../../src/store/toastStore';
 import { errMsg } from '../../../src/utils/format';
 import { colors } from '../../../src/theme';
+import { CENTER_WIDE } from '../../../src/lib/responsive';
+import ResponsiveGrid from '../../../src/components/ResponsiveGrid';
 
 const P = '#005CA8';
 
@@ -61,7 +63,7 @@ export default function PartnerProperties() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} />}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 40 }, CENTER_WIDE]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} />}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View><Text style={{ fontSize: 20, fontWeight: '900', color: colors.slate900 }}>My Properties</Text><Text style={{ fontSize: 12, color: colors.gray500 }}>Manage your listings</Text></View>
           <TouchableOpacity onPress={() => handleNavigateToAddProperty(router)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: P, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 }}><Plus size={16} color="#fff" /><Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Add</Text></TouchableOpacity>
@@ -96,8 +98,9 @@ export default function PartnerProperties() {
         {shown.map(([type, list]) => (
           <View key={type} style={{ gap: 12 }}>
             <View><Text style={{ fontSize: 14, fontWeight: '800', color: colors.gray800, letterSpacing: 0.6 }}>{list[0]?.dynamicCategory?.displayName || type.toUpperCase()}</Text><Text style={{ fontSize: 11, color: colors.gray400 }}>{list.length} {list.length === 1 ? 'property' : 'properties'}</Text></View>
+            <ResponsiveGrid gap={12}>
             {list.map((p) => (
-              <View key={p._id} style={{ backgroundColor: '#fff', borderRadius: 16, borderWidth: 1.5, borderColor: colors.partnerBorder, borderLeftWidth: 5, borderLeftColor: P, overflow: 'hidden', shadowColor: '#005CA8', shadowOpacity: 0.14, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 4 }}>
+              <View key={p._id} style={{ flex: 1, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1.5, borderColor: colors.partnerBorder, borderLeftWidth: 5, borderLeftColor: P, overflow: 'hidden', shadowColor: '#005CA8', shadowOpacity: 0.14, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 4 }}>
                 <View style={{ height: 150, backgroundColor: colors.gray100, alignItems: 'center', justifyContent: 'center' }}>
                   {p.coverImage ? <Image source={{ uri: p.coverImage }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <Text style={{ color: colors.gray400 }}>No Image</Text>}
                   <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: p.status === 'published' ? colors.green100 : colors.amber100, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 }}><Text style={{ fontSize: 10, fontWeight: '700', color: p.status === 'published' ? colors.green700 : colors.amber700 }}>{p.status === 'published' ? 'Active' : p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : 'Pending'}</Text></View>
@@ -115,6 +118,7 @@ export default function PartnerProperties() {
                 </View>
               </View>
             ))}
+            </ResponsiveGrid>
           </View>
         ))}
       </ScrollView>

@@ -11,6 +11,7 @@ import useAuthStore from '../src/store/authStore';
 import toast from '../src/store/toastStore';
 import { errMsg } from '../src/utils/format';
 import { colors } from '../src/theme';
+import { centered } from '../src/lib/responsive';
 
 const Field = ({ label, required, icon, children }) => (
   <View>
@@ -79,7 +80,7 @@ export default function Signup() {
     <LinearGradient colors={['#FFFBEB', '#FFFFFF', '#FFF7ED']} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 16 }} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={[{ flexGrow: 1, justifyContent: 'center', padding: 16 }, centered(480)]} keyboardShouldPersistTaps="handled">
             <View style={{ width: '100%', maxWidth: 448, alignSelf: 'center' }}>
               <View style={{ alignItems: 'center', marginBottom: 32 }}>
                 <Brand style={{ marginBottom: 16 }} />

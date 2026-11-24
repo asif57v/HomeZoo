@@ -11,6 +11,7 @@ import { useFeatureFlags, RAZORPAY_UNAVAILABLE_MESSAGE } from '../src/store/feat
 import toast from '../src/store/toastStore';
 import { errMsg } from '../src/utils/format';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const QUICK = [500, 1000, 2000];
 
@@ -73,7 +74,7 @@ export default function WalletPage() {
         </SafeAreaView>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={{ padding: 24, gap: 10 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStats(); fetchTx(); }} />}>
+      <ScrollView contentContainerStyle={[{ padding: 24, gap: 10 }, CENTER]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStats(); fetchTx(); }} />}>
         <Text style={{ fontSize: 14, fontWeight: '700', color: colors.gray400 }}>Recent Transactions</Text>
         {tx.length === 0 ? (
           <View style={{ alignItems: 'center', paddingVertical: 48, backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: colors.gray100 }}>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Star, IndianRupee, Heart, BadgeCheck, BedDouble, Sofa, Users, UtensilsCrossed, ChevronRight, Ruler, Compass, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { requireLogin } from '../../utils/authGate';
 import { userService, propertyService } from '../../services/apiService';
 import toast from 'react-hot-toast';
 
@@ -51,10 +52,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
   const handleToggleSave = async (e) => {
     e.stopPropagation(); // Don't navigate to details
-    if (!localStorage.getItem('token')) {
-      toast.error("Please login to save properties");
-      return;
-    }
+    if (!requireLogin(navigate, 'Please login to save properties')) return;
 
     const targetId = _id || item?._id || item?.id;
     if (!targetId) {

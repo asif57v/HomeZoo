@@ -6,6 +6,7 @@ import { Text, Loader, EmptyState } from '../../../src/components/ui';
 import { BlueHeader } from '../../../src/components/Common';
 import { reviewService } from '../../../src/services/apiService';
 import { colors } from '../../../src/theme';
+import { CENTER } from '../../../src/lib/responsive';
 
 // The web page shows a static sample list; the app shows this property's real reviews from GET /reviews/:propertyId
 export default function ReviewsPage() {
@@ -18,7 +19,7 @@ export default function ReviewsPage() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <BlueHeader title="Ratings & Reviews" />
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 16 }, CENTER]}>
         {loading ? <Loader /> : reviews.length === 0 ? <EmptyState title="No reviews yet" subtitle="Be the first to review this property." /> : (<>
           <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: colors.gray100, flexDirection: 'row', alignItems: 'center', gap: 24 }}>
             <View style={{ width: 80, height: 80, backgroundColor: 'rgba(0,92,168,0.05)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(0,92,168,0.1)', alignItems: 'center', justifyContent: 'center' }}>

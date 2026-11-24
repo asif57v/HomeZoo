@@ -107,7 +107,7 @@ export const Sheet = ({ visible, onClose, title, children, full, maxHeight = '85
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }} onPress={onClose} />
-        <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: full ? '100%' : maxHeight, paddingBottom: insets.bottom + 8 }}>
+        <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: full ? '100%' : maxHeight, paddingBottom: insets.bottom + 8, width: '100%', maxWidth: 680, alignSelf: 'center' }}>
           <View style={{ alignItems: 'center', paddingTop: 8 }}><View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: colors.gray200 }} /></View>
           {title ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 }}>

@@ -6,6 +6,7 @@ import { PartnerBack } from '../../src/components/partner/PartnerKit';
 import { hotelService } from '../../src/services/apiService';
 import toast from '../../src/store/toastStore';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const P = '#005CA8';
 const ICON = { booking: [Calendar, colors.green100, colors.green600], offer: [Tag, '#F3E8FF', '#9333EA'] };
@@ -33,7 +34,7 @@ export default function PartnerNotifications() {
           <TouchableOpacity onPress={() => { if (selMode) setSelected([]); setSelMode(!selMode); }} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: colors.blue50 }}><Text style={{ fontSize: 12, fontWeight: '700', color: P }}>{selMode ? 'Cancel' : 'Select'}</Text></TouchableOpacity>
         </View>
       ) : null} />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 12 }, CENTER]}>
         {loading ? <ActivityIndicator color={P} size="large" style={{ paddingVertical: 60 }} /> : list.map((n) => {
           const [Icon, bg, fg] = ICON[n.type] || [Info, colors.blue100, colors.blue600];
           return (

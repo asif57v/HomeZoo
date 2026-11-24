@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, TouchableOpacity, ScrollView, FlatList, ActivityIndicator, Linking, useWindowDimensions, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, ScrollView, FlatList, ActivityIndicator, Linking, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -14,6 +14,7 @@ import { storage } from '../../lib/storage';
 import toast from '../../store/toastStore';
 import { colors } from '../../theme';
 import { realRating } from '../../utils/format';
+import { useResponsive } from '../../lib/responsive';
 
 const Skel = ({ style }) => <View style={[{ backgroundColor: 'rgba(209,213,219,0.7)', borderRadius: 8 }, style]} />;
 
@@ -94,12 +95,12 @@ export const PopularCategories = ({ categories = [], loading, onSelectCategory, 
 // ---- Banner Carousel
 export const BannerCarousel = ({ banners = [], loading, placement = 'HOME_TOP', autoSlideInterval = 5000 }) => {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { wideW, isTablet } = useResponsive();
   const [idx, setIdx] = useState(0);
   const [copied, setCopied] = useState(null);
   const listRef = useRef(null);
-  const itemW = width - 28;
-  const h = placement === 'HOME_MIDDLE' ? 144 : 176;
+  const itemW = wideW - 28;
+  const h = Math.round((placement === 'HOME_MIDDLE' ? 144 : 176) * (isTablet ? 1.6 : 1));
 
   useEffect(() => {
     if (!banners || banners.length <= 1) return;
@@ -224,7 +225,7 @@ export const ExclusiveOffers = ({ offers = [], loading }) => {
 // ---- Featured categories (bento -> 2 column grid, first tile hero)
 export const FeaturedCategories = ({ categories = [], loading, onSelectCategory, title = 'Featured Categories', subtitle = '' }) => {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { wideW: width, isTablet, cols, itemW } = useResponsive();
   const FALLBACK = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80';
   if (loading) return <View style={{ paddingHorizontal: 16, paddingVertical: 28 }}><Skel style={{ height: 24, width: 176, marginBottom: 16 }} /><Skel style={{ height: 160, borderRadius: 24 }} /></View>;
   if (!categories || categories.length === 0) return null;
@@ -242,8 +243,11 @@ export const FeaturedCategories = ({ categories = [], loading, onSelectCategory,
           const full = total === 1 || (index === total - 1 && index >= 1 && (total - 1) % 2 === 1 && !isHero);
           const w = full ? width - 32 : colW;
           const h = isHero ? colW * 1.35 : colW * 0.66;
+          const tW = itemW(cols(2, 3, 4), width - 32, 8);
+          const tileW = isTablet ? tW : isHero && total > 1 ? colW : w;
+          const tileH = isTablet ? tW * 0.8 : isHero && total > 1 ? colW * 1.35 : h;
           return (
-            <TouchableOpacity key={cat._id || index} activeOpacity={0.9} onPress={() => onPress(cat)} style={{ width: isHero && total > 1 ? colW : w, height: isHero && total > 1 ? colW * 1.35 : h, borderRadius: 24, overflow: 'hidden', backgroundColor: cat.color || '#0f766e' }}>
+            <TouchableOpacity key={cat._id || index} activeOpacity={0.9} onPress={() => onPress(cat)} style={{ width: tileW, height: tileH, borderRadius: 24, overflow: 'hidden', backgroundColor: cat.color || '#0f766e' }}>
               <Image source={{ uri: img }} style={StyleSheet.absoluteFill} contentFit="cover" />
               <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} style={StyleSheet.absoluteFill} />
               {cat.badge ? <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}><Text style={{ fontSize: 9, fontWeight: '700', color: colors.gray900 }}>{cat.badge}</Text></View> : null}
@@ -279,7 +283,8 @@ const useSavedIds = () => {
 
 // ---- Admin-curated Top Properties
 export const TopPropertiesSection = ({ config, loading: configLoading }) => {
-  const { width } = useWindowDimensions();
+  const { width: winW, wideW, isTablet } = useResponsive();
+  const width = isTablet ? Math.min(wideW * 0.62, 560) : winW;
   const ids = config?.propertyIds || [];
   const idsKey = ids.join(',');
   const [properties, setProperties] = useState([]);
@@ -320,7 +325,9 @@ export const TopPropertiesSection = ({ config, loading: configLoading }) => {
 const TILE = { 'rent-grid': { variant: 'tile', w: 0.38, max: 176 }, 'sale-grid': { variant: 'sale', w: 0.66, max: 288 }, 'plot-grid': { variant: 'plot', w: 0.52, max: 224 } };
 
 export const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'grid', limit, extraFilters = {}, source }) => {
-  const { width } = useWindowDimensions();
+  const { width: winW, wideW, isTablet, cols, itemW } = useResponsive();
+  // On tablets the carousels use a bigger base so cards stay readable but don't become huge
+  const width = isTablet ? Math.min(wideW * 0.62, 560) : winW;
   const [properties, setProperties] = useState([]);
   const [saved, loadSaved] = useSavedIds();
   const [loading, setLoading] = useState(true);
@@ -392,12 +399,15 @@ export const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMod
   if (viewMode === 'stay-carousel') {
     return <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>{shown.map((p) => <PropertyCard key={p._id} data={p} variant="stay" style={{ width: cardW }} isSaved={saved.includes(p._id)} source={source} />)}</ScrollView>;
   }
-  return <View style={{ paddingHorizontal: 14, gap: 16 }}>{shown.map((p) => <PropertyCard key={p._id} data={p} isSaved={saved.includes(p._id)} source={source} />)}</View>;
+  const n = cols(1, 2, 3);
+  const gridW = n > 1 ? itemW(n, wideW - 28, 16) : null;
+  return <View style={{ paddingHorizontal: 14, gap: 16, flexDirection: n > 1 ? 'row' : 'column', flexWrap: n > 1 ? 'wrap' : 'nowrap' }}>{shown.map((p) => <PropertyCard key={p._id} data={p} style={gridW ? { width: gridW } : undefined} isSaved={saved.includes(p._id)} source={source} />)}</View>;
 };
 
 // ---- Reels
 const ReelItem = ({ reel, onPress, banded }) => {
-  const w = 132;
+  const { isTablet } = useResponsive();
+  const w = isTablet ? 172 : 132;
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ width: banded ? w : w }}>
       <View style={{ width: w, height: w * 1.78, borderRadius: 16, overflow: 'hidden', backgroundColor: banded ? '#fff' : colors.gray200, shadowColor: '#0f172a', shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 }}>
@@ -464,7 +474,8 @@ export const ReelSection = ({ category, banded = false }) => {
 // ---- Latest projects banner (category tabs)
 export const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { isTablet } = useResponsive();
+  const bannerH = isTablet ? 340 : 220;
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [idx, setIdx] = useState(0);
@@ -483,7 +494,7 @@ export const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
     return () => clearInterval(t);
   }, [properties.length]);
 
-  if (loading) return <View style={{ marginHorizontal: 14, height: 220, backgroundColor: colors.gray50, borderRadius: 16, borderWidth: 1, borderColor: colors.gray200, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.gray300} /></View>;
+  if (loading) return <View style={{ marginHorizontal: 14, height: bannerH, backgroundColor: colors.gray50, borderRadius: 16, borderWidth: 1, borderColor: colors.gray200, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.gray300} /></View>;
   const cur = properties[idx];
   if (!cur) return null;
   return (
@@ -494,7 +505,7 @@ export const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
           <TrendingUp size={11} color={colors.emerald700} /><Text style={{ fontSize: 9.5, fontWeight: '700', color: colors.emerald700 }}>Recent Added</Text>
         </View>
       </View>
-      <TouchableOpacity activeOpacity={0.95} onPress={() => router.push({ pathname: '/property/[id]', params: { id: String(cur._id), from: `Top Picks · ${categoryName || 'Latest projects'}` } })} style={{ height: 220, borderRadius: 24, overflow: 'hidden', backgroundColor: colors.gray200 }}>
+      <TouchableOpacity activeOpacity={0.95} onPress={() => router.push({ pathname: '/property/[id]', params: { id: String(cur._id), from: `Top Picks · ${categoryName || 'Latest projects'}` } })} style={{ height: bannerH, borderRadius: 24, overflow: 'hidden', backgroundColor: colors.gray200 }}>
         <Image source={{ uri: cur.coverImage }} style={StyleSheet.absoluteFill} contentFit="cover" />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={StyleSheet.absoluteFill} />
         <View style={{ position: 'absolute', left: 20, right: 20, bottom: 16, gap: 6 }}>
@@ -528,6 +539,7 @@ const COLLECTIONS = [
 const CLEAR = { gender: undefined, occupancy: undefined, foodIncluded: undefined };
 
 export const CollectionSection = ({ onFilter, activeFilters = {} }) => {
+  const { isTablet } = useResponsive();
   const isSel = (f) => Object.entries(f).every(([k, v]) => activeFilters[k] === v);
   return (
     <View style={{ paddingVertical: 8, marginBottom: 16 }}>
@@ -542,7 +554,7 @@ export const CollectionSection = ({ onFilter, activeFilters = {} }) => {
         {COLLECTIONS.map((it) => {
           const sel = isSel(it.filters);
           return (
-            <TouchableOpacity key={it.id} activeOpacity={0.9} onPress={() => onFilter(sel ? CLEAR : it.filters)} style={{ width: 128, height: 96, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: sel ? colors.surface : 'transparent' }}>
+            <TouchableOpacity key={it.id} activeOpacity={0.9} onPress={() => onFilter(sel ? CLEAR : it.filters)} style={{ width: isTablet ? 176 : 128, height: isTablet ? 128 : 96, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: sel ? colors.surface : 'transparent' }}>
               <Image source={{ uri: it.image }} style={StyleSheet.absoluteFill} contentFit="cover" />
               <LinearGradient colors={['transparent', it.tint]} style={StyleSheet.absoluteFill} />
               <View style={{ position: 'absolute', left: 10, bottom: 8 }}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>{it.title}</Text></View>

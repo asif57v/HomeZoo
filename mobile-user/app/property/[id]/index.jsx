@@ -16,6 +16,7 @@ import { colors } from '../../../src/theme';
 import { errMsg, roomSharingLabel } from '../../../src/utils/format';
 import { setCheckoutState } from '../../../src/lib/checkoutState';
 import { useKeyboardOpen } from '../../../src/hooks/useKeyboardOpen';
+import { CENTER, CONTENT_MAX, TABLET_MIN } from '../../../src/lib/responsive';
 
 const DEFAULT_FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
@@ -58,6 +59,9 @@ export default function PropertyDetails() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  // Tablet: taller gallery, content in a centered column, bottom bar aligned with it
+  const galleryH = width >= TABLET_MIN ? Math.round(Math.min(width * 0.56, 560)) : 280;
+  const sidePad = Math.max(16, (width - CONTENT_MAX) / 2 + 16);
   const keyboardOpen = useKeyboardOpen();
   const scrollRef = useRef(null);
   const roomsY = useRef(0);
@@ -387,12 +391,12 @@ export default function PropertyDetails() {
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 110 }}>
         {/* Gallery */}
-        <View style={{ height: 280, backgroundColor: colors.gray900 }}>
+        <View style={{ height: galleryH, backgroundColor: colors.gray900 }}>
           <FlatList
             data={galleryImages} horizontal pagingEnabled showsHorizontalScrollIndicator={false} keyExtractor={(u, i) => u + i}
             onMomentumScrollEnd={(e) => setImgIdx(Math.round(e.nativeEvent.contentOffset.x / width))}
             renderItem={({ item, index }) => (
-              <Pressable onPress={() => { setImgIdx(index); setShowImages(true); }} style={{ width, height: 280 }}>
+              <Pressable onPress={() => { setImgIdx(index); setShowImages(true); }} style={{ width, height: galleryH }}>
                 <Image source={{ uri: item }} style={StyleSheet.absoluteFill} contentFit="cover" />
               </Pressable>
             )}
@@ -407,6 +411,7 @@ export default function PropertyDetails() {
           {galleryImages.length > 1 ? <View style={{ position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 }}><Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>{imgIdx + 1}/{galleryImages.length}</Text></View> : null}
         </View>
 
+        <View style={CENTER}>
         <View style={{ backgroundColor: '#fff', padding: 20 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             <Pill text={displayType} bg="rgba(0,92,168,0.1)" fg={colors.surface} />
@@ -677,7 +682,7 @@ export default function PropertyDetails() {
             {reviews.length === 0 ? <Text style={{ fontSize: 13, color: colors.gray400, textAlign: 'center', paddingVertical: 16 }}>No reviews yet. Be the first to review!</Text> : (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {reviews.map((r) => (
-                  <View key={r._id} style={{ width: width * 0.75, backgroundColor: colors.gray50, borderRadius: 12, padding: 14 }}>
+                  <View key={r._id} style={{ width: Math.min(width * 0.75, 420), backgroundColor: colors.gray50, borderRadius: 12, padding: 14 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                       <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.gray200, alignItems: 'center', justifyContent: 'center' }}><User size={18} color={colors.gray500} /></View>
                       <View style={{ flex: 1 }}><Text style={{ fontWeight: '700', fontSize: 13, color: colors.gray800 }}>{r.userId?.name || r.user?.name || 'Guest'}</Text><Text style={{ fontSize: 10, color: colors.gray400 }}>{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</Text></View>
@@ -691,11 +696,12 @@ export default function PropertyDetails() {
             )}
           </Section>
         </View>
+        </View>
       </ScrollView>
 
       {/* Sticky bottom booking bar */}
       {!keyboardOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: colors.gray100, paddingHorizontal: 16, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 10), flexDirection: 'row', alignItems: 'center', gap: 12, elevation: 16 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: colors.gray100, paddingHorizontal: sidePad, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 10), flexDirection: 'row', alignItems: 'center', gap: 12, elevation: 16 }}>
           <View style={{ flexShrink: 1, minWidth: 90 }}>
             <Text style={{ fontSize: 10, color: colors.gray500, fontWeight: '600' }}>{priceBreakdown ? 'Total Amount' : priceLabel}</Text>
             <Text style={{ fontWeight: '900', fontSize: 16, color: colors.surface, marginTop: 2 }}>₹{priceBreakdown?.grandTotal?.toLocaleString() || bookingBarPrice?.toLocaleString() || 'N/A'}</Text>
@@ -735,7 +741,7 @@ export default function PropertyDetails() {
             <Text style={{ fontWeight: '700', fontSize: 18, color: colors.gray900 }}>Available Offers</Text>
             <TouchableOpacity onPress={() => setShowOffers(false)} style={{ padding: 8, backgroundColor: colors.gray100, borderRadius: 999 }}><X size={20} color={colors.gray600} /></TouchableOpacity>
           </View>
-          <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+          <ScrollView contentContainerStyle={[{ padding: 16, gap: 12 }, CENTER]}>
             {offers.map((o) => (
               <View key={o._id} style={{ backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: colors.gray100 }}>
                 <View style={{ backgroundColor: colors.surface, padding: 14 }}>

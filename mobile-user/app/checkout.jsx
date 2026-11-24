@@ -14,6 +14,7 @@ import useAuthStore from '../src/store/authStore';
 import toast from '../src/store/toastStore';
 import { colors } from '../src/theme';
 import { errMsg } from '../src/utils/format';
+import { CENTER } from '../src/lib/responsive';
 
 const Card = ({ children, style }) => <View style={[{ backgroundColor: '#fff', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: colors.gray100 }, style]}>{children}</View>;
 const Row = ({ k, v, color = colors.gray600, bold }) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={{ fontSize: 14, color, fontWeight: bold ? '500' : '400' }}>{k}</Text><Text style={{ fontSize: 14, color, fontWeight: bold ? '600' : '400' }}>{v}</Text></View>;
@@ -92,7 +93,7 @@ export default function Checkout() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <Header title="Review & Pay" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 140 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 140 }, CENTER]}>
         <Card style={{ flexDirection: 'row', gap: 14, padding: 14 }}>
           <View style={{ width: 96, height: 96, borderRadius: 12, backgroundColor: colors.gray200, overflow: 'hidden' }}>
             <Image source={{ uri: property.images?.cover || property.coverImage || 'https://via.placeholder.com/150' }} style={{ width: '100%', height: '100%' }} contentFit="cover" />

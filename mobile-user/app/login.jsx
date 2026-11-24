@@ -11,6 +11,7 @@ import useAuthStore from '../src/store/authStore';
 import toast from '../src/store/toastStore';
 import { errMsg } from '../src/utils/format';
 import { colors } from '../src/theme';
+import { centered } from '../src/lib/responsive';
 
 export default function Login() {
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function Login() {
     <LinearGradient colors={['#FFFBEB', '#FFFFFF', '#FFF7ED']} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={[{ flexGrow: 1, justifyContent: 'center', padding: 24 }, centered(480)]} keyboardShouldPersistTaps="handled">
             <View style={{ width: '100%', maxWidth: 384, alignSelf: 'center' }}>
               <View style={{ alignItems: 'center', marginBottom: 32 }}>
                 <Brand style={{ marginBottom: 24 }} />

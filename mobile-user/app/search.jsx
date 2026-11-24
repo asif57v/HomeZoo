@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MapPin, Search, Filter, Navigation, X } from 'lucide-react-native';
 import { Text, Input, Sheet, Chip } from '../src/components/ui';
 import PropertyCard from '../src/components/PropertyCard';
+import ResponsiveGrid from '../src/components/ResponsiveGrid';
 import PropertyTypeFilter from '../src/components/home/PropertyTypeFilter';
 import { propertyService } from '../src/services/propertyService';
 import { userService, api } from '../src/services/apiService';
@@ -13,6 +14,7 @@ import { getCurrentCoords } from '../src/utils/userLocation';
 import { storage } from '../src/lib/storage';
 import toast from '../src/store/toastStore';
 import { colors } from '../src/theme';
+import { CENTER_WIDE } from '../src/lib/responsive';
 
 const asList = (v) => (v ? String(v).split(',') : []);
 
@@ -200,7 +202,7 @@ export default function SearchPage() {
         <PropertyTypeFilter variant="light" selectedType={currentTypeId} onSelectType={(id, label) => selectTab(label === 'All' ? 'all' : id)} />
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: 24, flexGrow: 1 }} keyboardShouldPersistTaps="handled" onScrollBeginDrag={() => setFocused(false)} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProperties(true); }} />}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 20, paddingBottom: 24, flexGrow: 1 }, CENTER_WIDE]} keyboardShouldPersistTaps="handled" onScrollBeginDrag={() => setFocused(false)} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProperties(true); }} />}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ fontSize: 14, fontWeight: '700', color: colors.gray800 }}>{properties.length} properties found</Text>
           <TouchableOpacity onPress={() => setShowSort(true)}><Text style={{ fontSize: 12, fontWeight: '700', color: colors.gray500 }}>Sort by {(SORTS.find((s) => s.value === filters.sort) || SORTS[0]).label} ▾</Text></TouchableOpacity>
@@ -213,7 +215,7 @@ export default function SearchPage() {
             <Text style={{ fontSize: 14, color: colors.gray500, textAlign: 'center' }}>Try changing your search or filters to find what you're looking for.</Text>
             <TouchableOpacity onPress={() => { setFilters({ search: '', type: 'all', minPrice: '', maxPrice: '', sort: 'newest', amenities: [], radius: 50 }); setLocation(null); setApplied({}); }} style={{ marginTop: 32 }}><Text style={{ fontSize: 14, fontWeight: '700', color: colors.surface }}>Clear all filters</Text></TouchableOpacity>
           </View>
-        ) : properties.map((p) => <PropertyCard key={p._id} property={p} isSaved={savedIds.includes(p._id)} />)}
+        ) : <ResponsiveGrid gap={20}>{properties.map((p) => <PropertyCard key={p._id} property={p} isSaved={savedIds.includes(p._id)} />)}</ResponsiveGrid>}
       </ScrollView>
 
       <Sheet visible={showSort} onClose={() => setShowSort(false)} title="Sort by">
@@ -223,7 +225,7 @@ export default function SearchPage() {
       </Sheet>
 
       <Sheet visible={showFilters} onClose={() => setShowFilters(false)} title="Filters" maxHeight="90%">
-        <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={{ paddingBottom: 12, gap: 20 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ paddingHorizontal: 20 }} contentContainerStyle={[{ paddingBottom: 12, gap: 20 }, CENTER_WIDE]} keyboardShouldPersistTaps="handled">
           <View>
             <Text style={{ fontSize: 12, fontWeight: '700', color: colors.gray500, marginBottom: 8 }}>Property Type</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

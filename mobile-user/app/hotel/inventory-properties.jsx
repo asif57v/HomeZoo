@@ -8,6 +8,7 @@ import { PartnerHeader } from '../../src/components/partner/PartnerKit';
 import { propertyService } from '../../src/services/apiService';
 import { errMsg } from '../../src/utils/format';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const P = '#005CA8';
 
@@ -29,7 +30,7 @@ export default function PartnerInventoryProperties() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="Manage Inventory" subtitle="Select a property to update availability" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 40 }, CENTER]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Building2 size={14} color={colors.gray500} /><Text style={{ fontSize: 13, fontWeight: '800', color: colors.gray600 }}>My Properties</Text></View>
         {error ? <View style={{ backgroundColor: colors.red50, padding: 12, borderRadius: 12 }}><Text style={{ color: colors.red600, fontSize: 13 }}>{error}</Text></View> : null}
         {loading ? <View style={{ paddingVertical: 50, alignItems: 'center', gap: 8 }}><ActivityIndicator color={P} /><Text style={{ color: colors.gray500, fontSize: 13 }}>Loading properties...</Text></View> : null}

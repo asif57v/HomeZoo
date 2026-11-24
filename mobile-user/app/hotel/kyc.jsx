@@ -6,6 +6,7 @@ import { Text } from '../../src/components/ui';
 import { PartnerHeader } from '../../src/components/partner/PartnerKit';
 import useAuthStore from '../../src/store/authStore';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 // The web KYC page renders a hard-coded demo list. The app shows the partner's real approval status instead
 // (user.partnerApprovalStatus) and points to support for document changes.
@@ -19,7 +20,7 @@ export default function PartnerKYC() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="KYC Verification" subtitle="Complete your profile" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16 }, CENTER]}>
         <View style={{ backgroundColor: '#005CA8', borderRadius: 20, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <Shield size={28} color="#fff" />
           <View style={{ flex: 1 }}><Text style={{ fontWeight: '800', color: '#fff', fontSize: 17 }}>Verification Status</Text><Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Complete all steps to start receiving payouts.</Text></View>

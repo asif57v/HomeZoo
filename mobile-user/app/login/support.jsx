@@ -6,6 +6,7 @@ import { Text } from '../../src/components/ui';
 import { BlueHeader, LegalContent } from '../../src/components/Common';
 import { faqService, legalService } from '../../src/services/apiService';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const Btn = ({ tone, Icon, label, onPress }) => (
   <TouchableOpacity onPress={onPress} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, borderRadius: 12, borderWidth: 1, backgroundColor: tone === 'blue' ? '#EFF6FF' : colors.green50, borderColor: tone === 'blue' ? '#DBEAFE' : colors.green100 }}>
@@ -29,7 +30,7 @@ export default function Support() {
       <BlueHeader title="Help & Support" subtitle={support?.title && support.title !== 'Help & Support' ? support.title : 'Find answers or contact our support team.'}>
         <Text style={{ fontSize: 22, fontWeight: '900', color: '#fff', marginTop: 6 }}>How can we help you?</Text>
       </BlueHeader>
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 20, paddingBottom: 40 }, CENTER]}>
         <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: colors.gray100, elevation: 3 }}>
           <Text style={{ fontWeight: '700', color: colors.surface, fontSize: 14, marginBottom: 16 }}>Contact Us</Text>
           {support?.content ? <LegalContent content={support.content} style={{ marginBottom: 16 }} /> : null}

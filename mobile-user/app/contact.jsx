@@ -6,6 +6,7 @@ import { BlueHeader } from '../src/components/Common';
 import { legalService } from '../src/services/apiService';
 import { errMsg } from '../src/utils/format';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const Info = ({ Icon, k, v }) => (
   <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.gray100, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -30,7 +31,7 @@ export default function Contact() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <BlueHeader title="Contact Us" subtitle="Have questions or need help with a booking? Share your query with us." />
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 14 }, CENTER]} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 10 }}><Info Icon={Mail} k="Email" v="support@hoomzo.in" /><Info Icon={Phone} k="Phone" v="+91-6232314147" /></View>
         {error ? <View style={{ backgroundColor: colors.red50, borderWidth: 1, borderColor: colors.red100, borderRadius: 12, padding: 12 }}><Text style={{ color: colors.red700, fontSize: 12 }}>{error}</Text></View> : null}
         {success ? <View style={{ backgroundColor: colors.amber50, borderWidth: 1, borderColor: '#FDE68A', borderRadius: 12, padding: 12 }}><Text style={{ color: colors.amber700, fontSize: 12 }}>{success}</Text></View> : null}

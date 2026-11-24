@@ -6,6 +6,7 @@ import { Text } from '../src/components/ui';
 import { LegalHeader, LegalContent, formatUpdated } from '../src/components/Common';
 import { legalService } from '../src/services/apiService';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const Card = ({ icon: Icon, tint, bg, title, page, fallback }) => (
   <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.slate100, marginBottom: 12 }}>
@@ -32,7 +33,7 @@ export default function Legal() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.slate50 }}>
       <LegalHeader eyebrow={audience === 'partner' ? 'Partner Portal' : 'Hoomzo Stays'} title={`${audience === 'partner' ? 'Partner' : 'User'} Policies & Agreements`} />
-      <ScrollView contentContainerStyle={{ padding: 12 }}>
+      <ScrollView contentContainerStyle={[{ padding: 12 }, CENTER]}>
         {loading ? <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 32, alignItems: 'center', gap: 12 }}><ActivityIndicator color="#005CA8" /><Text style={{ fontSize: 12, color: colors.slate400 }}>Loading policies...</Text></View> : (<>
           <Card icon={Shield} tint={colors.emerald600} bg={colors.emerald50} title="Privacy Policy" page={privacy} fallback="At HoomZo, we take your privacy seriously. This policy describes how we collect, use, and handle your data." />
           <Card icon={FileText} tint="#005CA8" bg="#EFF6FF" title={audience === 'partner' ? 'Partner Agreement' : 'Terms & Conditions'} page={terms} fallback="By using HoomZo, you agree to the latest booking, cancellation and usage terms defined by the platform." />

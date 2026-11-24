@@ -9,6 +9,7 @@ import { Text } from '../src/components/ui';
 import { bookingService } from '../src/services/apiService';
 import { setConfirmationState } from '../src/lib/checkoutState';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 const TABS = [{ id: 'upcoming', label: 'Today Lead' }, { id: 'ongoing', label: 'Yesterday' }, { id: 'completed', label: 'New' }, { id: 'cancelled', label: 'Others' }];
 const EMPTY = { upcoming: 'Your upcoming trips will appear here.', ongoing: 'Currently active stays will show here.', completed: 'Your past stays history is empty.', cancelled: 'No cancelled bookings found.' };
@@ -55,7 +56,7 @@ export default function Bookings() {
           </View>
         </SafeAreaView>
       </View>
-      <ScrollView contentContainerStyle={{ padding: 14, gap: 16, flexGrow: 1 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(tab, true); }} />}>
+      <ScrollView contentContainerStyle={[{ padding: 14, gap: 16, flexGrow: 1 }, CENTER]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(tab, true); }} />}>
         {loading ? <View style={{ paddingVertical: 80, alignItems: 'center' }}><ActivityIndicator color={colors.surface} size="large" /></View>
         : bookings.length === 0 ? (
           <View style={{ alignItems: 'center', paddingVertical: 64 }}>

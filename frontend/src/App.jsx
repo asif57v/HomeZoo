@@ -20,6 +20,7 @@ import { requestNotificationPermission, onMessageListener, detectPlatform } from
 import logo from './assets/rokologin-removebg-preview.png';
 
 // Lazy Imports - User Pages
+import { LOGIN_REDIRECT_KEY } from './utils/authGate';
 const Home = React.lazy(() => import('./pages/user/Home'));
 const UserPropertyDetailsPage = React.lazy(() => import('./pages/user/PropertyDetailsPage'));
 const UserLogin = React.lazy(() => import('./pages/auth/UserLogin'));
@@ -260,7 +261,9 @@ const UserProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const from = `${location.pathname}${location.search}`;
+    try { sessionStorage.setItem(LOGIN_REDIRECT_KEY, from); } catch { /* storage blocked */ }
+    return <Navigate to="/login" state={{ from }} replace />;
   }
 
   return children ? children : <Outlet />;
@@ -273,7 +276,9 @@ const PartnerProtectedRoute = ({ children }) => {
 
   // If user is not logged in, prompt standard user login
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const from = `${location.pathname}${location.search}`;
+    try { sessionStorage.setItem(LOGIN_REDIRECT_KEY, from); } catch { /* storage blocked */ }
+    return <Navigate to="/login" state={{ from }} replace />;
   }
 
   // Any authenticated user can seamlessly access the wizard, properties, and partner dashboard
@@ -556,19 +561,26 @@ function App() {
               </Route>
             </Route>
 
+            {/* Public (guest) pages: browsable without login. Actions inside them
+                (enquiry, booking, save, like, comment, review, post property) call
+                requireLogin() from utils/authGate and redirect to /login. */}
+            <Route path="/" element={<Home />} />
+            <Route path="/reels" element={<ReelsPage />} />
+            <Route path="/hotel/:id" element={<UserPropertyDetailsPage />} />
+            <Route path="/property/:id" element={<UserPropertyDetailsPage />} />
+            <Route path="/hotel/:id/amenities" element={<AmenitiesPage />} />
+            <Route path="/hotel/:id/reviews" element={<ReviewsPage />} />
+            <Route path="/hotel/:id/offers" element={<OffersPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/listings" element={<Navigate to="/search" replace />} />
+            <Route path="/partner-landing" element={<PartnerLandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+
             {/* Protected User Pages */}
             <Route element={<UserProtectedRoute />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/reels" element={<ReelsPage />} />
               <Route path="/profile/edit" element={<ProfileEdit />} />
-              <Route path="/hotel/:id" element={<UserPropertyDetailsPage />} />
-              <Route path="/property/:id" element={<UserPropertyDetailsPage />} />
-              <Route path="/hotel/:id/amenities" element={<AmenitiesPage />} />
-              <Route path="/hotel/:id/reviews" element={<ReviewsPage />} />
-              <Route path="/hotel/:id/offers" element={<OffersPage />} />
-              <Route path="/search" element={<SearchPage />} />
               <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/listings" element={<Navigate to="/search" replace />} />
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/payment" element={<PaymentPage />} />
               <Route path="/checkout" element={<BookingCheckoutPage />} />
@@ -580,9 +592,6 @@ function App() {
               <Route path="/saved" element={<SavedPlacesPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/partner-landing" element={<PartnerLandingPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
               <Route path="/serviced" element={<div className="pt-20 text-center text-surface font-bold">Serviced Page</div>} />
             </Route>
           </Routes>

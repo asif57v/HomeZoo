@@ -8,6 +8,7 @@ import { BlueHeader } from '../../../src/components/Common';
 import { offerService } from '../../../src/services/apiService';
 import toast from '../../../src/store/toastStore';
 import { colors } from '../../../src/theme';
+import { CENTER } from '../../../src/lib/responsive';
 
 const TONES = [
   ['#FEF2F2', '#FECACA', '#DC2626'], ['#EFF6FF', '#BFDBFE', '#2563EB'], ['#F0FDF4', '#BBF7D0', '#16A34A'],
@@ -27,7 +28,7 @@ export default function OffersPage() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <BlueHeader title="Available Offers" />
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+      <ScrollView contentContainerStyle={[{ padding: 20, gap: 16 }, CENTER]}>
         {loading ? <Loader label="Loading offers..." />
         : error ? <View style={{ alignItems: 'center', paddingVertical: 60 }}><Text style={{ color: colors.red500, fontWeight: '700', marginBottom: 16 }}>{error}</Text><TouchableOpacity onPress={load} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><RefreshCw size={16} color={colors.accent} /><Text style={{ color: colors.accent, fontWeight: '700', fontSize: 14 }}>Try Again</Text></TouchableOpacity></View>
         : offers.length === 0 ? <View style={{ alignItems: 'center', paddingVertical: 60 }}><Text style={{ fontSize: 18, fontWeight: '700', color: colors.surface, marginBottom: 8 }}>No active offers</Text><Text style={{ fontSize: 14, color: colors.gray400 }}>Check back later for new exclusive deals!</Text></View>

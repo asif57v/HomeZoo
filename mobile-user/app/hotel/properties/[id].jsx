@@ -8,6 +8,7 @@ import { Text } from '../../../src/components/ui';
 import { propertyService } from '../../../src/services/apiService';
 import { errMsg, roomSharingLabel } from '../../../src/utils/format';
 import { colors } from '../../../src/theme';
+import { CENTER } from '../../../src/lib/responsive';
 
 const P = '#005CA8';
 const Card = ({ icon: Icon, title, badge, children }) => (
@@ -64,7 +65,7 @@ export default function PartnerPropertyDetails() {
           <View style={{ backgroundColor: property.isLive ? colors.green100 : colors.amber100, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 }}><Text style={{ fontSize: 10, fontWeight: '700', color: property.isLive ? colors.green700 : colors.amber700 }}>{property.isLive ? 'Live' : property.status || 'Pending'}</Text></View>
         </View>
       </SafeAreaView>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 40 }, CENTER]}>
         {!property.isLive && property.status !== 'rejected' ? (
           <View style={{ backgroundColor: colors.amber50, borderWidth: 1, borderColor: '#FDE68A', borderRadius: 16, padding: 14, flexDirection: 'row', gap: 10 }}>
             <Clock size={16} color={colors.amber600} style={{ marginTop: 2 }} />

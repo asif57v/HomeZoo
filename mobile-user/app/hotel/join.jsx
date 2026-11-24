@@ -11,6 +11,7 @@ import { evaluateSubscriptionCanAddProperty } from '../../src/utils/subscription
 import { setWizardParams } from '../../src/lib/wizardState';
 import toast from '../../src/store/toastStore';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const OPTIONS = [
   { key: 'pg-coliving', label: 'PG/Co-living', description: 'Long-stay beds or rooms with shared facilities', badge: 'Long Term', Icon: BedDouble, tone: ['#FAF5FF', '#9333EA'] }, // web: bg-purple-50 text-purple-600
@@ -80,7 +81,7 @@ export default function PartnerJoinPropertyType() {
           <TouchableOpacity onPress={() => router.replace('/')} style={{ padding: 8 }}><X size={20} color={colors.gray600} /></TouchableOpacity>
         </View>
       </SafeAreaView>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 48 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 16, paddingBottom: 48 }, CENTER]}>
         <View style={{ marginBottom: 8 }}><Text style={{ fontSize: 24, fontWeight: '700', color: colors.gray900 }}>What keeps you busy?</Text><Text style={{ color: colors.gray500, fontSize: 14 }}>Select the type of property you want to list on HoomZo.</Text></View>
         {types.map((it) => (
           <TouchableOpacity key={it.key} disabled={!it.route} onPress={() => select(it)} activeOpacity={0.85} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16, padding: 16, paddingRight: 36, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.gray200, borderRadius: 20, opacity: it.route ? 1 : 0.6, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1 }}>

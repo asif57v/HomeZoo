@@ -15,6 +15,7 @@ import { categoryService } from '../src/services/categoryService';
 import homeService from '../src/services/homeService';
 import { useFeatureFlags } from '../src/store/featureFlagsStore';
 import { getStoredLocation, subscribeLocation } from '../src/utils/userLocation';
+import { CENTER_WIDE } from '../src/lib/responsive';
 
 const ART = {
   pg: [require('../assets/hero/pg_hero_art.png'), require('../assets/hero/pg_hero_art_2.png')],
@@ -104,7 +105,7 @@ export default function Home() {
               <Image source={theme.art[1]} style={{ width: 240, height: 240, marginRight: -64, transform: [{ translateY: -32 }] }} contentFit="cover" />
             </View>
           </LinearGradient>
-          <SafeAreaView edges={['top']}>
+          <SafeAreaView edges={['top']} style={CENTER_WIDE}>
             <HeroSection theme={theme} selectedType={selectedType} />
             <View style={{ paddingTop: 4, paddingBottom: 8 }}>
               <PropertyTypeFilter selectedType={selectedType.id} onSelectType={selectType} theme={theme} />
@@ -112,6 +113,7 @@ export default function Home() {
           </SafeAreaView>
         </View>
 
+        <View style={CENTER_WIDE}>
         {isAll ? (
           <View style={{ gap: 12, marginTop: 12 }}>
             <PopularCategories categories={homeData.popularCategories} loading={homeLoading} onSelectCategory={openCategory} />
@@ -162,6 +164,7 @@ export default function Home() {
         )}
 
         {isAll ? <View style={{ marginTop: 24, paddingHorizontal: 0 }}><HomeBottomSections /></View> : null}
+        </View>
       </ScrollView>
     </View>
   );

@@ -5,6 +5,7 @@ import { Text } from '../../src/components/ui';
 import { PartnerHeader } from '../../src/components/partner/PartnerKit';
 import walletService from '../../src/services/walletService';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const P = '#005CA8';
 
@@ -23,7 +24,7 @@ export default function PartnerTransactions() {
       <View style={{ flexDirection: 'row', gap: 8, padding: 16, paddingBottom: 8 }}>
         {[['all', 'All'], ['credit', 'Credits'], ['debit', 'Debits']].map(([k, l]) => <TouchableOpacity key={k} onPress={() => setFilter(k)} style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: filter === k ? P : '#fff', borderWidth: 1, borderColor: filter === k ? P : colors.gray200 }}><Text style={{ fontSize: 12, fontWeight: '700', color: filter === k ? '#fff' : colors.gray600 }}>{l}</Text></TouchableOpacity>)}
       </View>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 8, gap: 10, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, paddingTop: 8, gap: 10, paddingBottom: 40 }, CENTER]}>
         {loading ? <ActivityIndicator color={P} style={{ paddingVertical: 50 }} /> : txns.length === 0 ? <Text style={{ textAlign: 'center', color: colors.gray400, paddingVertical: 40 }}>No transactions found</Text> : txns.map((t) => {
           const credit = t.type === 'credit';
           return (

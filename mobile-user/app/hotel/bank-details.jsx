@@ -6,6 +6,7 @@ import { PartnerBack } from '../../src/components/partner/PartnerKit';
 import walletService from '../../src/services/walletService';
 import toast from '../../src/store/toastStore';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const P = '#005CA8';
 const EMPTY = { accountHolderName: '', accountNumber: '', ifscCode: '', bankName: '' };
@@ -58,7 +59,7 @@ export default function PartnerBankDetails() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerBack title="Bank Account" />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[{ padding: 16, paddingBottom: 40 }, CENTER]} keyboardShouldPersistTaps="handled">
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: colors.blue50, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}><Landmark size={32} color={P} /></View>
           <Text style={{ color: colors.gray500, fontSize: 13 }}>Manage your payout account</Text>

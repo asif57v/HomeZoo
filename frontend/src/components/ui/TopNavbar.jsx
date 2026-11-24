@@ -27,11 +27,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { authService } from '../../services/apiService';
 import { detectPlatform } from '../../utils/firebase';
 import { handleNavigateToAddProperty } from '../../utils/subscriptionGuard';
+import { goToLogin } from '../../utils/authGate';
 
 const TopNavbar = () => {
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userName = user.name || 'User';
+    const isGuest = !localStorage.getItem('token');
     const isAdmin = Boolean(localStorage.getItem('adminToken') || user.role === 'admin');
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -167,7 +169,18 @@ const TopNavbar = () => {
                         <Globe size={17} className="text-gray-500 hover:text-emerald-600" />
                     </Link>
 
+                    {isGuest && (
+                        <button
+                            type="button"
+                            onClick={() => goToLogin(navigate)}
+                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
+                        >
+                            Login / Sign up
+                        </button>
+                    )}
+
                     {/* Profile Dropdown with Dashboard Switch */}
+                    {!isGuest && (
                     <div className="relative" ref={profileDropdownRef}>
                         <button
                             type="button"
@@ -325,6 +338,7 @@ const TopNavbar = () => {
                             )}
                         </AnimatePresence>
                     </div>
+                    )}
                 </div>
             </nav>
 

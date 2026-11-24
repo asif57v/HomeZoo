@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, CheckCircle, TrendingUp, Users } from 'lucide-react-native';
 import { Text } from '../src/components/ui';
 import { colors } from '../src/theme';
+import { CENTER } from '../src/lib/responsive';
 
 export default function PartnerLanding() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function PartnerLanding() {
       <View style={{ position: 'absolute', top: -60, right: -60, width: 256, height: 256, borderRadius: 128, backgroundColor: 'rgba(255,255,255,0.05)' }} />
       <View style={{ position: 'absolute', bottom: -80, left: -80, width: 320, height: 320, borderRadius: 160, backgroundColor: 'rgba(0,107,196,0.2)' }} />
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: 24, flexGrow: 1 }}>
+        <ScrollView contentContainerStyle={[{ padding: 24, flexGrow: 1 }, CENTER]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 32 }}>
             <TouchableOpacity onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 999 }}><ArrowLeft size={20} color="#fff" /></TouchableOpacity>
             <Text style={{ fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.7)' }}>HoomZo Partner</Text>

@@ -8,6 +8,7 @@ import useAuthStore from '../../src/store/authStore';
 import toast from '../../src/store/toastStore';
 import { errMsg } from '../../src/utils/format';
 import { colors } from '../../src/theme';
+import { CENTER } from '../../src/lib/responsive';
 
 const P = '#005CA8';
 const Stars = ({ n, size = 10 }) => <View style={{ flexDirection: 'row', gap: 1 }}>{[0, 1, 2, 3, 4].map((i) => <Star key={i} size={size} color={i < n ? colors.amber500 : colors.gray300} fill={i < n ? colors.amber500 : 'transparent'} />)}</View>;
@@ -78,7 +79,7 @@ export default function PartnerReviews() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
       <PartnerHeader title="Reviews" subtitle="What guests are saying" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={[{ padding: 16, gap: 14, paddingBottom: 40 }, CENTER]}>
         <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: colors.gray100, flexDirection: 'row', gap: 18, alignItems: 'center' }}>
           <View style={{ alignItems: 'center' }}><Text style={{ fontSize: 38, fontWeight: '900', color: colors.gray900 }}>{stats.avgRating || '0.0'}</Text><Stars n={Math.round(stats.avgRating)} size={12} /><Text style={{ fontSize: 11, color: colors.gray500, marginTop: 2 }}>{stats.totalReviews} Reviews</Text></View>
           <View style={{ flex: 1, gap: 4 }}>{[0, 1, 2, 3, 4].map((i) => <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Text style={{ width: 10, fontSize: 11, color: colors.gray500 }}>{5 - i}</Text><View style={{ flex: 1, height: 6, backgroundColor: colors.gray100, borderRadius: 3 }}><View style={{ width: `${stats.breakdown[i]}%`, height: 6, backgroundColor: colors.amber500, borderRadius: 3 }} /></View></View>)}</View>
