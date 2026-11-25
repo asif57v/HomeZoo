@@ -2,9 +2,18 @@ import axios from 'axios';
 
 class SMSIndiaHubService {
   constructor() {
-    this.apiKey = process.env.SMSINDIAHUB_API_KEY;
-    this.senderId = process.env.SMSINDIAHUB_SENDER_ID || 'SMSHUB';
     this.baseUrl = 'https://cloud.smsindiahub.in/vendorsms/pushsms.aspx';
+  }
+
+  // Read at call time: this module can be imported before dotenv has loaded.
+  get config() {
+    return {
+      username: process.env.SMSINDIAHUB_USERNAME,
+      apiKey: process.env.SMSINDIAHUB_API_KEY,
+      senderId: process.env.SMSINDIAHUB_SENDER_ID,
+      peId: process.env.SMSINDIAHUB_PE_ID,
+      otpTemplateId: process.env.SMSINDIAHUB_OTP_TEMPLATE_ID
+    };
   }
 
   normalizePhoneNumber(phone) {
@@ -16,19 +25,19 @@ class SMSIndiaHubService {
   }
 
   async sendOTP(phone, otp, purpose = 'registration') {
-    const message = `Welcome to the Homezoo powered by SMSINDIAHUB. Your OTP for registration is ${otp}`;
-    return this.sendSMS(phone, message);
+    // Must match the approved DLT template character for character:
+    // "Welcome to the ##var## powered by Appzeto.Your OTP for registration is ##var##.BGADEC"
+    const message = `Welcome to the Hoomzo powered by Appzeto.Your OTP for registration is ${otp}.BGADEC`;
+    return this.sendSMS(phone, message, { templateId: this.config.otpTemplateId });
   }
 
-  async sendSMS(phone, message) {
+  async sendSMS(phone, message, { templateId } = {}) {
     try {
-      // Load credentials dynamically at runtime to ensure dotenv has loaded
-      const apiKey = this.apiKey || process.env.SMSINDIAHUB_API_KEY;
-      const senderId = this.senderId || process.env.SMSINDIAHUB_SENDER_ID;
+      const { apiKey, senderId, peId } = this.config;
 
-      if (!apiKey) {
-        console.warn('⚠️ [SMSIndiaHub] Missing API Key. SMS NOT SENT.');
-        return { success: false, error: 'Missing API Key' };
+      if (!apiKey || !senderId) {
+        console.warn('⚠️ [SMSIndiaHub] Missing SMSINDIAHUB_API_KEY or SMSINDIAHUB_SENDER_ID. SMS NOT SENT.');
+        return { success: false, error: 'SMS gateway not configured' };
       }
 
       const normalizedPhone = this.normalizePhoneNumber(phone);
@@ -42,6 +51,9 @@ class SMSIndiaHubService {
         dc: '0',
         gwid: '2'
       });
+      // DLT template id (from the SMSIndiaHub template list) and optional DLT entity id
+      if (templateId) params.set('DLTTemplateId', templateId);
+      if (peId) params.set('PEId', peId);
 
       const apiUrl = `${this.baseUrl}?${params.toString()}`;
       console.log(`📨 Sending SMS to ${normalizedPhone}...`);

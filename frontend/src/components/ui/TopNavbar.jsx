@@ -235,17 +235,19 @@ const TopNavbar = () => {
 
                                     {/* Dashboard Switch Card */}
                                     <div className="p-2.5">
-                                        <div className="p-3 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-xl shadow-md border border-indigo-500/20">
+                                        {/* Same look as the app: sky -> indigo -> violet outline, indigo body, sky/indigo button */}
+                                        <div className="rounded-xl p-[2px] bg-gradient-to-br from-[#38BDF8] via-[#6366F1] to-[#A78BFA] shadow-[0_6px_16px_rgba(56,189,248,0.3)]">
+                                        <div className="p-3 bg-gradient-to-r from-[#312e81] to-[#1e1b4b] text-white rounded-[10px]">
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                                                    <Building size={12} className="text-amber-400" />
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7DD3FC] flex items-center gap-1.5">
+                                                    <Building size={12} className="text-[#7DD3FC]" />
                                                     Host / Partner Hub
                                                 </span>
-                                                <span className="text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.5 rounded">
+                                                <span className="text-[9px] font-bold bg-sky-400/15 text-[#7DD3FC] border border-sky-300/30 px-1.5 py-0.5 rounded">
                                                     Switch Mode
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-gray-200 leading-tight mb-2.5">
+                                            <p className="text-[11px] text-white/70 leading-tight mb-2.5">
                                                 Manage listings, view guest enquiries & bookings
                                             </p>
                                             <button
@@ -254,11 +256,12 @@ const TopNavbar = () => {
                                                     setIsProfileOpen(false);
                                                     navigate('/hotel/partner-dashboard');
                                                 }}
-                                                className="w-full py-2 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-95 text-slate-950 font-black text-xs rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                                className="w-full py-2 px-3 bg-gradient-to-r from-[#38BDF8] to-[#6366F1] hover:brightness-110 active:scale-95 text-white font-extrabold text-xs rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                                             >
                                                 <LayoutDashboard size={14} strokeWidth={2.5} />
                                                 <span>Switch to Host Dashboard</span>
                                             </button>
+                                        </div>
                                         </div>
 
                                         {isAdmin && (
@@ -381,13 +384,13 @@ const TopNavbar = () => {
                                     <button
                                         type="button"
                                         onClick={() => handleNavigation('/hotel/partner-dashboard')}
-                                        className="w-full py-2.5 px-3 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 hover:from-slate-800 hover:to-indigo-900 text-amber-400 font-bold text-xs rounded-xl flex items-center justify-between border border-amber-500/20 shadow-sm transition-all active:scale-95 cursor-pointer"
+                                        className="w-full py-2.5 px-3 bg-gradient-to-r from-[#312e81] to-[#1e1b4b] hover:brightness-110 font-bold text-xs rounded-xl flex items-center justify-between border border-[#6366F1]/50 shadow-[0_4px_12px_rgba(56,189,248,0.25)] transition-all active:scale-95 cursor-pointer"
                                     >
                                         <div className="flex items-center gap-2">
-                                            <LayoutDashboard size={16} className="text-amber-400" />
+                                            <LayoutDashboard size={16} className="text-[#7DD3FC]" />
                                             <span className="text-white">Host Dashboard</span>
                                         </div>
-                                        <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full">
+                                        <span className="text-[10px] bg-gradient-to-r from-[#38BDF8] to-[#6366F1] text-white font-extrabold px-2 py-0.5 rounded-full">
                                             Switch
                                         </span>
                                     </button>

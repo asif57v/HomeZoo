@@ -11,6 +11,11 @@ import smsService from '../utils/smsService.js';
 import referralService from '../services/referralService.js';
 import { uploadToCloudinary, deleteFromCloudinary, uploadBase64ToCloudinary } from '../utils/cloudinary.js';
 
+// Fixed-OTP test accounts (seeded partner 7777777777, team test phones). Only these skip the SMS.
+const TEST_OTP = '123456';
+const TEST_NUMBERS = new Set(['9685974247', '6261096283', '9752275626', '7777777777', '9000000001', '9000000002', '6268455485']);
+const isTestNumber = (phone) => TEST_NUMBERS.has(String(phone || ''));
+
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: '30d',
@@ -57,15 +62,11 @@ export const sendOtp = async (req, res) => {
       }
     }
 
-    // TEST NUMBERS - Bypass OTP with default 123456 (includes seeded partner 7777777777)
-    const testNumbers = ['9685974247', '6261096283', '9752275626', '7777777777', '9000000001', '9000000002', '9000000001', '9000000002', '6268455485'];
-    const isTestNumber = testNumbers.includes(phone);
-
-    // Use 123456 for test numbers AND all normal users (role === 'user') for testing
-    const shouldUseDefaultOtp = isTestNumber || role === 'user';
+    // Only the listed test numbers get the fixed OTP 123456; everyone else gets a real SMS OTP
+    const shouldUseDefaultOtp = isTestNumber(phone);
 
     // Generate OTP
-    const otp = shouldUseDefaultOtp ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = shouldUseDefaultOtp ? TEST_OTP : Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     if (user) {
@@ -83,7 +84,11 @@ export const sendOtp = async (req, res) => {
 
     // Send SMS only if not using default OTP
     if (!shouldUseDefaultOtp) {
-      await smsService.sendOTP(phone, otp);
+      const sms = await smsService.sendOTP(phone, otp);
+      if (!sms?.success) {
+        console.error(`OTP SMS failed for ${phone}:`, sms?.error);
+        return res.status(502).json({ message: 'Could not send OTP right now. Please try again in a minute.' });
+      }
     } else {
       console.log(`🧪 Using default OTP: 123456 for phone: ${phone} (Role: ${role})`);
     }
@@ -246,6 +251,8 @@ export const verifyOtp = async (req, res) => {
     // 1. Check if it's an existing user (Login Flow)
     let user = await Model.findOne({ phone }).select('+otp +otpExpires');
     let isRegistration = false;
+    // 123456 is accepted only for the fixed test numbers, never as a master OTP
+    const testBypass = isTestNumber(phone) && otp === TEST_OTP;
 
     if (user) {
       if (user.isBlocked) {
@@ -255,10 +262,10 @@ export const verifyOtp = async (req, res) => {
         });
       }
       // ... (existing login logic)
-      if (user.otp !== otp && otp !== '123456') {
+      if (user.otp !== otp && !testBypass) {
         return res.status(400).json({ message: 'Invalid OTP' });
       }
-      if (user.otpExpires < Date.now() && otp !== '123456') {
+      if (user.otpExpires < Date.now() && !testBypass) {
         return res.status(400).json({ message: 'OTP has expired' });
       }
       user.otp = undefined;
@@ -269,10 +276,10 @@ export const verifyOtp = async (req, res) => {
         return res.status(404).json({ message: 'Partner not found. Please use partner registration.' });
       }
       const otpRecord = await Otp.findOne({ phone });
-      if (!otpRecord && otp !== '123456') {
+      if (!otpRecord && !testBypass) {
         return res.status(400).json({ message: 'Invalid request or OTP expired. Please request OTP again.' });
       }
-      if (otpRecord && otpRecord.otp !== otp && otp !== '123456') {
+      if (otpRecord && otpRecord.otp !== otp && !testBypass) {
         return res.status(400).json({ message: 'Invalid OTP' });
       }
       if (otpRecord && otpRecord.tempData && otpRecord.tempData.role && otpRecord.tempData.role !== role) {
