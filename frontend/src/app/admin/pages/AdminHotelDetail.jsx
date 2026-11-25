@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Building2, MapPin, CheckCircle, XCircle, FileText,
     ChevronLeft, Star, Bed, Calendar, ShieldCheck, AlertCircle,
-    MoreVertical, Download, Search, Ban, Wifi, Phone, Mail, Tv, Coffee, Wind, Loader2, Clock, Image as ImageIcon, Users
+    MoreVertical, Download, Search, Ban, Wifi, Phone, Mail, Tv, Coffee, Wind, Loader2, Clock, Image as ImageIcon, Users,
+    Edit, Trash2
 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import ConfirmationModal from '../components/ConfirmationModal';
+import EditPropertyModal from '../components/EditPropertyModal';
 import adminService from '../../../services/adminService';
 import toast from 'react-hot-toast';
 
@@ -716,6 +718,29 @@ const AdminHotelDetail = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'danger', onConfirm: () => { } });
     const [verifying, setVerifying] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const handleDelete = () => {
+        setModalConfig({
+            isOpen: true,
+            title: 'Delete Property?',
+            message: `Are you sure you want to delete "${hotel.propertyName}"? This action cannot be undone. Its rooms and documents will also be removed.`,
+            type: 'danger',
+            confirmText: 'Delete Property',
+            onConfirm: async () => {
+                try {
+                    const res = await adminService.deleteHotel(hotel._id);
+                    if (res.success) {
+                        toast.success('Property deleted successfully');
+                        navigate('/admin/properties');
+                    }
+                } catch {
+                    toast.error('Failed to delete property');
+                }
+            }
+        });
+    };
 
     const fetchHotelDetails = useCallback(async () => {
         try {
@@ -826,6 +851,12 @@ const AdminHotelDetail = () => {
                 onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
                 {...modalConfig}
             />
+            <EditPropertyModal
+                isOpen={editOpen}
+                propertyId={hotel._id}
+                onClose={() => setEditOpen(false)}
+                onSaved={() => fetchHotelDetails()}
+            />
 
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-gray-500 mb-2">
                 <Link to="/admin/properties" className="hover:text-black transition-colors">Properties</Link>
@@ -868,6 +899,18 @@ const AdminHotelDetail = () => {
                 </div>
 
                 <div className="flex gap-3 w-full md:w-auto">
+                    <button
+                        onClick={() => setEditOpen(true)}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-black text-white border border-black rounded-lg text-[10px] font-bold uppercase hover:bg-gray-800 transition-colors"
+                    >
+                        <Edit size={12} /> Edit
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-red-600 text-white border border-red-600 rounded-lg text-[10px] font-bold uppercase hover:bg-red-700 transition-colors"
+                    >
+                        <Trash2 size={12} /> Delete
+                    </button>
                     <button
                         onClick={handleStatusToggle}
                         className={`flex-1 md:flex-none px-4 py-2 border rounded-lg text-[10px] font-bold uppercase transition-colors ${hotel.status === 'suspended'

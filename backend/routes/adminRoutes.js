@@ -32,6 +32,7 @@ import {
   getBookingDetails,
   updateBookingStatus,
   deleteHotel,
+  updateHotel,
   updateFcmToken,
   getAdminNotifications,
   createBroadcastNotification,
@@ -80,6 +81,7 @@ router.put('/update-partner-approval', updatePartnerApprovalStatus);
 router.delete('/delete-user', deleteUser);
 router.delete('/delete-partner', deletePartner);
 router.delete('/delete-hotel', deleteHotel);
+router.put('/update-hotel/:id', updateHotel);
 router.get('/user-details/:id', getUserDetails);
 router.get('/partner-details/:id', getPartnerDetails);
 router.put('/verify-documents', verifyPropertyDocuments);

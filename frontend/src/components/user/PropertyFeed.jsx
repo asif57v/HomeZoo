@@ -5,10 +5,9 @@ import { Loader2 } from 'lucide-react';
 
 // Home section carousels: each uses its own card design and size
 const TILE_CONFIG = {
-  // frame = gradient border in the section colour (see .card-frame in index.css)
-  'rent-grid': { variant: 'tile', width: 'w-[38vw] min-w-[38vw] max-w-44 md:w-44 md:min-w-44', ratio: 'aspect-3/4', frame: 'card-frame card-frame-rent' },
-  'sale-grid': { variant: 'sale', width: 'w-[66vw] min-w-[66vw] max-w-72 md:w-72 md:min-w-72', ratio: 'aspect-4/5', frame: 'card-frame card-frame-buy' },
-  'plot-grid': { variant: 'plot', width: 'w-[52vw] min-w-[52vw] max-w-56 md:w-56 md:min-w-56', ratio: 'aspect-4/5', frame: '' }
+  'rent-grid': { variant: 'tile', width: 'w-[38vw] min-w-[38vw] max-w-44 md:w-44 md:min-w-44', ratio: 'aspect-3/4' },
+  'sale-grid': { variant: 'sale', width: 'w-[66vw] min-w-[66vw] max-w-72 md:w-72 md:min-w-72', ratio: 'aspect-4/5' },
+  'plot-grid': { variant: 'plot', width: 'w-[52vw] min-w-[52vw] max-w-56 md:w-56 md:min-w-56', ratio: 'aspect-4/5' }
 };
 
 const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'grid', limit, extraFilters = {} }) => {
@@ -182,7 +181,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
 
   // Rent / Sale / Plots: sideways carousels, each with its own card design
   if (TILE_CONFIG[viewMode]) {
-    const { variant, width, frame } = TILE_CONFIG[viewMode];
+    const { variant, width } = TILE_CONFIG[viewMode];
     return (
       <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-6 xl:px-0 scroll-pl-4 md:scroll-pl-6 xl:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
@@ -190,7 +189,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
             key={property._id}
             data={property}
             variant={variant}
-            className={`${width} ${frame} snap-start shrink-0`}
+            className={`${width} snap-start shrink-0`}
             isSaved={savedHotelIds.includes(property._id)}
           />
         ))}
@@ -207,7 +206,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
             key={property._id}
             data={property}
             variant="stay"
-            className="w-[58vw] min-w-[58vw] max-w-64 md:w-64 md:min-w-64 card-frame card-frame-pg snap-start shrink-0"
+            className="w-[58vw] min-w-[58vw] max-w-64 md:w-64 md:min-w-64 snap-start shrink-0"
             isSaved={savedHotelIds.includes(property._id)}
           />
         ))}

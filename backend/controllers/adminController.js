@@ -674,6 +674,54 @@ export const deleteHotel = async (req, res) => {
   }
 };
 
+// Fields an admin is allowed to change on a property. Anything else in the body is ignored
+// (owner, status, ratings, propertyCode etc. stay as they are).
+const ADMIN_EDITABLE_PROPERTY_FIELDS = [
+  'propertyName', 'contactNumber', 'description', 'shortDescription',
+  'address', 'coverImage', 'propertyImages', 'amenities', 'houseRules',
+  'checkInTime', 'checkOutTime', 'cancellationPolicy',
+  'hotelCategory', 'starRating', 'pgType', 'hostelType', 'resortType',
+  'videoUrl', 'virtualTourLink', 'availabilityStatus',
+  'isVerified', 'isFeatured', 'isUrgent', 'isNegotiable',
+  'rentDetails', 'buyDetails', 'plotDetails', 'pgDetails'
+];
+
+export const updateHotel = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const property = await Property.findById(id);
+    if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
+
+    const updates = req.body || {};
+    for (const key of ADMIN_EDITABLE_PROPERTY_FIELDS) {
+      if (updates[key] === undefined) continue;
+      const value = updates[key];
+      // Merge nested objects so fields not sent by the form are kept
+      if (['address', 'rentDetails', 'buyDetails', 'plotDetails', 'pgDetails'].includes(key) && value && typeof value === 'object') {
+        const current = property[key]?.toObject ? property[key].toObject() : (property[key] || {});
+        property.set(key, { ...current, ...value });
+      } else {
+        // Empty strings on enum fields would fail validation, so clear them instead
+        property.set(key, value === '' ? undefined : value);
+      }
+    }
+
+    if (!property.coverImage) {
+      return res.status(400).json({ success: false, message: 'Cover image is required' });
+    }
+
+    await property.save();
+    const updated = await Property.findById(id).populate('partnerId', 'name email phone');
+    res.status(200).json({ success: true, property: updated });
+  } catch (e) {
+    if (e.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: e.message });
+    }
+    console.error('Admin Update Property Error:', e);
+    res.status(500).json({ success: false, message: 'Server error updating property' });
+  }
+};
+
 export const updateBookingStatus = async (req, res) => {
   try {
     const { bookingId, status } = req.body;

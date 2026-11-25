@@ -80,6 +80,11 @@ const adminService = {
     return response.data;
   },
 
+  updateHotel: async (hotelId, updates) => {
+    const response = await axiosInstance.put(`/admin/update-hotel/${hotelId}`, updates);
+    return response.data;
+  },
+
   deleteHotel: async (hotelId) => {
     const response = await axiosInstance.delete('/admin/delete-hotel', { data: { hotelId } });
     return response.data;

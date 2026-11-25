@@ -7,6 +7,7 @@ import {
     ChevronLeft, ChevronRight, Download
 } from 'lucide-react';
 import ConfirmationModal from '../components/ConfirmationModal';
+import EditPropertyModal from '../components/EditPropertyModal';
 import adminService from '../../../services/adminService';
 import { categoryService } from '../../../services/categoryService';
 import toast from 'react-hot-toast';
@@ -53,6 +54,7 @@ const AdminProperties = () => {
     const [dynamicCategories, setDynamicCategories] = useState([]);
 
     const [activeDropdown, setActiveDropdown] = useState(null);
+    const [editingId, setEditingId] = useState(null);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'danger', onConfirm: () => { } });
 
     useEffect(() => {
@@ -114,7 +116,9 @@ const AdminProperties = () => {
 
     const handleAction = (action, property) => {
         setActiveDropdown(null);
-        if (action === 'approve' || action === 'reject') {
+        if (action === 'edit') {
+            setEditingId(property._id);
+        } else if (action === 'approve' || action === 'reject') {
             const newStatus = action === 'approve' ? 'approved' : 'rejected';
             setModalConfig({
                 isOpen: true,
@@ -193,6 +197,12 @@ const AdminProperties = () => {
                 isOpen={modalConfig.isOpen}
                 onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
                 {...modalConfig}
+            />
+            <EditPropertyModal
+                isOpen={!!editingId}
+                propertyId={editingId}
+                onClose={() => setEditingId(null)}
+                onSaved={() => fetchProperties(currentPage, filters)}
             />
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -333,6 +343,9 @@ const AdminProperties = () => {
                                                             <Link to={`/admin/properties/${property._id}`} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-[10px] font-bold uppercase text-gray-700">
                                                                 <Eye size={14} /> View Details
                                                             </Link>
+                                                            <button onClick={() => handleAction('edit', property)} className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-[10px] font-bold uppercase text-gray-700">
+                                                                <Edit size={14} /> Edit Property
+                                                            </button>
                                                             {property.status === 'pending' && (
                                                                 <>
                                                                     <button onClick={() => handleAction('approve', property)} className="w-full flex items-center gap-2 px-4 py-2 hover:bg-green-50 text-[10px] font-bold uppercase text-green-700">

@@ -27,7 +27,8 @@ import axios from 'axios';
 import { propertyService } from '../../services/apiService';
 import { API_BASE_URL } from '../../config/apiConfig';
 
-const HomeBottomSections = () => {
+// beforeApp: optional node rendered just above the "Download our app" banner
+const HomeBottomSections = ({ beforeApp = null }) => {
     // 1. Partners State (using existing recommended sellers service to maintain backend integration)
     const [partners, setPartners] = useState([]);
     const [loadingPartners, setLoadingPartners] = useState(true);
@@ -555,6 +556,7 @@ const HomeBottomSections = () => {
                 </div>
             </section>
 
+            {beforeApp}
 
             {/* =========================================================
                 SECTION 3: 📱 DOWNLOAD OUR APP (Hidden on Mobile)

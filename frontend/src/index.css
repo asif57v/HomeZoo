@@ -167,26 +167,3 @@ body:has(#hotel-root) {
     display: none !important;
   }
 }
-/* Home section cards: thin gradient border + soft glow in the section's colour.
-   Unlayered on purpose so it wins over the cards' Tailwind ring/shadow/bg utilities. */
-.card-frame {
-  border: 4px solid transparent;
-  background:
-    linear-gradient(var(--frame-fill, #fff), var(--frame-fill, #fff)) padding-box,
-    var(--frame-gradient) border-box;
-  box-shadow: 0 8px 22px var(--frame-glow);
-}
-.card-frame-rent {
-  --frame-gradient: linear-gradient(135deg, #8B5CF6 0%, #C4B5FD 45%, #5EEAD4 100%);
-  --frame-glow: rgba(139, 92, 246, 0.22);
-  --frame-fill: #e5e7eb;
-}
-.card-frame-pg {
-  --frame-gradient: linear-gradient(135deg, #EC4899 0%, #F9A8D4 45%, #5EEAD4 100%);
-  --frame-glow: rgba(236, 72, 153, 0.18);
-}
-.card-frame-buy {
-  --frame-gradient: linear-gradient(135deg, #3B82F6 0%, #93C5FD 45%, #5EEAD4 100%);
-  --frame-glow: rgba(59, 130, 246, 0.22);
-  --frame-fill: #e5e7eb;
-}
