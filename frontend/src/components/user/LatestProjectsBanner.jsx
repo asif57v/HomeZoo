@@ -59,7 +59,7 @@ const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
     if (!current) return null;
 
     return (
-        <div className="relative w-full overflow-hidden mt-3 mb-6 md:mt-4 md:mb-8 group px-3.5 md:px-0">
+        <div className="relative w-full overflow-hidden mt-3 mb-6 md:mt-4 md:mb-8 group px-3.5 md:px-6 xl:px-0">
             <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
                 <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 tracking-tight">
                     Top Picks

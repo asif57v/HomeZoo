@@ -543,10 +543,18 @@ const ProfileEdit = () => {
 
 
           {/* Host & Listings Hub Card */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-4 text-white shadow-lg border border-indigo-500/20 mt-4">
+          {/* Gradient outline (sky -> indigo -> violet) + soft blue glow, same as the mobile app */}
+          <div
+            className="rounded-2xl p-4 text-white mt-4"
+            style={{
+              border: '2px solid transparent',
+              background: 'linear-gradient(90deg, #0f172a, #1e1b4b, #0f172a) padding-box, linear-gradient(135deg, #38BDF8 0%, #6366F1 50%, #A78BFA 100%) border-box',
+              boxShadow: '0 8px 22px rgba(56, 189, 248, 0.22)'
+            }}
+          >
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-sky-300 flex items-center gap-1">
                   <Building size={12} /> Host / Partner Hub
                 </div>
                 <h4 className="text-sm font-bold text-white mt-0.5 truncate">Post & Manage Properties</h4>
@@ -555,7 +563,7 @@ const ProfileEdit = () => {
               <button
                 type="button"
                 onClick={() => navigate('/hotel/partner-dashboard')}
-                className="px-3 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all shrink-0"
+                className="px-3 py-2 bg-gradient-to-r from-sky-400 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md shadow-sky-500/30 transition-all shrink-0"
               >
                 Dashboard
               </button>

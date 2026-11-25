@@ -5,9 +5,10 @@ import { Loader2 } from 'lucide-react';
 
 // Home section carousels: each uses its own card design and size
 const TILE_CONFIG = {
-  'rent-grid': { variant: 'tile', width: 'w-[38vw] min-w-[38vw] max-w-44 md:w-44 md:min-w-44', ratio: 'aspect-3/4' },
-  'sale-grid': { variant: 'sale', width: 'w-[66vw] min-w-[66vw] max-w-72 md:w-72 md:min-w-72', ratio: 'aspect-4/5' },
-  'plot-grid': { variant: 'plot', width: 'w-[52vw] min-w-[52vw] max-w-56 md:w-56 md:min-w-56', ratio: 'aspect-4/5' }
+  // frame = gradient border in the section colour (see .card-frame in index.css)
+  'rent-grid': { variant: 'tile', width: 'w-[38vw] min-w-[38vw] max-w-44 md:w-44 md:min-w-44', ratio: 'aspect-3/4', frame: 'card-frame card-frame-rent' },
+  'sale-grid': { variant: 'sale', width: 'w-[66vw] min-w-[66vw] max-w-72 md:w-72 md:min-w-72', ratio: 'aspect-4/5', frame: 'card-frame card-frame-buy' },
+  'plot-grid': { variant: 'plot', width: 'w-[52vw] min-w-[52vw] max-w-56 md:w-56 md:min-w-56', ratio: 'aspect-4/5', frame: '' }
 };
 
 const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'grid', limit, extraFilters = {} }) => {
@@ -85,7 +86,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
   if (loading) {
     if (viewMode === 'list') {
       return (
-        <div className="px-4 md:px-0 grid md:grid-cols-2 md:gap-x-8">
+        <div className="px-4 md:px-6 xl:px-0 grid md:grid-cols-2 md:gap-x-8">
           {[1, 2, 3, 4].map(n => (
             <div key={n} className="flex items-center gap-2.5 py-2 md:gap-3 md:py-3 animate-pulse">
               <div className="w-28 h-24 md:w-36 md:h-28 rounded-2xl bg-gray-200/80 shrink-0" />
@@ -101,7 +102,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
     }
     if (viewMode === 'stay-carousel') {
       return (
-        <div className="flex gap-2.5 md:gap-4 overflow-hidden px-4 md:px-0 pt-1 pb-3">
+        <div className="flex gap-2.5 md:gap-4 overflow-hidden px-4 md:px-6 xl:px-0 pt-1 pb-3">
           {[1, 2, 3, 4].map(n => (
             <div key={n} className="w-[58vw] min-w-[58vw] max-w-64 md:w-64 md:min-w-64 shrink-0 rounded-2xl overflow-hidden ring-1 ring-gray-100 animate-pulse">
               <div className="h-32 md:h-40 bg-gray-200/80" />
@@ -118,7 +119,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
     if (TILE_CONFIG[viewMode]) {
       const { width, ratio } = TILE_CONFIG[viewMode];
       return (
-        <div className="flex gap-2.5 md:gap-4 overflow-hidden px-4 md:px-0 pt-1 pb-3">
+        <div className="flex gap-2.5 md:gap-4 overflow-hidden px-4 md:px-6 xl:px-0 pt-1 pb-3">
           {[1, 2, 3, 4].map(n => (
             <div key={n} className={`${width} ${ratio} shrink-0 rounded-2xl bg-gray-200/80 animate-pulse`} />
           ))}
@@ -127,7 +128,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
     }
     if (viewMode === 'photo-carousel') {
       return (
-        <div className="flex gap-2.5 md:gap-5 overflow-hidden px-4 md:px-0">
+        <div className="flex gap-2.5 md:gap-5 overflow-hidden px-4 md:px-6 xl:px-0">
           {[1, 2, 3, 4].map(n => (
             <div key={n} className="w-[62vw] min-w-[62vw] md:w-auto md:min-w-65 shrink-0 animate-pulse">
               <div className="aspect-[4/3] rounded-2xl bg-gray-200/80" />
@@ -165,7 +166,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
 
   if (viewMode === 'list') {
     return (
-      <div className="px-4 md:px-0 grid md:grid-cols-2 md:gap-x-8 divide-y divide-gray-100 md:divide-y-0">
+      <div className="px-4 md:px-6 xl:px-0 grid md:grid-cols-2 md:gap-x-8 divide-y divide-gray-100 md:divide-y-0">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -181,15 +182,15 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
 
   // Rent / Sale / Plots: sideways carousels, each with its own card design
   if (TILE_CONFIG[viewMode]) {
-    const { variant, width } = TILE_CONFIG[viewMode];
+    const { variant, width, frame } = TILE_CONFIG[viewMode];
     return (
-      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-6 xl:px-0 scroll-pl-4 md:scroll-pl-6 xl:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
             data={property}
             variant={variant}
-            className={`${width} snap-start shrink-0`}
+            className={`${width} ${frame} snap-start shrink-0`}
             isSaved={savedHotelIds.includes(property._id)}
           />
         ))}
@@ -200,13 +201,13 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
 
   if (viewMode === 'stay-carousel') {
     return (
-      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-6 xl:px-0 scroll-pl-4 md:scroll-pl-6 xl:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
             data={property}
             variant="stay"
-            className="w-[58vw] min-w-[58vw] max-w-64 md:w-64 md:min-w-64 snap-start shrink-0"
+            className="w-[58vw] min-w-[58vw] max-w-64 md:w-64 md:min-w-64 card-frame card-frame-pg snap-start shrink-0"
             isSaved={savedHotelIds.includes(property._id)}
           />
         ))}
@@ -217,7 +218,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
 
   if (viewMode === 'photo-carousel') {
     return (
-      <div className="flex gap-3 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 pt-1 pb-2">
+      <div className="flex gap-3 md:gap-5 overflow-x-auto no-scrollbar snap-x snap-proximity px-4 md:px-6 xl:px-0 scroll-pl-4 md:scroll-pl-6 xl:scroll-pl-0 pt-1 pb-2">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -234,7 +235,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
 
   if (viewMode === 'carousel') {
     return (
-      <div className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-proximity py-2 pl-3.5 pr-3.5 md:px-0 scroll-pl-3.5 pb-1">
+      <div className="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-proximity py-2 pl-3.5 pr-3.5 md:px-6 xl:px-0 scroll-pl-3.5 pb-1">
         {displayedProperties.map(property => (
           <PropertyCard
             key={property._id}
@@ -251,7 +252,7 @@ const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'gr
   }
 
   return (
-    <div className="px-3.5 md:px-0 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+    <div className="px-3.5 md:px-6 xl:px-0 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
       {displayedProperties.map(property => (
         <PropertyCard
           key={property._id}

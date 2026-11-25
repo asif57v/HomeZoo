@@ -34,6 +34,12 @@ const THEME_MAP = {
   default: { dark: ['#002240', '#005CA8'], pageBg: '#FFFFFF', accent: '#005CA8', art: ART.buy },
 };
 
+// Home tab label -> admin hero banner key (web Admin > Home Sections > Hero Banners)
+const HERO_KEY_BY_LABEL = { All: 'all', 'PG/Co-Living': 'pg', PG: 'pg', Rent: 'rent', Buy: 'buy', Plot: 'plot', Plots: 'plot' };
+const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+// Only uploaded (absolute) image URLs are used; anything else keeps the bundled art
+const remote = (url) => (typeof url === 'string' && /^https?:\/\//i.test(url) ? { uri: url } : null);
+
 export default function Home() {
   const { razorpayEnabled, phonepeHostelFeesEnabled } = useFeatureFlags();
   const scrollRef = useRef(null);
@@ -79,9 +85,27 @@ export default function Home() {
   }, []);
 
   const theme = useMemo(() => {
-    if (!selectedType.label || selectedType.label === 'All' || !selectedType.id) return THEME_MAP.default;
-    return THEME_MAP[selectedType.label] || THEME_MAP.default;
-  }, [selectedType]);
+    const allTab = !selectedType.label || selectedType.label === 'All' || !selectedType.id;
+    const base = allTab ? THEME_MAP.default : (THEME_MAP[selectedType.label] || THEME_MAP.default);
+    const t = { ...base, art: [...base.art], design: 'classic' };
+
+    // Admin overrides from /api/home (empty values keep the built-in look)
+    const hero = homeData.sections?.heroBanners?.[HERO_KEY_BY_LABEL[allTab ? 'All' : selectedType.label]];
+    if (hero) {
+      if (HEX_RE.test(hero.gradientFrom || '') && HEX_RE.test(hero.gradientTo || '')) t.dark = [hero.gradientFrom, hero.gradientTo];
+      if (HEX_RE.test(hero.accent || '')) t.accent = hero.accent;
+      if (remote(hero.leftImage)) t.art[0] = remote(hero.leftImage);
+      if (remote(hero.rightImage)) t.art[1] = remote(hero.rightImage);
+      if (hero.design === 'photo') {
+        t.design = 'photo';
+        // No background uploaded yet: fall back to the left image, like the web
+        t.photo = remote(hero.bgImage) || t.art[0];
+        t.overlay = Math.min(80, Math.max(0, Number(hero.overlay ?? 35))) / 100;
+      }
+    }
+    return t;
+  }, [selectedType, homeData.sections]);
+  const isPhoto = theme.design === 'photo' && !!theme.photo;
 
   const selectType = (id, label) => {
     setSelectedType({ id, label });
@@ -100,15 +124,27 @@ export default function Home() {
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} contentContainerStyle={{ paddingBottom: 24 }}>
         <View style={{ zIndex: 40 }}>
           <LinearGradient colors={theme.dark} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[StyleSheet.absoluteFill, { borderBottomLeftRadius: 24, borderBottomRightRadius: 24, overflow: 'hidden' }]}>
-            <View style={{ ...StyleSheet.absoluteFillObject, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }} pointerEvents="none">
-              <Image source={theme.art[0]} style={{ width: 240, height: 240, marginLeft: -64, transform: [{ translateY: -32 }] }} contentFit="cover" />
-              <Image source={theme.art[1]} style={{ width: 240, height: 240, marginRight: -64, transform: [{ translateY: -32 }] }} contentFit="cover" />
-            </View>
+            {isPhoto ? (
+              // Full Photo design: one background image + darkening overlay (same height as classic)
+              <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                <Image source={theme.photo} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} />
+                <LinearGradient
+                  colors={[`rgba(0,0,0,${theme.overlay})`, `rgba(0,0,0,${theme.overlay * 0.55})`, `rgba(0,0,0,${Math.min(0.85, theme.overlay * 1.2)})`]}
+                  locations={[0, 0.55, 1]}
+                  style={StyleSheet.absoluteFill}
+                />
+              </View>
+            ) : (
+              <View style={{ ...StyleSheet.absoluteFillObject, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }} pointerEvents="none">
+                <Image source={theme.art[0]} style={{ width: 240, height: 240, marginLeft: -64, transform: [{ translateY: -32 }] }} contentFit="cover" />
+                <Image source={theme.art[1]} style={{ width: 240, height: 240, marginRight: -64, transform: [{ translateY: -32 }] }} contentFit="cover" />
+              </View>
+            )}
           </LinearGradient>
           <SafeAreaView edges={['top']} style={CENTER_WIDE}>
             <HeroSection theme={theme} selectedType={selectedType} />
             <View style={{ paddingTop: 4, paddingBottom: 8 }}>
-              <PropertyTypeFilter selectedType={selectedType.id} onSelectType={selectType} theme={theme} />
+              <PropertyTypeFilter selectedType={selectedType.id} onSelectType={selectType} theme={theme} variant={isPhoto ? 'glass' : 'dark'} />
             </View>
           </SafeAreaView>
         </View>

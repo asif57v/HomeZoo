@@ -59,7 +59,7 @@ export const SectionHeader = ({
   actionLabel = 'See all',
   className = ''
 }) => (
-  <div className={`flex items-end justify-between gap-3 px-4 md:px-0 mb-4 md:mb-5 ${className}`}>
+  <div className={`flex items-end justify-between gap-3 px-4 md:px-6 xl:px-0 mb-4 md:mb-5 ${className}`}>
     <div className="min-w-0">
       <h2
         className={`${TITLE_SIZES[size] || TITLE_SIZES.md} tracking-tight leading-tight flex items-center gap-2 ${dark ? 'text-white' : 'text-gray-900'}`}

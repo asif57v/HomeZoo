@@ -14,7 +14,7 @@ const PopularCategories = ({
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-0 pt-4 pb-2">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 xl:px-0 pt-4 pb-2">
         <div className="h-5 w-40 bg-gray-200/70 rounded-md animate-pulse mb-3" />
         <div className="flex items-start gap-4 overflow-x-auto no-scrollbar">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -44,7 +44,7 @@ const PopularCategories = ({
     <section className="w-full max-w-7xl mx-auto pt-4 pb-2 md:pt-6">
       <SectionHeader size="sm" title={title} onAction={() => navigate('/search')} className="mb-2.5!" />
 
-      <div className="flex items-start gap-2.5 md:gap-6 overflow-x-auto no-scrollbar px-4 md:px-0 pb-1">
+      <div className="flex items-start gap-2.5 md:gap-6 overflow-x-auto no-scrollbar px-4 md:px-6 xl:px-0 pb-1">
         {categories.map((cat, index) => {
           const Icon = LucideIcons[cat.icon] || LucideIcons.Building2;
           const img = cat.image || cat.bgImage;

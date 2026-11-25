@@ -162,14 +162,19 @@ export default function ProfileEdit() {
           </View>
           <Line label="State" icon={null}><Input value={form.address.state} onChangeText={(v) => setAddr('state', v)} placeholder="State" style={inp} /></Line>
 
-          <LinearGradient colors={['#312e81', '#1e1b4b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 16, padding: 16, marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          {/* Gradient outline (sky -> indigo -> violet) + soft blue glow around the hub card */}
+          <View style={{ marginTop: 4, borderRadius: 18, shadowColor: '#38BDF8', shadowOpacity: 0.3, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 }}>
+          <LinearGradient colors={['#38BDF8', '#6366F1', '#A78BFA']} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 18, padding: 2 }}>
+          <LinearGradient colors={['#312e81', '#1e1b4b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Building size={12} color={colors.amber400} /><Text style={{ fontSize: 10, fontWeight: '700', color: colors.amber400, letterSpacing: 0.8 }}>HOST / PARTNER HUB</Text></View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Building size={12} color="#7DD3FC" /><Text style={{ fontSize: 10, fontWeight: '700', color: '#7DD3FC', letterSpacing: 0.8 }}>HOST / PARTNER HUB</Text></View>
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff', marginTop: 2 }}>Post & Manage Properties</Text>
               <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>View enquiries, bookings, listings & analytics</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push('/hotel/partner-dashboard')} style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.amber500, borderRadius: 12 }}><Text style={{ fontWeight: '800', fontSize: 12, color: '#020617' }}>Dashboard</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/hotel/partner-dashboard')} activeOpacity={0.85}><LinearGradient colors={['#38BDF8', '#6366F1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 }}><Text style={{ fontWeight: '800', fontSize: 12, color: '#fff' }}>Dashboard</Text></LinearGradient></TouchableOpacity>
           </LinearGradient>
+          </LinearGradient>
+          </View>
 
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 24 }}>
             <TouchableOpacity disabled={loading || uploading || deleting} onPress={() => setShowDelete(true)} style={{ flex: 1, paddingVertical: 14, borderRadius: 16, backgroundColor: colors.red50, borderWidth: 1, borderColor: 'rgba(254,202,202,0.8)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trash2 size={16} color={colors.red600} /><Text style={{ fontWeight: '700', fontSize: 12, color: colors.red600 }}>Delete Account</Text></TouchableOpacity>

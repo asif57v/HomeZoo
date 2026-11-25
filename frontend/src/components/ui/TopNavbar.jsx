@@ -107,7 +107,7 @@ const TopNavbar = () => {
 
     return (
         <>
-            <nav className="hidden md:flex w-full h-16 bg-white/95 backdrop-blur-md border-b border-gray-100 px-8 justify-between items-center fixed top-0 z-40">
+            <nav className="hidden md:flex w-full h-16 bg-white/95 backdrop-blur-md border-b border-gray-100 px-5 lg:px-8 justify-between items-center fixed top-0 z-40">
                 {/* Left Side: Hamburger Menu & Logo */}
                 <div className="flex items-center gap-5">
                     <button
@@ -129,23 +129,23 @@ const TopNavbar = () => {
                 </div>
 
                 {/* Desktop Links */}
-                <div className="flex items-center gap-7">
-                    <Link to="/" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                <div className="hidden lg:flex items-center gap-5 xl:gap-7">
+                    <Link to="/" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight whitespace-nowrap">
                         Home
                     </Link>
-                    <Link to="/search" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                    <Link to="/search" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight whitespace-nowrap">
                         Search
                     </Link>
-                    <Link to="/reels" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                    <Link to="/reels" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight whitespace-nowrap">
                         Reels
                     </Link>
-                    <Link to="/wishlist" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                    <Link to="/wishlist" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight whitespace-nowrap">
                         Wishlist
                     </Link>
-                    <Link to="/wallet" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                    <Link to="/wallet" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight whitespace-nowrap">
                         Wallet
                     </Link>
-                    <Link to="/refer" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight">
+                    <Link to="/refer" className="text-gray-500 font-bold text-sm hover:text-emerald-600 transition tracking-tight whitespace-nowrap">
                         Refer & Earn
                     </Link>
                 </div>
@@ -155,7 +155,7 @@ const TopNavbar = () => {
                     <button
                         type="button"
                         onClick={() => handleNavigateToAddProperty(navigate)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-full shadow-sm shadow-amber-500/25 active:scale-95 transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 whitespace-nowrap shrink-0 px-3.5 py-1.5 bg-gradient-to-r from-[#A21CAF] via-[#6D28D9] to-[#1D4ED8] hover:brightness-110 text-white font-bold text-xs rounded-full border border-white/30 shadow-md shadow-violet-600/30 active:scale-95 transition-all cursor-pointer"
                     >
                         <Plus size={14} strokeWidth={3} />
                         <span>Post Property</span>
@@ -173,7 +173,7 @@ const TopNavbar = () => {
                         <button
                             type="button"
                             onClick={() => goToLogin(navigate)}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
+                            className="whitespace-nowrap shrink-0 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
                         >
                             Login / Sign up
                         </button>

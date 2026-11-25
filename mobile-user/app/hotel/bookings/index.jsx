@@ -8,6 +8,8 @@ import { bookingService } from '../../../src/services/apiService';
 import { colors } from '../../../src/theme';
 import { setCurrentEnquiry } from '../../../src/lib/enquiryState';
 import { CENTER } from '../../../src/lib/responsive';
+import Svg, { Path } from 'react-native-svg';
+import { whatsAppLink, enquiryMessage, WHATSAPP_PATH } from '../../../src/utils/whatsapp';
 
 const P = '#005CA8';
 const TABS = [{ id: 'upcoming', label: 'New Leads' }, { id: 'in_house', label: 'Ongoing' }, { id: 'completed', label: 'Completed' }, { id: 'cancelled', label: 'Cancelled' }];
@@ -56,7 +58,14 @@ const BookingCard = ({ booking }) => {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 17, fontWeight: '800', color: colors.gray900, flexShrink: 1 }}>{booking.userId?.name || 'Guest User'}</Text><ChevronRight size={20} color={colors.gray300} /></View>
         {isLocked ? <TouchableOpacity onPress={() => router.push('/hotel/subscriptions')} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: colors.amber100 }}><Lock size={11} color={colors.amber700} /><Text style={{ fontSize: 11, fontWeight: '700', color: colors.amber700 }}>Unlock</Text></TouchableOpacity>
-        : booking.userId?.phone ? <TouchableOpacity onPress={() => Linking.openURL(`tel:${booking.userId.phone}`)} style={{ padding: 8, borderRadius: 999, backgroundColor: colors.green50 }}><Phone size={14} color={colors.green600} /></TouchableOpacity> : null}
+        : booking.userId?.phone ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <TouchableOpacity accessibilityLabel="Chat on WhatsApp" onPress={() => Linking.openURL(whatsAppLink(booking.userId.phone, enquiryMessage(booking.userId?.name, booking.propertyId?.propertyName || booking.propertyId?.name))).catch(() => {})} style={{ padding: 8, borderRadius: 999, backgroundColor: '#E7F8EE' }}>
+              <Svg width={14} height={14} viewBox="0 0 24 24"><Path d={WHATSAPP_PATH} fill="#25D366" /></Svg>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityLabel="Call" onPress={() => Linking.openURL(`tel:${booking.userId.phone}`)} style={{ padding: 8, borderRadius: 999, backgroundColor: colors.green50 }}><Phone size={14} color={colors.green600} /></TouchableOpacity>
+          </View>
+        ) : null}
       </View>
       {isLocked ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Lock size={12} color={colors.amber600} /><Text style={{ fontSize: 11, color: colors.amber700 }}>Contact locked • Active subscription required</Text></View> : null}
       <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: '600', color: colors.gray700 }}>{booking.propertyId?.propertyName || booking.propertyId?.name || 'Property'} • <Text style={{ fontSize: 13, color: colors.gray500 }}>{pType}</Text>{booking.propertyId?.propertyCode ? <Text style={{ fontSize: 12, color: colors.gray400 }}> • {booking.propertyId.propertyCode}</Text> : null}</Text>

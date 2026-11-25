@@ -58,7 +58,7 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
 
   if (loading) {
     return (
-      <div className="px-4 md:px-0">
+      <div className="px-4 md:px-6 xl:px-0">
         <div className="h-6 w-44 bg-gray-200/70 rounded-md animate-pulse mb-3" />
         <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar">
           {[1, 2, 3].map((i) => (
@@ -84,14 +84,14 @@ const ExclusiveOffers = ({ offers: propOffers, loading: propLoading, city = '' }
 
   return (
     <section>
-      <div className="flex items-center justify-between px-4 md:px-0 mb-4 md:mb-5">
+      <div className="flex items-center justify-between px-4 md:px-6 xl:px-0 mb-4 md:mb-5">
         <h2 className="text-[17px] sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
           <Sparkles size={18} className="text-emerald-600" />
           Offers for you
         </h2>
       </div>
 
-      <div className="flex gap-2.5 md:gap-4 overflow-x-auto pb-1 px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 snap-x no-scrollbar">
+      <div className="flex gap-2.5 md:gap-4 overflow-x-auto pb-1 px-4 md:px-6 xl:px-0 scroll-pl-4 md:scroll-pl-6 xl:scroll-pl-0 snap-x no-scrollbar">
         {offers.map((offer) => (
           <motion.div
             key={offer._id || offer.id}

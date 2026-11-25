@@ -120,6 +120,14 @@ export default function PayHostelFees({ title }) {
       <Sheet visible={!!receipt} onClose={() => { setReceipt(null); setOpen(false); }} maxHeight="92%">
         {receipt ? (
           <ScrollView>
+            {/* Brand strip */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.gray100 }}>
+              <View>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: colors.gray900, letterSpacing: -0.5 }}>HOOM<Text style={{ fontSize: 20, fontWeight: '900', color: colors.surface }}>ZO</Text></Text>
+                <View style={{ width: 22, height: 2.5, borderRadius: 2, backgroundColor: colors.surface, marginTop: 3 }} />
+              </View>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.gray500, letterSpacing: 1 }}>HOSTEL FEE RECEIPT</Text>
+            </View>
             <LinearGradient colors={['#3b93d6', '#005CA8']} style={{ alignItems: 'center', padding: 24 }}>
               <CheckCircle2 size={40} color="#fff" />
               <Text style={{ fontSize: 24, fontWeight: '900', color: '#fff', marginTop: 8 }}>Payment Successful!</Text>

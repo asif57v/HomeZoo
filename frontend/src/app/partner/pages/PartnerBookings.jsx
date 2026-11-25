@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { bookingService } from '../../../services/apiService';
 import PartnerHeader from '../components/PartnerHeader';
+import { whatsAppLink, enquiryMessage, WHATSAPP_PATH } from '../../../utils/whatsapp';
 
 // --- Card Component ---
 const BookingCard = ({ booking }) => {
@@ -109,13 +110,27 @@ const BookingCard = ({ booking }) => {
                             <span>Unlock</span>
                         </button>
                     ) : booking.userId?.phone ? (
-                        <a
-                            href={`tel:${booking.userId.phone}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-8 h-8 rounded-full bg-[#F5F7F7] text-[#005CA8] flex items-center justify-center hover:bg-[#E8ECEC] active:scale-95 transition-all flex-shrink-0"
-                        >
-                            <Phone size={14} />
-                        </a>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <a
+                                href={whatsAppLink(booking.userId.phone, enquiryMessage(guestName, hotelName))}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                title="Chat on WhatsApp"
+                                aria-label={`WhatsApp ${guestName}`}
+                                className="w-8 h-8 rounded-full bg-[#E7F8EE] text-[#25D366] flex items-center justify-center hover:bg-[#d3f3e0] active:scale-95 transition-all"
+                            >
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d={WHATSAPP_PATH} /></svg>
+                            </a>
+                            <a
+                                href={`tel:${booking.userId.phone}`}
+                                onClick={(e) => e.stopPropagation()}
+                                title="Call"
+                                className="w-8 h-8 rounded-full bg-[#F5F7F7] text-[#005CA8] flex items-center justify-center hover:bg-[#E8ECEC] active:scale-95 transition-all"
+                            >
+                                <Phone size={14} />
+                            </a>
+                        </div>
                     ) : null}
                 </div>
                 {isLocked && (

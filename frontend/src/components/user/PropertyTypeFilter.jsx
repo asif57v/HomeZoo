@@ -13,6 +13,7 @@ const ALL_OPTION = {
 
 const PropertyTypeFilter = ({ selectedType: selectedTypeProp, selectedLabel, onSelectType, theme, variant = 'dark' }) => {
   const light = variant === 'light';
+  const glass = variant === 'glass';
   const selectedType = selectedTypeProp === 'all' || selectedTypeProp === undefined ? null : selectedTypeProp;
   const accentColor = theme?.accent || '#005CA8';
   const STATIC_TYPES = [];
@@ -128,7 +129,12 @@ const PropertyTypeFilter = ({ selectedType: selectedTypeProp, selectedLabel, onS
                     ${
                       isSelected
                         ? (light ? 'bg-white shadow-[0_6px_16px_rgba(0,0,0,0.15)] scale-105 ring-1 ring-gray-200' : 'bg-white shadow-[0_6px_16px_rgba(0,0,0,0.25)] scale-105 ring-1.5 ring-white/70')
-                        : (light ? 'bg-gray-100 hover:bg-gray-200 border border-gray-200 hover:scale-105 active:scale-95' : 'bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 shadow-xs hover:scale-105 active:scale-95')
+                        : (light
+                          ? 'bg-gray-100 hover:bg-gray-200 border border-gray-200 hover:scale-105 active:scale-95'
+                          : glass
+                            // Over a photo: darker frosted glass so white icons stay readable
+                            ? 'bg-black/35 hover:bg-black/45 backdrop-blur-md border border-white/25 shadow-[0_4px_14px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95'
+                            : 'bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 shadow-xs hover:scale-105 active:scale-95')
                     }
                   `}
                 >
@@ -145,7 +151,9 @@ const PropertyTypeFilter = ({ selectedType: selectedTypeProp, selectedLabel, onS
                   text-[10px] md:text-xs tracking-tight transition-colors whitespace-nowrap text-center w-full mt-0.5
                   ${light
                     ? (isSelected ? 'font-extrabold text-gray-900' : 'font-medium text-gray-500 group-hover:text-gray-800')
-                    : (isSelected ? 'font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]' : 'font-medium text-white/90 group-hover:text-white')}
+                    : (isSelected
+                      ? 'font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]'
+                      : `font-medium text-white/90 group-hover:text-white ${glass ? 'drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]' : ''}`)}
                 `}
               >
                 {type.label}

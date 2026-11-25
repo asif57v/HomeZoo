@@ -158,7 +158,13 @@ const HeroSection = ({ theme, selectedType }) => {
         'Plots': { title: "Premium Plots in Prime Locations.", subtitle: "Build your vision on the perfect foundation." }
     };
 
-    const currentTagline = categoryContent[selectedType?.label] || categoryContent['All'];
+    const isPhoto = theme?.design === 'photo';
+    // Admin-set title/subtitle (Hero Banners) win over the built-in copy
+    const baseTagline = categoryContent[selectedType?.label] || categoryContent['All'];
+    const currentTagline = {
+        title: theme?.heroTitle || baseTagline.title,
+        subtitle: theme?.heroSubtitle || baseTagline.subtitle
+    };
 
     const placeholders = [
         "Search in Bucharest...",
@@ -478,12 +484,12 @@ const HeroSection = ({ theme, selectedType }) => {
                         className="flex flex-col items-center"
                     >
                         {currentTagline.title ? (
-                            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                            <h1 className={`font-bold mb-2 ${isPhoto ? 'text-3xl md:text-4xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]' : 'text-3xl md:text-4xl'}`}>
                                 {currentTagline.title}
                             </h1>
                         ) : null}
                         {currentTagline.subtitle ? (
-                            <p className="text-base md:text-lg font-medium opacity-90">
+                            <p className={`text-base md:text-lg font-medium ${isPhoto ? 'drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]' : 'opacity-90'}`}>
                                 {currentTagline.subtitle}
                             </p>
                         ) : null}

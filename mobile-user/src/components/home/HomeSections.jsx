@@ -322,7 +322,32 @@ export const TopPropertiesSection = ({ config, loading: configLoading }) => {
 };
 
 // ---- Property feed (carousels / grid)
-const TILE = { 'rent-grid': { variant: 'tile', w: 0.38, max: 176 }, 'sale-grid': { variant: 'sale', w: 0.66, max: 288 }, 'plot-grid': { variant: 'plot', w: 0.52, max: 224 } };
+const TILE = {
+  'rent-grid': { variant: 'tile', w: 0.38, max: 176, frame: 'rent' },
+  'sale-grid': { variant: 'sale', w: 0.66, max: 288, frame: 'buy' },
+  'plot-grid': { variant: 'plot', w: 0.52, max: 224 },
+};
+
+// Thin gradient border in the section colour (same colours as the web .card-frame-* classes)
+const FRAME = {
+  pg: { colors: ['#EC4899', '#F9A8D4', '#5EEAD4'], glow: '#EC4899', radius: 18 },
+  rent: { colors: ['#8B5CF6', '#C4B5FD', '#5EEAD4'], glow: '#8B5CF6', radius: 16 },
+  buy: { colors: ['#3B82F6', '#93C5FD', '#5EEAD4'], glow: '#3B82F6', radius: 24 },
+};
+const FRAME_W = 4;
+
+const FramedCard = ({ frame, width, children }) => {
+  const f = FRAME[frame];
+  if (!f) return children({ width });
+  return (
+    <View style={{ width, borderRadius: f.radius + FRAME_W, marginVertical: 4, shadowColor: f.glow, shadowOpacity: 0.22, shadowRadius: 10, shadowOffset: { width: 0, height: 6 } }}>
+      <LinearGradient colors={f.colors} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: f.radius + FRAME_W, padding: FRAME_W }}>
+        {/* Card's own border/shadow are turned off so only the gradient frame shows */}
+        {children({ width: width - FRAME_W * 2, borderRadius: f.radius, borderWidth: 0, borderLeftWidth: 0, elevation: 0, shadowOpacity: 0, marginVertical: 0 })}
+      </LinearGradient>
+    </View>
+  );
+};
 
 export const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'grid', limit, extraFilters = {}, source }) => {
   const { width: winW, wideW, isTablet, cols, itemW } = useResponsive();
@@ -394,10 +419,18 @@ export const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMod
 
   const shown = limit ? properties.slice(0, limit) : properties;
   if (cfg) {
-    return <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>{shown.map((p) => <PropertyCard key={p._id} data={p} variant={cfg.variant} style={{ width: cardW }} isSaved={saved.includes(p._id)} source={source} />)}</ScrollView>;
+    return <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>{shown.map((p) => (
+      <FramedCard key={p._id} frame={cfg.frame} width={cardW}>
+        {(style) => <PropertyCard data={p} variant={cfg.variant} style={style} isSaved={saved.includes(p._id)} source={source} />}
+      </FramedCard>
+    ))}</ScrollView>;
   }
   if (viewMode === 'stay-carousel') {
-    return <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>{shown.map((p) => <PropertyCard key={p._id} data={p} variant="stay" style={{ width: cardW }} isSaved={saved.includes(p._id)} source={source} />)}</ScrollView>;
+    return <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>{shown.map((p) => (
+      <FramedCard key={p._id} frame="pg" width={cardW}>
+        {(style) => <PropertyCard data={p} variant="stay" style={style} isSaved={saved.includes(p._id)} source={source} />}
+      </FramedCard>
+    ))}</ScrollView>;
   }
   const n = cols(1, 2, 3);
   const gridW = n > 1 ? itemW(n, wideW - 28, 16) : null;

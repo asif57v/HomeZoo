@@ -3,6 +3,7 @@ import Banner from '../models/Banner.js';
 import Offer from '../models/Offer.js';
 import Booking from '../models/Booking.js';
 import { getHomeSettingsDoc } from '../models/HomeSettings.js';
+import { serializeHeroBanners } from './homeSettingsController.js';
 
 /**
  * @desc    Get all home screen data in one call
@@ -128,7 +129,8 @@ export const getHomeData = async (req, res) => {
         enabled: settings.hostelFeePayment?.enabled !== false,
         title: settings.hostelFeePayment?.title || 'Pay Hostel Fees',
         subtitle: settings.hostelFeePayment?.subtitle || ''
-      }
+      },
+      heroBanners: serializeHeroBanners(settings)
     };
 
     res.json({

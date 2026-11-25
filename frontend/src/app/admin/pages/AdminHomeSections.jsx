@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { LayoutTemplate, Search, Plus, X, ArrowUp, ArrowDown, Save, Loader2, Star, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminService from '../../../services/adminService';
+import HeroBannersEditor, { HERO_KEYS, emptyHero } from '../components/HeroBannersEditor';
+
+const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 const MAX_TOP_PROPERTIES = 20;
 
@@ -25,6 +28,7 @@ const AdminHomeSections = () => {
   const [top, setTop] = useState({ enabled: true, title: 'Top Properties', subtitle: '', properties: [] });
   const [featured, setFeatured] = useState({ enabled: true, title: 'Featured Categories', subtitle: '' });
   const [hostelFee, setHostelFee] = useState({ enabled: true, title: 'Pay Hostel Fees', subtitle: 'Hostel Rent, Mess & Maintenance via UPI' });
+  const [heroBanners, setHeroBanners] = useState(() => Object.fromEntries(HERO_KEYS.map((k) => [k, emptyHero()])));
 
   const [search, setSearch] = useState('');
   const [results, setResults] = useState([]);
@@ -37,6 +41,9 @@ const AdminHomeSections = () => {
         if (data.topProperties) setTop(data.topProperties);
         if (data.featuredCategories) setFeatured(data.featuredCategories);
         if (data.hostelFeePayment) setHostelFee(data.hostelFeePayment);
+        if (data.heroBanners) {
+          setHeroBanners(Object.fromEntries(HERO_KEYS.map((k) => [k, { ...emptyHero(), ...(data.heroBanners[k] || {}) }])));
+        }
       } catch {
         toast.error('Failed to load home sections');
       } finally {
@@ -90,6 +97,12 @@ const AdminHomeSections = () => {
   const handleSave = async () => {
     if (!top.title.trim()) return toast.error('Top Properties title is required');
     if (!featured.title.trim()) return toast.error('Featured Categories title is required');
+    for (const k of HERO_KEYS) {
+      const h = heroBanners[k];
+      for (const f of ['accent', 'gradientFrom', 'gradientTo']) {
+        if (h[f] && !HEX_RE.test(h[f])) return toast.error(`Hero Banners (${k}): "${h[f]}" is not a valid colour like #D97706`);
+      }
+    }
 
     try {
       setSaving(true);
@@ -109,7 +122,8 @@ const AdminHomeSections = () => {
           enabled: hostelFee.enabled,
           title: hostelFee.title,
           subtitle: hostelFee.subtitle
-        }
+        },
+        heroBanners
       });
       toast.success('Home sections saved');
     } catch (err) {
@@ -139,7 +153,7 @@ const AdminHomeSections = () => {
             Home Sections
           </h1>
           <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Control the Top Properties and Featured Categories sections shown on the user Home page
+            Control the hero banners, Top Properties and Featured Categories shown on the user Home page
           </p>
         </div>
         <button
@@ -151,6 +165,9 @@ const AdminHomeSections = () => {
           Save Changes
         </button>
       </div>
+
+      {/* Hero Banners (top of Home, per tab) */}
+      <HeroBannersEditor value={heroBanners} onChange={setHeroBanners} />
 
       {/* Top Properties */}
       <section className="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 space-y-4">

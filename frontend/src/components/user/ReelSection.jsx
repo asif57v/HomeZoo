@@ -132,7 +132,7 @@ const ReelSection = ({ category, banded = false }) => {
         if (banded) {
             return (
                 <div className="w-full bg-gradient-to-b from-rose-50 to-orange-50/40 py-7 md:py-12 rounded-[1.75rem] md:rounded-none">
-                    <div className="max-w-7xl mx-auto flex gap-2 md:gap-4 overflow-hidden px-4 md:px-0">
+                    <div className="max-w-7xl mx-auto flex gap-2 md:gap-4 overflow-hidden px-4 md:px-6 xl:px-0">
                         {[1, 2, 3, 4].map((n) => (
                             <div key={n} className="w-[132px] md:w-[160px] aspect-[9/16] shrink-0 rounded-2xl bg-white/80 animate-pulse" />
                         ))}
@@ -158,7 +158,7 @@ const ReelSection = ({ category, banded = false }) => {
                     subtitle="Short video tours and updates"
                     onAction={() => navigate('/reels')}
                 />
-                <div className="flex overflow-x-auto gap-3 md:gap-4 pt-1 pb-2 px-4 md:px-0 scroll-pl-4 md:scroll-pl-0 no-scrollbar snap-x snap-mandatory">
+                <div className="flex overflow-x-auto gap-3 md:gap-4 pt-1 pb-2 px-4 md:px-6 xl:px-0 scroll-pl-4 md:scroll-pl-6 xl:scroll-pl-0 no-scrollbar snap-x snap-mandatory">
                     {reels.map((reel) => (
                         <ReelItem key={reel._id} reel={reel} navigate={navigate} banded />
                     ))}
@@ -170,7 +170,7 @@ const ReelSection = ({ category, banded = false }) => {
 
     return (
         <div className="py-2.5 md:py-4 border-b border-gray-100 bg-gray-50/30">
-            <div className="px-3.5 md:px-0 mb-1.5 md:mb-2 flex items-center justify-between">
+            <div className="px-3.5 md:px-6 xl:px-0 mb-1.5 md:mb-2 flex items-center justify-between">
                 <div>
                     <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 flex items-center gap-2">
                         <span className="bg-red-600 p-1 rounded-lg">
@@ -188,7 +188,7 @@ const ReelSection = ({ category, banded = false }) => {
                 </button>
             </div>
 
-            <div className="flex overflow-x-auto gap-4 pb-2 pl-3.5 pr-3.5 md:px-0 scroll-pl-3.5 no-scrollbar snap-x snap-mandatory">
+            <div className="flex overflow-x-auto gap-4 pb-2 pl-3.5 pr-3.5 md:px-6 xl:px-0 scroll-pl-3.5 no-scrollbar snap-x snap-mandatory">
                 {reels.map((reel) => (
                     <ReelItem key={reel._id} reel={reel} navigate={navigate} />
                 ))}

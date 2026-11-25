@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "920205538773",
+    "project_id": "hoomzo",
+    "storage_bucket": "hoomzo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:920205538773:android:412d11e8933c22b3f4f95c",
+        "android_client_info": {
+          "package_name": "com.hoomzo.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOoHghzu5v_dEPJZsI2bH2N7R7XcIgQ0Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

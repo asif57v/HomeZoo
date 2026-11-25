@@ -68,6 +68,17 @@ const THEME_MAP = {
   }
 };
 
+// Home tab label -> admin hero banner key (Admin > Home Sections > Hero Banners)
+const HERO_KEY_BY_LABEL = {
+  All: 'all',
+  'PG/Co-Living': 'pg',
+  PG: 'pg',
+  Rent: 'rent',
+  Buy: 'buy',
+  Plot: 'plot',
+  Plots: 'plot'
+};
+
 const Home = () => {
   const { razorpayEnabled, phonepeHostelFeesEnabled } = useFeatureFlags();
   const [selectedType, setSelectedType] = useState({ id: null, label: 'All' });
@@ -151,20 +162,39 @@ const Home = () => {
   }, []);
 
   const activeTheme = useMemo(() => {
-    if (!selectedType.label || selectedType.label === 'All' || !selectedType.id) return THEME_MAP.default;
-    const baseTheme = THEME_MAP[selectedType.label] || THEME_MAP.default;
+    const isAll = !selectedType.label || selectedType.label === 'All' || !selectedType.id;
+    let theme;
+    if (isAll) {
+      theme = { ...THEME_MAP.default };
+    } else {
+      const baseTheme = THEME_MAP[selectedType.label] || THEME_MAP.default;
+      // Handle case where selectedType.id might be multiple comma-separated IDs
+      const selectedIds = String(selectedType.id).split(',');
+      const selectedCategoryData = categoriesData.find((c) => selectedIds.includes(String(c._id)));
+      theme = { ...baseTheme, bgImage: selectedCategoryData?.bgImage || baseTheme.bgImage };
+    }
 
-    // Handle case where selectedType.id might be multiple comma-separated IDs
-    const selectedIds = String(selectedType.id).split(',');
-    const selectedCategoryData = categoriesData.find((c) => selectedIds.includes(String(c._id)));
+    // Admin overrides (empty values keep the built-in look)
+    const heroKey = HERO_KEY_BY_LABEL[isAll ? 'All' : selectedType.label];
+    const hero = heroKey ? homeData.sections?.heroBanners?.[heroKey] : null;
+    theme.design = hero?.design === 'photo' ? 'photo' : 'classic';
+    if (hero) {
+      if (hero.gradientFrom && hero.gradientTo) {
+        theme.darkBg = `linear-gradient(135deg, ${hero.gradientFrom} 0%, ${hero.gradientTo} 100%)`;
+      }
+      if (hero.accent) theme.accent = hero.accent;
+      if (hero.leftImage) theme.cornerImage = hero.leftImage;
+      if (hero.rightImage) theme.cornerImage2 = hero.rightImage;
+      if (hero.title) theme.heroTitle = hero.title;
+      if (hero.subtitle) theme.heroSubtitle = hero.subtitle;
+      theme.overlay = typeof hero.overlay === 'number' ? hero.overlay : 35;
+      // Photo design: full-width background; fall back to an existing art image if none uploaded
+      theme.photoImage = hero.bgImage || theme.bgImage || theme.cornerImage;
+    }
+    return theme;
+  }, [selectedType, categoriesData, homeData.sections]);
 
-    return {
-      ...baseTheme,
-      bgImage: selectedCategoryData?.bgImage || baseTheme.bgImage,
-      cornerImage: baseTheme.cornerImage,
-      cornerImage2: baseTheme.cornerImage2
-    };
-  }, [selectedType, categoriesData]);
+  const isPhotoHero = activeTheme.design === 'photo' && !!activeTheme.photoImage;
 
   const handleTypeSelect = (id, label) => {
     setSelectedType({ id, label });
@@ -196,7 +226,8 @@ const Home = () => {
 
   return (
     <main className="min-h-screen pb-24 transition-colors duration-700" style={{ backgroundColor: pageBg }}>
-      {/* Hero: dark background only (no images), changes per category */}
+      {/* Hero: design per tab is chosen in Admin > Home Sections > Hero Banners
+          classic = gradient + two floating side images, photo = full-width background image */}
       <div className="relative overflow-visible min-h-0 md:min-h-[340px]">
         <motion.div
           className="absolute inset-0 w-full h-full rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
@@ -204,22 +235,44 @@ const Home = () => {
           transition={{ duration: 0.6, ease: 'easeInOut' }}
         />
 
-        {/* Image Layer for specific themes like Plot */}
+        {/* Image Layer for specific themes like Plot (classic design) */}
         <motion.div
           className="absolute inset-0 w-full h-full bg-no-repeat z-0 rounded-b-[1.5rem] md:rounded-b-none overflow-hidden"
           style={{
             backgroundPosition: 'center bottom',
             backgroundSize: 'cover',
-            backgroundImage: activeTheme.bgImage ? `url(${activeTheme.bgImage})` : 'none'
+            backgroundImage: !isPhotoHero && activeTheme.bgImage ? `url(${activeTheme.bgImage})` : 'none'
           }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: activeTheme.bgImage ? 1 : 0 }}
+          animate={{ opacity: !isPhotoHero && activeTheme.bgImage ? 1 : 0 }}
           transition={{ duration: 0.6, ease: 'easeInOut' }}
         />
 
-        {/* Floating Corner Images */}
+        {/* Photo design: full-width background image + darkening overlay for readable text */}
+        <AnimatePresence>
+          {isPhotoHero && (
+            <motion.div
+              key={activeTheme.photoImage}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: 'easeInOut' }}
+              className="absolute inset-0 z-10 rounded-b-[1.5rem] md:rounded-b-none overflow-hidden pointer-events-none"
+            >
+              <img src={activeTheme.photoImage} alt="" className="w-full h-full object-cover object-center" />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(180deg, rgba(0,0,0,${(activeTheme.overlay ?? 35) / 100}) 0%, rgba(0,0,0,${((activeTheme.overlay ?? 35) / 100) * 0.55}) 55%, rgba(0,0,0,${Math.min(0.85, ((activeTheme.overlay ?? 35) / 100) * 1.2)}) 100%)`
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Floating Corner Images (classic design) */}
         <AnimatePresence mode="wait">
-          {activeTheme.cornerImage && (
+          {!isPhotoHero && activeTheme.cornerImage && (
             <motion.div
               key={activeTheme.cornerImage}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -266,6 +319,7 @@ const Home = () => {
               selectedLabel={selectedType.label}
               onSelectType={handleTypeSelect}
               theme={activeTheme}
+              variant={isPhotoHero ? 'glass' : 'dark'}
             />
           </div>
         </div>
@@ -318,7 +372,7 @@ const Home = () => {
                     </div>
                   )}
                   {showHostelFees && (
-                    <div className={`px-4 md:px-0 ${showOffers ? 'w-full md:w-[360px] lg:w-[400px] shrink-0' : 'w-full max-w-xl mx-auto'}`}>
+                    <div className={`px-4 md:px-6 xl:px-0 ${showOffers ? 'w-full md:w-[360px] lg:w-[400px] shrink-0' : 'w-full max-w-xl mx-auto'}`}>
                       <PayHostelFeesSection title={homeData.sections?.hostelFeePayment?.title} />
                     </div>
                   )}
@@ -429,7 +483,7 @@ const Home = () => {
 
       {/* Bottom Sections (Partners, News, App download) — only on the "All" tab */}
       {(!selectedType.id || selectedType.label === 'All') && (
-        <div className="mt-6 md:mt-6 max-w-7xl mx-auto px-3.5 md:px-0">
+        <div className="mt-6 md:mt-6 max-w-7xl mx-auto px-3.5 md:px-6 xl:px-0">
           <HomeBottomSections />
         </div>
       )}

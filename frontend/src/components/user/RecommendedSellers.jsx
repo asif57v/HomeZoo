@@ -80,7 +80,7 @@ const RecommendedSellers = () => {
 
     return (
         <div className="py-8 border-b border-gray-100 last:border-0 relative">
-            <div className="flex justify-between items-end px-5 md:px-0 mb-6">
+            <div className="flex justify-between items-end px-5 md:px-6 xl:px-0 mb-6">
                 <div>
                     <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
                         Recommended Sellers
@@ -89,7 +89,7 @@ const RecommendedSellers = () => {
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto lg:grid lg:grid-cols-3 gap-4 no-scrollbar pb-4 px-5 md:px-0">
+            <div className="flex overflow-x-auto lg:grid lg:grid-cols-3 gap-4 no-scrollbar pb-4 px-5 md:px-6 xl:px-0">
                 {sellers.map((seller) => {
                     const theme = getPackageTheme(seller.plan?.tier, seller.plan?.name);
 

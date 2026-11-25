@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import paymentService from '../../services/paymentService';
 import apiService from '../../services/apiService';
+import { useNavigate } from 'react-router-dom';
+import { requireLogin } from '../../utils/authGate';
 
 // Custom SVG Icons for authentic payment brand visuals
 const PhonePeIcon = () => (
@@ -75,6 +77,7 @@ const PAYMENT_METHODS = [
 ];
 
 const PayHostelFeesSection = ({ title }) => {
+  const navigate = useNavigate();
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -103,6 +106,8 @@ const PayHostelFeesSection = ({ title }) => {
   }, [isModalOpen]);
 
   const handleOpenPayModal = (method) => {
+    // Guests can see this section but must login before paying
+    if (!requireLogin(navigate, 'Please login to pay hostel fees')) return;
     setSelectedMethod(method);
     setIsModalOpen(true);
   };
@@ -118,6 +123,7 @@ const PayHostelFeesSection = ({ title }) => {
 
   const handleProceedPayment = async (e) => {
     e.preventDefault();
+    if (!requireLogin(navigate, 'Please login to pay hostel fees')) return;
     if (!formData.studentName || !formData.studentId || !formData.hostelName || !formData.amount) {
       alert('Please fill in all required payment details.');
       return;
@@ -446,6 +452,17 @@ const PayHostelFeesSection = ({ title }) => {
               exit={{ opacity: 0, scale: 0.9 }}
               className="bg-white rounded-3xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-gray-100"
             >
+              {/* Brand strip: dark text on white so it also shows when printed (print drops backgrounds) */}
+              <div className="px-6 py-3 flex items-center justify-between border-b border-gray-100 bg-white">
+                <div className="flex flex-col items-start leading-none">
+                  <span className="text-xl font-black tracking-tighter text-gray-900">
+                    HOOM<span className="text-emerald-600">ZO</span>
+                  </span>
+                  <span className="h-0.5 w-6 bg-emerald-500 rounded-full mt-1" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Hostel Fee Receipt</span>
+              </div>
+
               {/* Receipt Header */}
               <div className="bg-emerald-600 p-6 text-white text-center relative">
                 <div className="w-16 h-16 rounded-full bg-white text-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-lg">
