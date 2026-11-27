@@ -1,3 +1,4 @@
+import { withNewFlag } from '../utils/newListing.js';
 import SubscriptionPlan from '../models/SubscriptionPlan.js';
 import { resolvePartnerForUser, ownsProperty } from '../utils/partnerResolver.js';
 import mongoose from 'mongoose';
@@ -544,12 +545,12 @@ export const getPublicProperties = async (req, res) => {
     } = req.query;
 
     const pipeline = [];
+    const settings = await PlatformSettings.getSettings();
 
     // 1. Geospatial Search (Must be first if used)
     if (lat && lng) {
       let radiusKm = parseFloat(radius);
       if (!(radiusKm > 0)) {
-        const settings = await PlatformSettings.getSettings();
         radiusKm = Number(settings.nearbySearchRadiusKm) || 50;
       }
       pipeline.push({
@@ -568,6 +569,19 @@ export const getPublicProperties = async (req, res) => {
 
     // 2. Text/Filter Match
     const matchConditions = {};
+
+    // Listings of one partner (public partner profile). A partner may have posted from the app
+    // as a User (same phone), so match both the Partner id and the linked User id.
+    if (req.query.partner) {
+      if (!mongoose.Types.ObjectId.isValid(req.query.partner)) return res.json([]);
+      const ownerIds = [new mongoose.Types.ObjectId(req.query.partner)];
+      const p = await Partner.findById(req.query.partner).select('phone').lean();
+      if (p?.phone) {
+        const u = await User.findOne({ phone: p.phone }).select('_id').lean();
+        if (u) ownerIds.push(u._id);
+      }
+      matchConditions.partnerId = { $in: ownerIds };
+    }
 
     if (type && type !== 'all') {
       const typesList = type.split(',').map(t => t.trim()).filter(Boolean);
@@ -736,7 +750,34 @@ export const getPublicProperties = async (req, res) => {
       {
         $addFields: {
           rankingWeight: { $ifNull: ['$plan.rankingWeight', 0] },
-          hasVerifiedTag: { $ifNull: ['$plan.hasVerifiedTag', false] }
+          // Badges come from the partner's plan (admin-controlled), only while the subscription
+          // is active and only for the property types the plan allows (empty list = all types).
+          _badgeEligible: {
+            $and: [
+              { $eq: ['$partner.subscription.status', 'active'] },
+              { $gt: ['$partner.subscription.expiryDate', new Date()] },
+              {
+                $or: [
+                  { $eq: [{ $size: { $ifNull: ['$plan.badgePropertyTypes', []] } }, 0] },
+                  { $in: ['$propertyType', { $ifNull: ['$plan.badgePropertyTypes', []] }] }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        $addFields: {
+          hasVerifiedTag: { $and: ['$_badgeEligible', { $eq: ['$plan.hasVerifiedTag', true] }] },
+          hasPremiumTag: { $and: ['$_badgeEligible', { $eq: ['$plan.hasPremiumTag', true] }] },
+          // "New" tag window (admin setting) counted from first approval; older listings fall back to createdAt
+          isNewListing: (() => {
+            const nt = settings.newTagDuration || {};
+            const value = Number(nt.value ?? 7);
+            if (!(value > 0)) return false;
+            const ms = value * (nt.unit === 'hours' ? 3600000 : 86400000);
+            return { $gt: [{ $ifNull: ['$approvedAt', '$createdAt'] }, new Date(Date.now() - ms)] };
+          })()
         }
       },
       // SECURITY: this endpoint is public. Never expose partner credentials / push tokens / OTP state.
@@ -750,7 +791,8 @@ export const getPublicProperties = async (req, res) => {
           'partner.aadhaarFront': 0,
           'partner.aadhaarBack': 0,
           'partner.panNumber': 0,
-          'partner.panCardImage': 0
+          'partner.panCardImage': 0,
+          _badgeEligible: 0
         }
       }
     );
@@ -947,7 +989,7 @@ export const getMyProperties = async (req, res) => {
       query.propertyType = String(req.query.type).toLowerCase();
     }
     const all = await Property.find(query).sort({ createdAt: -1 });
-    const properties = all.filter(p => p.status !== 'draft');
+    const properties = await withNewFlag(all.filter(p => p.status !== 'draft').map(p => p.toObject()));
     const drafts = all.filter(p => p.status === 'draft');
     res.json({ success: true, properties, drafts });
   } catch (e) {
@@ -980,7 +1022,8 @@ export const getPropertyDetails = async (req, res) => {
     const documents = canSeeDocs ? await PropertyDocument.findOne({ propertyId: id }) : null;
     // isOwner: the app hides Enquire / Call on the owner's own listing
     const isOwner = !!u && !(['admin', 'superadmin'].includes(u.role)) && await ownsProperty(u, property);
-    res.json({ property, roomTypes, documents, isOwner });
+    const propertyOut = await withNewFlag(property.toObject());
+    res.json({ property: propertyOut, roomTypes, documents, isOwner });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -1184,12 +1227,22 @@ export const getRecommendedSellers = async (req, res) => {
       // Sort by rankingWeight (Diamond=5, etc.) then by creation date
       { $sort: { 'plan.rankingWeight': -1, createdAt: -1 } },
       { $limit: 10 },
+      // The app lets people set their photo (and post listings) on the linked User account (same phone)
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'phone',
+          foreignField: 'phone',
+          pipeline: [{ $project: { profileImage: 1 } }],
+          as: 'linkedUser'
+        }
+      },
+      // Count listings under the Partner id and the linked User id, same as the public profile page
       {
         $lookup: {
           from: 'properties',
-          localField: '_id',
-          foreignField: 'partnerId',
-          pipeline: [{ $match: { status: 'approved', isLive: true } }],
+          let: { ownerIds: { $concatArrays: [['$_id'], { $map: { input: '$linkedUser', as: 'u', in: '$$u._id' } }] } },
+          pipeline: [{ $match: { $expr: { $and: [{ $in: ['$partnerId', '$$ownerIds'] }, { $eq: ['$status', 'approved'] }, { $eq: ['$isLive', true] }] } } }, { $project: { _id: 1 } }],
           as: 'activeProperties'
         }
       },
@@ -1206,17 +1259,7 @@ export const getRecommendedSellers = async (req, res) => {
           }
         }
       },
-      // The app lets people set their photo on the linked User account (same phone),
-      // so prefer that photo over the Partner copy to keep both in sync.
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'phone',
-          foreignField: 'phone',
-          pipeline: [{ $project: { profileImage: 1 } }],
-          as: 'linkedUser'
-        }
-      },
+      // Prefer the linked User's photo over the Partner copy to keep both in sync.
       {
         $addFields: {
           profileImage: {
@@ -1250,6 +1293,49 @@ export const getRecommendedSellers = async (req, res) => {
   } catch (err) {
     console.error('getRecommendedSellers error:', err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * @desc    Public profile of a partner (name, photo, plan, stats). Listings come from
+ *          GET /properties?partner=<id>. No contact details are exposed here.
+ * @route   GET /api/properties/partners/:id
+ */
+export const getPublicPartnerProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).json({ message: 'Partner not found' });
+
+    const partner = await Partner.findOne({ _id: id, partnerApprovalStatus: 'approved', isBlocked: { $ne: true } })
+      .select('name profileImage partnerSince createdAt isVerified isTopRated address phone subscription.planId subscription.status')
+      .populate('subscription.planId', 'name tier')
+      .lean();
+    if (!partner) return res.status(404).json({ message: 'Partner not found' });
+
+    const linkedUser = partner.phone ? await User.findOne({ phone: partner.phone }).select('_id profileImage').lean() : null;
+    const ownerIds = [partner._id, ...(linkedUser ? [linkedUser._id] : [])];
+    const totalListings = await Property.countDocuments({ partnerId: { $in: ownerIds }, status: 'approved', isLive: true });
+
+    const since = partner.partnerSince || partner.createdAt;
+    const plan = partner.subscription?.status === 'active' && partner.subscription?.planId
+      ? { name: partner.subscription.planId.name, tier: partner.subscription.planId.tier }
+      : null;
+
+    res.json({
+      _id: partner._id,
+      name: partner.name,
+      profileImage: linkedUser?.profileImage || partner.profileImage || '',
+      isVerified: !!partner.isVerified,
+      isTopRated: !!partner.isTopRated,
+      address: { city: partner.address?.city || '', locality: partner.address?.locality || '', state: partner.address?.state || '' },
+      partnerSince: since,
+      experienceYears: since ? Math.floor((Date.now() - new Date(since).getTime()) / (365 * 24 * 3600 * 1000)) : 0,
+      totalListings,
+      plan,
+    });
+  } catch (err) {
+    console.error('getPublicPartnerProfile error:', err);
+    res.status(500).json({ message: 'Server error fetching partner' });
   }
 };
 

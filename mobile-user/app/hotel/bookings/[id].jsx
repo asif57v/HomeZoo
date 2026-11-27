@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Calendar, User, Phone, Mail, MapPin, CreditCard, CheckCircle, XCircle, Clock, AlertTriangle, LogIn, LogOut, Lock, Crown, Eye, PhoneCall, Send, Target, Navigation, Smartphone, BedDouble } from 'lucide-react-native';
+import { Calendar, User, Phone, Mail, MapPin, CreditCard, CheckCircle, XCircle, Clock, AlertTriangle, LogIn, LogOut, Lock, Crown, Eye, PhoneCall, Send, Target, Navigation, Smartphone, BedDouble, Home } from 'lucide-react-native';
 import { Text, Input, Sheet } from '../../../src/components/ui';
 import { PartnerBack } from '../../../src/components/partner/PartnerKit';
 import { bookingService } from '../../../src/services/apiService';
@@ -39,6 +39,53 @@ const inferSource = (b) => {
   if (bid.startsWith('LEAD')) return 'property_view';
   return null;
 };
+const SHARING = { triple: 'Triple Sharing', double: 'Double Sharing', private: 'Private Room', shared: 'Shared Dorm', entire: 'Entire Unit' };
+const sharingOf = (rt) => (rt?.roomCategory ? SHARING[String(rt.roomCategory).toLowerCase()] || rt.roomCategory : null);
+const inr = (n) => (Number(n) > 0 ? `₹${Number(n).toLocaleString('en-IN')}` : null);
+const yesNo = (v) => (v === true ? 'Yes' : v === false ? 'No' : null);
+
+// Key facts of the listing for its type (same as web PartnerBookingDetail)
+const propertyFacts = (p, t) => {
+  if (['pg', 'hostel'].includes(t)) {
+    const pg = p.pgDetails || {};
+    const food = Object.entries(pg.foodIncluded || {}).filter(([, on]) => on).map(([m]) => m[0].toUpperCase() + m.slice(1)).join(', ');
+    return [
+      ['PG For', pg.gender], ['PG Type', p.pgType], ['Food Included', food || null], ['Food Type', p.foodType],
+      ['Security Deposit', inr(pg.securityDeposit)], ['Notice Period', pg.noticePeriod], ['Min Stay', pg.minStay],
+      ['Available From', pg.availableFrom ? new Date(pg.availableFrom).toLocaleDateString('en-IN') : null],
+    ];
+  }
+  if (t === 'rent') {
+    const r = p.rentDetails || {};
+    return [
+      ['Type', r.type], ['Monthly Rent', inr(r.monthlyRent)], ['Security Deposit', inr(r.securityDeposit)],
+      ['Maintenance', inr(r.maintenanceCharges)], ['Furnishing', r.furnishing ? `${r.furnishing}${r.furnishing === 'Unfurnished' ? '' : ' Furnished'}` : null],
+      ['Tenant Preference', r.tenantPreference], ['Society', r.societyName], ['Built Year', r.builtYear],
+      ['Electricity Included', yesNo(r.electricityIncluded)], ['Lift', yesNo(r.lift)],
+    ];
+  }
+  if (t === 'buy') {
+    const b = p.buyDetails || {};
+    const unit = b.area?.unit || 'sqft';
+    return [
+      ['Type', b.type], ['Expected Price', inr(b.expectedPrice)],
+      ['Super Built-up', b.area?.superBuiltUp ? `${b.area.superBuiltUp} ${unit}` : null], ['Carpet Area', b.area?.carpet ? `${b.area.carpet} ${unit}` : null],
+      ['Floor', b.floor?.current !== undefined && b.floor?.current !== null ? `${b.floor.current}${b.floor.total ? ` of ${b.floor.total}` : ''}` : null],
+      ['Facing', b.facing], ['Ownership', b.ownership], ['Property Age', b.propertyAge], ['Builder', b.builderName],
+      ['Loan Eligible', yesNo(b.loanEligible)],
+    ];
+  }
+  if (t === 'plot') {
+    const pl = p.plotDetails || {};
+    return [
+      ['Expected Price', inr(pl.expectedPrice)], ['Plot Area', pl.plotArea ? `${pl.plotArea} ${pl.unit || 'sqyrd'}` : null],
+      ['Dimensions', pl.dimensions?.length && pl.dimensions?.breadth ? `${pl.dimensions.length} x ${pl.dimensions.breadth} ft` : null],
+      ['Land Type', pl.landType], ['Facing', pl.facing], ['Road Width', pl.roadWidth], ['Approval', pl.approvalAuthority],
+    ];
+  }
+  return [['Category', p.hotelCategory || p.resortType], ['Star Rating', p.starRating ? `${p.starRating} Star` : null], ['Check-in Time', p.checkInTime], ['Check-out Time', p.checkOutTime]];
+};
+
 const dtStr = (d) => (d ? new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '');
 const Row = ({ Icon, label, value }) => (value ? (
   <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
@@ -132,6 +179,28 @@ export default function PartnerBookingDetail() {
   const userCity = typeof user.address === 'object' ? [user.address?.city, user.address?.state].filter(Boolean).join(', ') : user.address;
   const joined = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : null;
   const roomLabel = room.name || meta.roomName;
+  const roomOptions = Array.isArray(booking.propertyRoomTypes) ? booking.propertyRoomTypes : [];
+  const pickedRoomId = String(room._id || '');
+  const pickedSharing = meta.sharingType || sharingOf(room) || null;
+  const roomRent = meta.roomPrice || room.pricePerNight || null;
+  const perLabel = isPG || isRent ? ' / month' : ' / night';
+  const coverImg = property.coverImage || property.propertyImages?.[0] || property.images?.[0];
+  const addr = typeof property.address === 'object' && property.address
+    ? (property.address.fullAddress || [property.address.area, property.address.city, property.address.state, property.address.pincode].filter(Boolean).join(', '))
+    : (property.address || 'Location');
+  const facts = propertyFacts(property, t).filter(([, v]) => v !== null && v !== undefined && v !== '');
+  const isOptionPicked = (rt) => (pickedRoomId && String(rt._id) === pickedRoomId) || (!pickedRoomId && pickedSharing && sharingOf(rt) === pickedSharing);
+  const unitText = meta.beds > 1 ? `${meta.beds} ${booking.bookingUnit === 'room' ? 'Rooms' : 'Beds'}` : booking.bookingUnit === 'entire' ? '1 Unit' : booking.bookingUnit === 'bed' || isPG ? '1 Bed' : '1 Room';
+  const interested = [
+    isPG ? ['Sharing', pickedSharing || 'Not selected'] : null,
+    !isBuyPlot ? [isPG ? 'Room / Bed' : 'Room Type', roomLabel || (isPG || isRent ? null : 'Not selected')] : null,
+    !isBuyPlot ? [isPG || isRent ? 'Rent' : 'Room Price', roomRent ? `${inr(roomRent)}${perLabel}` : null] : null,
+    !isBuyPlot ? ['Unit', unitText] : null,
+    isRent ? ['Type', property.rentDetails?.type] : null,
+    isRent ? ['Monthly Rent', inr(property.rentDetails?.monthlyRent)] : null,
+    isBuyPlot ? ['Asking Price', inr(property.buyDetails?.expectedPrice || property.plotDetails?.expectedPrice)] : null,
+    ['Budget', inr(meta.budget)],
+  ].filter((x) => x && x[1]);
   const Act = ({ onPress, Icon, label, bg, fg = '#fff', border }) => <TouchableOpacity disabled={busy} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 12, backgroundColor: bg, borderWidth: border ? 1 : 0, borderColor: border, opacity: busy ? 0.6 : 1 }}><Icon size={18} color={fg} /><Text style={{ fontWeight: '700', color: fg }}>{label}</Text></TouchableOpacity>;
 
   return (
@@ -142,11 +211,27 @@ export default function PartnerBookingDetail() {
           <View><Text style={{ fontSize: 10, color: colors.gray400, fontWeight: '700' }}>ENQUIRY ID</Text><Text style={{ fontWeight: '800', color: colors.gray900 }}>#{booking.bookingId || booking._id}</Text></View>
           <View style={{ backgroundColor: colors.blue50, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999 }}><Text style={{ fontSize: 11, fontWeight: '700', color: colors.blue700, textTransform: 'uppercase' }}>{status}</Text></View>
         </View>
-        <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.gray100, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          <View style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: colors.gray100, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>{property.images?.[0] ? <Image source={{ uri: property.images[0] }} style={{ width: '100%', height: '100%' }} /> : <MapPin size={24} color={colors.gray400} />}</View>
-          <View style={{ flex: 1 }}><Text style={{ fontWeight: '800', color: colors.gray900, fontSize: 16 }}>{property.propertyName || 'Property Name'}</Text><Text style={{ fontSize: 10, fontWeight: '700', color: P, textTransform: 'uppercase' }}>{t}</Text>
-            <Text style={{ fontSize: 12, color: colors.gray500 }}>{typeof property.address === 'object' ? `${property.address.city || ''}${property.address.city && property.address.area ? ', ' : ''}${property.address.area || ''}` : property.address || 'Location'}</Text></View>
+        <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.gray100, flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
+          <View style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: colors.gray100, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>{coverImg ? <Image source={{ uri: coverImg }} style={{ width: '100%', height: '100%' }} /> : <MapPin size={24} color={colors.gray400} />}</View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ fontSize: 9, fontWeight: '700', color: colors.gray400 }}>ENQUIRY FOR PROPERTY</Text>
+            <Text style={{ fontWeight: '800', color: colors.gray900, fontSize: 16 }}>{property.propertyName || 'Property Name'}</Text>
+            <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: P, textTransform: 'uppercase' }}>{t}</Text>
+              {property.propertyCode ? <View style={{ backgroundColor: colors.blue50, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}><Text style={{ fontSize: 10, fontWeight: '700', color: colors.blue700 }}>{property.propertyCode}</Text></View> : null}
+            </View>
+            <Text style={{ fontSize: 12, color: colors.gray500 }}>{addr}</Text>
+          </View>
         </View>
+
+        {isInquiry ? (
+          <Section icon={BedDouble} title="Interested In">
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {interested.map(([k, v]) => <Kv key={k} k={k} v={v} />)}
+            </View>
+            {isPG && !pickedSharing ? <Text style={{ fontSize: 11, color: colors.gray500 }}>User has not picked a sharing yet. All options of this property are listed below.</Text> : null}
+          </Section>
+        ) : null}
 
         {isInquiry ? (
           <Section icon={Target} title="Lead Source">
@@ -179,6 +264,39 @@ export default function PartnerBookingDetail() {
                 })}
               </View>
             ) : null}
+          </Section>
+        ) : null}
+
+        {facts.length > 0 ? (
+          <Section icon={Home} title="Property Details">
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {facts.map(([k, v]) => <Kv key={k} k={k} v={String(v)} />)}
+            </View>
+          </Section>
+        ) : null}
+
+        {roomOptions.length > 0 ? (
+          <Section icon={BedDouble} title={isPG ? 'Sharing Options' : 'Room Options'}>
+            <View style={{ gap: 8 }}>
+              {roomOptions.map((rt) => {
+                const picked = isInquiry && isOptionPicked(rt);
+                const sub = [sharingOf(rt), rt.bathroomType ? `${rt.bathroomType} bathroom` : null, rt.maxAdults ? `Up to ${rt.maxAdults} ${rt.maxAdults === 1 ? 'person' : 'people'}` : null].filter(Boolean).join(' · ');
+                return (
+                  <View key={rt._id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: picked ? '#93C5FD' : colors.gray100, backgroundColor: picked ? colors.blue50 : colors.gray50 }}>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={{ fontWeight: '700', color: colors.gray900 }}>{rt.name}</Text>
+                      {picked ? <View style={{ alignSelf: 'flex-start', backgroundColor: '#fff', borderWidth: 1, borderColor: '#BFDBFE', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}><Text style={{ fontSize: 9, fontWeight: '800', color: colors.blue700 }}>USER'S CHOICE</Text></View> : null}
+                      {sub ? <Text style={{ fontSize: 11, color: colors.gray500 }}>{sub}</Text> : null}
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={{ fontWeight: '800', color: colors.gray900 }}>{inr(rt.pricePerNight) || '-'}</Text>
+                      <Text style={{ fontSize: 10, color: colors.gray500 }}>{isPG || isRent ? 'per month' : 'per night'}</Text>
+                      {rt.securityDeposit > 0 ? <Text style={{ fontSize: 10, color: colors.gray400 }}>Deposit {inr(rt.securityDeposit)}</Text> : null}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
           </Section>
         ) : null}
 

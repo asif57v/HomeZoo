@@ -14,7 +14,10 @@ import { uploadToCloudinary, deleteFromCloudinary, uploadBase64ToCloudinary } fr
 // Fixed-OTP test accounts (seeded partner 7777777777, team test phones). Only these skip the SMS.
 const TEST_OTP = '123456';
 const TEST_NUMBERS = new Set(['9685974247', '6261096283', '9752275626', '7777777777', '9000000001', '9000000002', '6268455485']);
-const isTestNumber = (phone) => TEST_NUMBERS.has(String(phone || ''));
+// Local development: LOCAL_DEFAULT_OTP=true in backend/.env (never on the VPS) makes 123456 work for every number, no SMS sent.
+// Read at call time: ES imports run before dotenv.config() in server.js.
+const isLocalDefaultOtp = () => String(process.env.LOCAL_DEFAULT_OTP || '').toLowerCase() === 'true';
+const isTestNumber = (phone) => isLocalDefaultOtp() || TEST_NUMBERS.has(String(phone || ''));
 
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {

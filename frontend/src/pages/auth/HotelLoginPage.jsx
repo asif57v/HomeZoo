@@ -113,14 +113,9 @@ const HotelLoginPage = () => {
             });
 
             // Update FCM Token for Partner
-            try {
-                const token = await requestNotificationPermission();
-                if (token) {
-                    await userService.updateFcmToken(token, detectPlatform());
-                }
-            } catch (fcmError) {
-                console.warn('FCM update failed', fcmError);
-            }
+            requestNotificationPermission()
+                .then((token) => token && userService.updateFcmToken(token, detectPlatform()))
+                .catch((fcmError) => console.warn('FCM update failed', fcmError));
 
             navigate('/hotel/dashboard');
         } catch (err) {

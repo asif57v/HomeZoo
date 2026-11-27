@@ -28,6 +28,7 @@ const UserSignup = React.lazy(() => import('./pages/auth/UserSignup'));
 const SearchPage = React.lazy(() => import('./pages/user/SearchPage'));
 const BookingsPage = React.lazy(() => import('./pages/user/BookingsPage'));
 const ListingPage = React.lazy(() => import('./pages/user/ListingPage'));
+const PartnerPublicProfile = React.lazy(() => import('./pages/user/PartnerPublicProfile'));
 const BookingConfirmationPage = React.lazy(() => import('./pages/user/BookingConfirmationPage'));
 const WalletPage = React.lazy(() => import('./pages/user/WalletPage'));
 const PaymentPage = React.lazy(() => import('./pages/user/PaymentPage'));
@@ -572,6 +573,7 @@ function App() {
             <Route path="/hotel/:id/reviews" element={<ReviewsPage />} />
             <Route path="/hotel/:id/offers" element={<OffersPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/partners/:id" element={<PartnerPublicProfile />} />
             <Route path="/listings" element={<Navigate to="/search" replace />} />
             <Route path="/partner-landing" element={<PartnerLandingPage />} />
             <Route path="/about" element={<AboutPage />} />

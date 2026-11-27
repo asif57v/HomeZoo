@@ -62,6 +62,12 @@ export const OtpBoxes = ({ value, onChange }) => {
           onKeyPress={({ nativeEvent }) => { if (nativeEvent.key === 'Backspace' && !value[i] && i > 0) refs.current[i - 1]?.focus(); }}
           keyboardType="number-pad"
           maxLength={i === 0 ? 6 : 1}
+          // First box takes the whole code: Android shows the SMS OTP above the keyboard (Google autofill),
+          // iOS shows "From Messages". The paste branch in set() spreads it over the 6 boxes.
+          autoFocus={i === 0}
+          autoComplete={i === 0 ? 'sms-otp' : 'off'}
+          textContentType={i === 0 ? 'oneTimeCode' : 'none'}
+          importantForAutofill={i === 0 ? 'yes' : 'no'}
           style={{ width: 42, height: 50, textAlign: 'center', fontSize: 18, fontFamily: fontFor('700'), backgroundColor: '#fff', borderWidth: 2, borderColor: d ? colors.amber500 : colors.gray400, borderRadius: 12, color: colors.gray900 }}
         />
       ))}

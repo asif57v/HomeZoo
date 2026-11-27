@@ -45,6 +45,17 @@ const subscriptionPlanSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // Shows the "PREMIUM LISTING" badge on the partner's property cards
+    hasPremiumTag: {
+        type: Boolean,
+        default: false
+    },
+    // Property types the Verified / Premium badges apply to. Empty = all types.
+    badgePropertyTypes: {
+        type: [String],
+        enum: ["villa", "resort", "hotel", "hostel", "pg", "homestay", "tent", "rent", "buy", "plot"],
+        default: []
+    },
     bannerType: {
         type: String,
         enum: ['none', 'locality', 'city'],

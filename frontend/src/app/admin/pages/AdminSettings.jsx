@@ -54,6 +54,8 @@ const AdminSettings = () => {
     const [freeProperties, setFreeProperties] = useState(1);
     const [freeLeads, setFreeLeads] = useState(5);
     const [nearbyRadiusKm, setNearbyRadiusKm] = useState(50);
+    const [newTagValue, setNewTagValue] = useState(7);
+    const [newTagUnit, setNewTagUnit] = useState('days');
 
     const [loadingSettings, setLoadingSettings] = useState(false);
     const [savingProfile, setSavingProfile] = useState(false);
@@ -88,6 +90,8 @@ const AdminSettings = () => {
                     setTaxRate(res.settings.taxRate ?? 12);
                     setCategoryTaxRates(res.settings.categoryTaxRates || {});
                     setNearbyRadiusKm(res.settings.nearbySearchRadiusKm ?? 50);
+                    setNewTagValue(res.settings.newTagDuration?.value ?? 7);
+                    setNewTagUnit(res.settings.newTagDuration?.unit || 'days');
                     if (res.settings.partnerFreeTrial) {
                         setTrialEnabled(res.settings.partnerFreeTrial.enabled !== false);
                         setFreeProperties(res.settings.partnerFreeTrial.freeProperties ?? 1);
@@ -171,7 +175,8 @@ const AdminSettings = () => {
                     freeProperties: Number(freeProperties) || 0,
                     freeLeads: Number(freeLeads) || 0
                 },
-                nearbySearchRadiusKm: Number(nearbyRadiusKm)
+                nearbySearchRadiusKm: Number(nearbyRadiusKm),
+                newTagDuration: { value: Number(newTagValue) || 0, unit: newTagUnit }
             });
             toast.success('Platform settings updated');
         } catch (error) {
@@ -426,6 +431,36 @@ const AdminSettings = () => {
                                     className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
                                 />
                                 <p className="text-xs text-gray-400 mt-1">Between 1 and 1000 km. Default 50 km.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="pt-6">
+                        <div className="pb-2 font-bold text-lg">"New" Tag on Property Cards</div>
+                        <p className="text-sm text-gray-500 mb-4">
+                            A property without ratings shows a "New" tag for this long after admin approves it (web and app). Set 0 to never show it.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Show "New" tag for</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max={newTagUnit === 'hours' ? 8760 : 365}
+                                        value={newTagValue}
+                                        onChange={(e) => setNewTagValue(e.target.value)}
+                                        className="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black"
+                                    />
+                                    <select
+                                        value={newTagUnit}
+                                        onChange={(e) => setNewTagUnit(e.target.value)}
+                                        className="p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black bg-white"
+                                    >
+                                        <option value="hours">Hours</option>
+                                        <option value="days">Days</option>
+                                    </select>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-1">Default 7 days.</p>
                             </div>
                         </div>
                     </div>

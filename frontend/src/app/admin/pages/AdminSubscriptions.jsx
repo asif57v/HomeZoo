@@ -3,6 +3,12 @@ import { Plus, Edit2, Trash2, X, Save, AlertCircle, CheckCircle, Package, Zap, M
 import { toast } from 'react-hot-toast';
 import subscriptionService from '../../../services/subscriptionService';
 
+const PROPERTY_TYPES = [
+    ['hotel', 'Hotel'], ['villa', 'Villa'], ['resort', 'Resort'], ['homestay', 'Homestay'],
+    ['hostel', 'Hostel'], ['pg', 'PG'], ['tent', 'Tent'], ['rent', 'Rent'],
+    ['buy', 'Buy'], ['plot', 'Plot']
+];
+
 const PlanModal = ({ plan, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         name: '',
@@ -14,6 +20,8 @@ const PlanModal = ({ plan, onClose, onSuccess }) => {
         tier: 'silver',
         leadCap: 0,
         hasVerifiedTag: false,
+        hasPremiumTag: false,
+        badgePropertyTypes: [],
         bannerType: 'none',
         rankingWeight: 1,
         pauseDaysAllowed: 0
@@ -32,6 +40,8 @@ const PlanModal = ({ plan, onClose, onSuccess }) => {
                 tier: plan.tier || 'silver',
                 leadCap: plan.leadCap || 0,
                 hasVerifiedTag: plan.hasVerifiedTag || false,
+                hasPremiumTag: plan.hasPremiumTag || false,
+                badgePropertyTypes: plan.badgePropertyTypes || [],
                 bannerType: plan.bannerType || 'none',
                 rankingWeight: plan.rankingWeight || 1,
                 pauseDaysAllowed: plan.pauseDaysAllowed || 0
@@ -186,7 +196,14 @@ const PlanModal = ({ plan, onClose, onSuccess }) => {
                                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-black outline-none"
                                 />
                             </div>
-                            <div className="flex items-end pb-2">
+                        </div>
+
+                        <div className="border rounded-lg p-4 space-y-3 bg-gray-50">
+                            <div>
+                                <p className="text-sm font-bold text-gray-900">Property card badges</p>
+                                <p className="text-xs text-gray-500">Shown on partners' properties while this plan is active.</p>
+                            </div>
+                            <div className="flex flex-wrap gap-6">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -194,8 +211,42 @@ const PlanModal = ({ plan, onClose, onSuccess }) => {
                                         onChange={(e) => setFormData({ ...formData, hasVerifiedTag: e.target.checked })}
                                         className="w-4 h-4 text-black rounded focus:ring-black"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">Verified Tag</span>
+                                    <span className="text-sm font-medium text-gray-700">Verified tick</span>
                                 </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.hasPremiumTag}
+                                        onChange={(e) => setFormData({ ...formData, hasPremiumTag: e.target.checked })}
+                                        className="w-4 h-4 text-black rounded focus:ring-black"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">Premium Listing</span>
+                                </label>
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-gray-700 mb-2">
+                                    Apply to property types {formData.badgePropertyTypes.length === 0 && <span className="text-gray-400">(none selected = all types)</span>}
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {PROPERTY_TYPES.map(([value, label]) => {
+                                        const selected = formData.badgePropertyTypes.includes(value);
+                                        return (
+                                            <button
+                                                type="button"
+                                                key={value}
+                                                onClick={() => setFormData({
+                                                    ...formData,
+                                                    badgePropertyTypes: selected
+                                                        ? formData.badgePropertyTypes.filter(t => t !== value)
+                                                        : [...formData.badgePropertyTypes, value]
+                                                })}
+                                                className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${selected ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'}`}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
 
@@ -343,7 +394,13 @@ const AdminSubscriptions = () => {
                                             <div className="flex gap-1 mt-1">
                                                 <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-bold uppercase text-gray-500">{plan.tier}</span>
                                                 {plan.hasVerifiedTag && <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold uppercase">Verified</span>}
+                                                {plan.hasPremiumTag && <span className="text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-bold uppercase">Premium</span>}
                                             </div>
+                                            {(plan.hasVerifiedTag || plan.hasPremiumTag) && (
+                                                <div className="text-[10px] text-gray-400 mt-1">
+                                                    Badges on: {plan.badgePropertyTypes?.length ? plan.badgePropertyTypes.join(', ') : 'all types'}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 font-medium text-gray-900">
                                             {formatCurrency(plan.price)}

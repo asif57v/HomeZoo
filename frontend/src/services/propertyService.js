@@ -19,9 +19,9 @@ export const propertyService = {
     }
   },
 
-  recordViewLead: async (propertyId) => {
+  recordViewLead: async (propertyId, extra = {}) => {
     try {
-      const response = await api.post('/bookings/view-lead', { propertyId });
+      const response = await api.post('/bookings/view-lead', { platform: 'web', ...extra, propertyId });
       return handleResponse(response);
     } catch (error) {
       return { success: false, error: error.message };

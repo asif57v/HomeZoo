@@ -58,14 +58,9 @@ const AdminLogin = () => {
             toast.success('Admin login successful!');
 
             // Update FCM Token
-            try {
-                const token = await requestNotificationPermission();
-                if (token) {
-                    await adminService.updateFcmToken(token, detectPlatform());
-                }
-            } catch (fcmError) {
-                console.warn('FCM update failed', fcmError);
-            }
+            requestNotificationPermission()
+                .then((token) => token && adminService.updateFcmToken(token, detectPlatform()))
+                .catch((fcmError) => console.warn('FCM update failed', fcmError));
 
             navigate('/admin/dashboard');
         } else {

@@ -48,8 +48,8 @@ const Glow = ({ rgb, size, style }) => (
   </View>
 );
 
-// Card text: caps the system font-scale boost so a whole plan card fits on one phone screen.
-const CT = (props) => <Text maxFontSizeMultiplier={1.1} {...props} />;
+// Card text (font scale is capped globally in ui.jsx Text).
+const CT = Text;
 
 const LuxFeature = ({ lx, children, tag }) => (
   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>

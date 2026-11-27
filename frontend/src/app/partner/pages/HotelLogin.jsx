@@ -50,6 +50,37 @@ const HotelLogin = () => {
         }
     };
 
+    const handleOTPKeyDown = (index, e) => {
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            const newOtp = [...otp];
+            if (otp[index]) {
+                newOtp[index] = '';
+                setOtp(newOtp);
+            } else if (index > 0) {
+                newOtp[index - 1] = '';
+                setOtp(newOtp);
+                document.getElementById(`otp-${index - 1}`)?.focus();
+            }
+        } else if (e.key === 'ArrowLeft' && index > 0) {
+            e.preventDefault();
+            document.getElementById(`otp-${index - 1}`)?.focus();
+        } else if (e.key === 'ArrowRight' && index < 5) {
+            e.preventDefault();
+            document.getElementById(`otp-${index + 1}`)?.focus();
+        }
+    };
+
+    const handleOTPPaste = (e) => {
+        const digits = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        if (!digits) return;
+        e.preventDefault();
+        const newOtp = ['', '', '', '', '', ''];
+        digits.split('').forEach((d, i) => { newOtp[i] = d; });
+        setOtp(newOtp);
+        document.getElementById(`otp-${Math.min(digits.length, 5)}`)?.focus();
+    };
+
     const handleVerifyOTP = async (e) => {
         e.preventDefault();
         const otpString = otp.join('');
@@ -217,6 +248,8 @@ const HotelLogin = () => {
                                                 maxLength={1}
                                                 value={digit}
                                                 onChange={(e) => handleOTPChange(index, e.target.value)}
+                                                onKeyDown={(e) => handleOTPKeyDown(index, e)}
+                                                onPaste={handleOTPPaste}
                                                 className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-400 rounded-xl focus:border-[#005CA8] focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                                             />
                                         ))}

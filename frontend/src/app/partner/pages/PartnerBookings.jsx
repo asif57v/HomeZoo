@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import {
     Calendar, User, Phone,
     Clock, MapPin, ChevronRight, BedDouble,
-    Lock, Crown
+    Lock, Crown, Users
 } from 'lucide-react';
 import { bookingService } from '../../../services/apiService';
 import PartnerHeader from '../components/PartnerHeader';
 import { whatsAppLink, enquiryMessage, WHATSAPP_PATH } from '../../../utils/whatsapp';
+
+// Same labels as the enquiry detail page
+const SHARING = { triple: 'Triple Sharing', double: 'Double Sharing', private: 'Private Room', shared: 'Shared Dorm', entire: 'Entire Unit' };
+const sharingFor = (b) => b.inquiryMetadata?.sharingType || (b.roomTypeId?.roomCategory ? SHARING[String(b.roomTypeId.roomCategory).toLowerCase()] || b.roomTypeId.roomCategory : null);
 
 // --- Card Component ---
 const BookingCard = ({ booking }) => {
@@ -142,6 +146,17 @@ const BookingCard = ({ booking }) => {
                 <p className="text-[13px] text-gray-500 font-medium tracking-wide mt-1">
                     {hotelName} • <span className="uppercase">{pType}</span>
                 </p>
+                {isPG && (sharingFor(booking) ? (
+                    <span className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[12px] font-extrabold">
+                        <Users size={13} className="text-violet-600" /> {sharingFor(booking)}
+                    </span>
+                ) : booking.propertySharingOptions?.length ? (
+                    <span className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600 text-[12px] font-bold">
+                        <Users size={13} className="text-gray-500" /> {booking.propertySharingOptions.join(', ')}
+                    </span>
+                ) : (
+                    <p className="mt-1 text-[11px] text-gray-400">Sharing: Not selected</p>
+                ))}
             </div>
 
             {/* Details Grid */}

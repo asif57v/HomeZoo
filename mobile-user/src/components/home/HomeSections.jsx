@@ -322,7 +322,7 @@ export const TopPropertiesSection = ({ config, loading: configLoading }) => {
 };
 
 // ---- Property feed (carousels / grid)
-const TILE = { 'rent-grid': { variant: 'tile', w: 0.38, max: 176 }, 'sale-grid': { variant: 'sale', w: 0.66, max: 288 }, 'plot-grid': { variant: 'plot', w: 0.52, max: 224 } };
+const TILE = { 'rent-grid': { variant: 'tile', w: 0.42, max: 196 }, 'sale-grid': { variant: 'sale', w: 0.66, max: 288 }, 'plot-grid': { variant: 'plot', w: 0.52, max: 224 } };
 
 export const PropertyFeed = ({ selectedType, selectedCity, nearLocation, viewMode = 'grid', limit, extraFilters = {}, source }) => {
   const { width: winW, wideW, isTablet, cols, itemW } = useResponsive();
@@ -511,12 +511,12 @@ export const LatestProjectsBanner = ({ categoryId, categoryName, theme }) => {
         <View style={{ position: 'absolute', left: 20, right: 20, bottom: 16, gap: 6 }}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <View style={{ backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}><Text style={{ fontSize: 10, fontWeight: '900', color: colors.gray900 }}>LATEST PROJECT</Text></View>
-            {cur.rankingWeight > 0 ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.yellow400, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}><Star size={10} color="#000" fill="#000" /><Text style={{ fontSize: 10, fontWeight: '900', color: '#000' }}>PREMIUM</Text></View> : null}
+            {(cur.hasPremiumTag || cur.isFeatured) ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.yellow400, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}><Star size={10} color="#000" fill="#000" /><Text style={{ fontSize: 10, fontWeight: '900', color: '#000' }}>PREMIUM</Text></View> : null}
           </View>
           <Text numberOfLines={2} style={{ fontSize: 24, fontWeight: '900', color: '#fff' }}>{cur.propertyName}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><MapPin size={14} color="#fff" /><Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{[cur.address?.area, cur.address?.city].filter(Boolean).join(', ') || cur.address?.state || 'Location not added'}</Text></View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}><Star size={14} color={colors.yellow400} fill={colors.yellow400} /><Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>{realRating(cur)}</Text></View>
+            {realRating(cur) ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}><Star size={14} color={colors.yellow400} fill={colors.yellow400} /><Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>{realRating(cur)}</Text></View> : null}
           </View>
           <View style={{ marginTop: 8, flexDirection: 'row' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 999 }}><Text style={{ fontSize: 12, fontWeight: '900', color: '#000' }}>View Details</Text><ArrowRight size={14} color="#000" /></View>

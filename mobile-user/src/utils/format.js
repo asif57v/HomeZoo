@@ -40,7 +40,9 @@ export const roomSharingLabel = (roomTypes, occupancy) => {
 export const realRating = (item) => {
   const reviews = Number(item?.totalReviews || 0);
   const r = Number(item?.avgRating ?? item?.rating);
-  return reviews > 0 && r > 0 ? r.toFixed(1) : 'New';
+  if (reviews > 0 && r > 0) return r.toFixed(1);
+  // "New" only while the API says the listing is inside the admin-set window (Admin → Settings → Show "New" tag for)
+  return item?.isNewListing === true ? 'New' : null;
 };
 
 export const formatDate =(d, opts = { day: 'numeric', month: 'short', year: 'numeric' }) => {

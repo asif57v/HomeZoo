@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 // Home section carousels: each uses its own card design and size
 const TILE_CONFIG = {
-  'rent-grid': { variant: 'tile', width: 'w-[38vw] min-w-[38vw] max-w-44 md:w-44 md:min-w-44', ratio: 'aspect-3/4' },
+  'rent-grid': { variant: 'tile', width: 'w-[42vw] min-w-[42vw] max-w-48 md:w-48 md:min-w-48', ratio: 'aspect-[3/4.4]' },
   'sale-grid': { variant: 'sale', width: 'w-[66vw] min-w-[66vw] max-w-72 md:w-72 md:min-w-72', ratio: 'aspect-4/5' },
   'plot-grid': { variant: 'plot', width: 'w-[52vw] min-w-[52vw] max-w-56 md:w-56 md:min-w-56', ratio: 'aspect-4/5' }
 };

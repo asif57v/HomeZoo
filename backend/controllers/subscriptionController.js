@@ -46,6 +46,7 @@ export const createPlan = async (req, res) => {
         const {
             name, maxProperties, price, durationDays, description,
             commissionPercentage, tier, leadCap, hasVerifiedTag,
+            hasPremiumTag, badgePropertyTypes,
             bannerType, rankingWeight, pauseDaysAllowed
         } = req.body;
 
@@ -59,6 +60,8 @@ export const createPlan = async (req, res) => {
             tier,
             leadCap: leadCap || 0,
             hasVerifiedTag: hasVerifiedTag || false,
+            hasPremiumTag: hasPremiumTag || false,
+            badgePropertyTypes: Array.isArray(badgePropertyTypes) ? badgePropertyTypes : [],
             bannerType: bannerType || 'none',
             rankingWeight: rankingWeight || 1,
             pauseDaysAllowed: pauseDaysAllowed || 0
@@ -93,7 +96,7 @@ export const getAllPlans = async (req, res) => {
  */
 export const updatePlan = async (req, res) => {
     try {
-        const plan = await SubscriptionPlan.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const plan = await SubscriptionPlan.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         if (!plan) return res.status(404).json({ message: 'Plan not found' });
         res.json({ success: true, plan });
     } catch (error) {

@@ -381,6 +381,15 @@ export const propertyService = {
       throw error.response?.data || error.message;
     }
   },
+  // Public partner profile (Top Rated Partners); listings via getPublic({ partner: id })
+  getPartnerProfile: async (id) => {
+    try {
+      const response = await api.get(`/properties/partners/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
   getRecommendedSellers: async () => {
     try {
       const response = await api.get('/properties/recommended-sellers');

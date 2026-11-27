@@ -114,8 +114,9 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
 
   const reviewCount = item.totalReviews || item.reviews || 0;
 
-  // Show rating if it exists and is > 0, otherwise show 'New'
-  const displayRating = (Number(rawRating) > 0) ? Number(rawRating).toFixed(1) : 'New';
+  // Rating only when real reviews exist (schema defaults avgRating to 3). No reviews: "New" only while
+  // the API says the listing is inside the admin-set window (Admin → Settings → Show "New" tag for).
+  const displayRating = (Number(reviewCount) > 0 && Number(rawRating) > 0) ? Number(rawRating).toFixed(1) : (item.isNewListing === true ? 'New' : null);
 
   // Improved Price Logic - Check more fields
   const rawPrice =
@@ -169,7 +170,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
       : '/night';
 
   const locationText = `${address?.city || item.city || 'Indore'}, ${address?.state || item.state || 'Madhya Pradesh'}`;
-  const isPremium = item.rankingWeight > 0 || item.isFeatured;
+  const isPremium = item.hasPremiumTag || item.isFeatured;
   const badgeLabel = badgeTypeKey === 'Rent' ? 'For Rent' : badgeTypeKey === 'Buy' ? 'For Sale' : typeLabel;
   const handleImageError = (e) => {
     e.target.onerror = null;
@@ -214,9 +215,11 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
           <div className="flex items-center gap-1.5 text-[11px] text-white/80">
             <MapPin size={11} className="shrink-0" />
             <span className="truncate">{locationText}</span>
+            {displayRating && (
             <span className="ml-auto flex items-center gap-0.5 font-bold text-white">
               <Star size={11} className="fill-amber-400 text-amber-400" /> {displayRating}
             </span>
+            )}
           </div>
           <h3 className="mt-0.5 text-[15px] md:text-xl font-extrabold leading-tight line-clamp-1 flex items-center gap-1.5">
             <span className="truncate">{displayName}</span>
@@ -252,8 +255,10 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
     return (
       <div
         onClick={handleView}
-        className={`group bg-white rounded-2xl overflow-hidden cursor-pointer ring-1 ring-gray-100 shadow-[0_6px_20px_rgba(15,23,42,0.06)] active:scale-[0.98] transition-transform ${className}`}
+        className={`group rounded-[18px] p-[1.5px] bg-linear-to-br from-purple-400 via-indigo-400 to-teal-300 cursor-pointer shadow-[0_6px_16px_rgba(124,58,237,0.16)] active:scale-[0.98] transition-transform ${className}`}
       >
+        {/* Same violet -> indigo -> teal gradient frame as the rent tiles */}
+        <div className="bg-white rounded-[16.5px] overflow-hidden h-full">
         <div className="relative h-32 md:h-40 overflow-hidden bg-gray-100">
           <img
             src={imageSrc}
@@ -276,10 +281,12 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
           >
             <Heart size={14} className={isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'} />
           </button>
+          {displayRating && (
           <span className="absolute bottom-2 left-2 flex items-center gap-0.5 bg-white/95 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             <Star size={10} className="fill-amber-400 text-amber-400" /> {displayRating}
             {reviewCount > 0 && <span className="text-gray-400 font-medium">({reviewCount})</span>}
           </span>
+          )}
           {isPremium && (
             <span className="absolute bottom-2 right-2 flex items-center gap-0.5 bg-[#FFD700] text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md">
               <Star size={8} className="fill-black" /> Premium
@@ -322,6 +329,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
             </span>
           </div>
         </div>
+        </div>
       </div>
     );
   }
@@ -329,59 +337,68 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
   if (variant === 'tile') {
     const r = item.rentDetails || {};
     const bhk = r.type || r.bhkType || item.bhkType || item.bhk || item.roomType || 'For Rent';
+    const furnish = r.furnishing || item.furnishing;
 
+    // Gradient-border card: violet -> indigo -> teal frame, photo on top, white info panel below.
     return (
       <div
         onClick={handleView}
-        className={`group relative aspect-3/4 rounded-2xl overflow-hidden cursor-pointer bg-gray-200 shadow-[0_6px_16px_rgba(15,23,42,0.14)] active:scale-[0.97] transition-transform ${className}`}
+        className={`group rounded-[18px] p-[1.5px] bg-linear-to-br from-purple-400 via-indigo-400 to-teal-300 cursor-pointer shadow-[0_6px_16px_rgba(124,58,237,0.18)] active:scale-[0.97] transition-transform ${className}`}
       >
-        <img
-          src={imageSrc}
-          alt={displayName}
-          loading="lazy"
-          onError={handleImageError}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/25 to-transparent" />
-
-        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
-          {isPremium ? (
-            <span className="flex items-center gap-0.5 bg-[#FFD700] text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md">
-              <Star size={8} className="fill-black" /> Premium
-            </span>
-          ) : <span />}
-          <button
-            onClick={handleToggleSave}
-            aria-label="Save property"
-            className="w-7 h-7 rounded-full bg-black/30 flex items-center justify-center active:scale-90 transition-transform"
-          >
-            <Heart size={14} className={isSaved ? 'fill-red-500 text-red-500' : 'text-white'} />
-          </button>
-        </div>
-
-        <div className="absolute bottom-0 inset-x-0 p-2.5 text-white">
-          <div className="flex items-center justify-between gap-1 mb-1">
-            <span className="flex items-center gap-1 bg-violet-600 text-[9px] font-bold px-1.5 py-0.5 rounded-md truncate">
-              <BedDouble size={9} /> {bhk}
-            </span>
-            <span className="shrink-0 flex items-center gap-0.5 text-[10px] font-bold">
-              <Star size={9} className="fill-amber-400 text-amber-400" /> {displayRating}
+        <div className="rounded-[16.5px] bg-white overflow-hidden h-full">
+          <div className="relative aspect-[1/0.82] bg-gray-100 overflow-hidden">
+            <img
+              src={imageSrc}
+              alt={displayName}
+              loading="lazy"
+              onError={handleImageError}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+              {isPremium ? (
+                <span className="flex items-center gap-0.5 bg-[#FFD700] text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md">
+                  <Star size={8} className="fill-black" /> Premium
+                </span>
+              ) : <span />}
+              <button
+                onClick={handleToggleSave}
+                aria-label="Save property"
+                className="w-[30px] h-[30px] rounded-full bg-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
+              >
+                <Heart size={15} className={isSaved ? 'fill-red-500 text-red-500' : 'text-gray-700'} />
+              </button>
+            </div>
+            <span className="absolute bottom-2 left-2 max-w-[85%] flex items-center gap-1 bg-violet-600 text-white text-[10px] font-extrabold px-[7px] py-[3px] rounded-[7px]">
+              <BedDouble size={11} className="shrink-0" /> <span className="truncate">{bhk}</span>
             </span>
           </div>
-          {displayPrice ? (
-            <div className="flex items-baseline gap-0.5">
-              <IndianRupee size={12} className="self-center" strokeWidth={2.5} />
-              <span className="text-[15px] font-extrabold leading-tight">{formattedPrice}</span>
-              <span className="text-[10px] text-white/70 ml-0.5">/mo</span>
+
+          <div className="px-2.5 pt-2 pb-2.5">
+            {displayPrice ? (
+              <div className="flex items-baseline gap-0.5 text-gray-900">
+                <IndianRupee size={13} className="self-center" strokeWidth={2.5} />
+                <span className="text-[15px] font-extrabold leading-tight">{formattedPrice}</span>
+                <span className="text-[11px] text-gray-500 ml-0.5">/mo</span>
+              </div>
+            ) : (
+              <span className="text-[13px] font-extrabold text-gray-900 leading-tight">Price on request</span>
+            )}
+            <h3 className="text-[13px] font-extrabold text-gray-900 flex items-center gap-1 mt-1">
+              <span className="truncate">{displayName}</span>
+              {item.hasVerifiedTag && <BadgeCheck size={13} className="shrink-0 fill-blue-500 text-white" />}
+            </h3>
+            <p className="flex items-center gap-[3px] text-[10.5px] text-gray-500 mt-[3px]">
+              <MapPin size={10} className="shrink-0 text-gray-400" /> <span className="truncate">{locationText}</span>
+            </p>
+            <div className="flex items-center justify-between mt-2">
+              {displayRating ? (
+                <span className="flex items-center gap-[3px] text-[11px] font-extrabold text-gray-900">
+                  <Star size={11} className="fill-amber-400 text-amber-400" /> {displayRating}
+                </span>
+              ) : <span />}
+              {furnish && <span className="text-[10.5px] font-bold text-violet-600 truncate">{furnish}</span>}
             </div>
-          ) : (
-            <span className="text-[12px] font-bold leading-tight">Price on request</span>
-          )}
-          <h3 className="text-[12px] font-semibold truncate flex items-center gap-1 mt-0.5">
-            <span className="truncate">{displayName}</span>
-            {item.hasVerifiedTag && <BadgeCheck size={12} className="shrink-0 fill-blue-500 text-white" />}
-          </h3>
-          <p className="text-[10px] text-white/70 truncate">{locationText}</p>
+          </div>
         </div>
       </div>
     );
@@ -439,9 +456,11 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
             ) : (
               <span className="text-sm font-bold leading-none">Price on request</span>
             )}
+            {displayRating && (
             <span className="shrink-0 flex items-center gap-0.5 text-[11px] font-bold">
               <Star size={11} className="fill-amber-400 text-amber-400" /> {displayRating}
             </span>
+            )}
           </div>
           <h3 className="text-[13px] font-bold truncate flex items-center gap-1 mt-1.5">
             <span className="truncate">{displayName}</span>
@@ -494,9 +513,11 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
               {tag}
             </span>
           )}
+          {displayRating && (
           <span className="absolute bottom-2 right-2 flex items-center gap-0.5 bg-black/45 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
             <Star size={9} className="fill-amber-400 text-amber-400" /> {displayRating}
           </span>
+          )}
         </div>
 
         <div className="p-2.5">
@@ -561,9 +582,11 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
               <span className="truncate">{displayName}</span>
               {item.hasVerifiedTag && <BadgeCheck size={14} className="shrink-0 fill-blue-500 text-white" />}
             </h3>
+            {displayRating && (
             <span className="shrink-0 flex items-center gap-0.5 text-[11px] font-semibold text-gray-800">
               <Star size={11} className="fill-gray-900 text-gray-900" /> {displayRating}
             </span>
+            )}
           </div>
           <p className="text-[11px] md:text-xs text-gray-500 truncate mt-0.5">{locationText}</p>
           <div className="mt-1 flex items-baseline gap-0.5 text-gray-900">
@@ -626,9 +649,11 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
           <div className="flex items-center gap-1 text-gray-500 text-[11px]">
             <MapPin size={10} className="shrink-0 text-gray-400" />
             <span className="truncate">{locationText}</span>
+            {displayRating && (
             <span className="ml-auto shrink-0 flex items-center gap-0.5 font-semibold text-gray-800">
               <Star size={10} className="fill-amber-400 text-amber-400" /> {displayRating}
             </span>
+            )}
           </div>
 
           {(specs.length > 0 || isPremium) && (
@@ -713,7 +738,9 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
           </button>
 
           <div className="flex items-center gap-1 bg-white/90 px-1.5 py-0.5 rounded-[4px] shadow-sm text-[10px] font-bold text-gray-800">
+            {displayRating && (
             <span className="text-green-600 font-extrabold">{displayRating}</span>
+            )}
             <Star size={9} className="fill-green-600 text-green-600" />
           </div>
         </div>
@@ -765,7 +792,7 @@ const PropertyCard = ({ property, data, className = "", isSaved: initialIsSaved,
             )}
 
             {/* PG/Gender */}
-            {(item.rankingWeight > 0 || item.isFeatured) && (
+            {(item.hasPremiumTag || item.isFeatured) && (
               <span className="bg-[#FFD700] text-black px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
                 <Star size={10} className="fill-black" />
                 PREMIUM Listing

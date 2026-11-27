@@ -13,6 +13,15 @@ import ModernDatePicker from '../../components/ui/ModernDatePicker';
 import { useKeyboardOpen } from '../../utils/imageSource';
 import { requireLogin } from '../../utils/authGate';
 
+// What the user picked, sent with every lead so the partner sees it (backend utils/leadTracker.js)
+const roomLeadContext = (room) => {
+  if (!room) return {};
+  const cat = room.roomCategory ? String(room.roomCategory).toLowerCase() : '';
+  const sharingType = { triple: 'Triple Sharing', double: 'Double Sharing', private: 'Private Room', shared: 'Shared Dorm', entire: 'Entire Unit' }[cat] || room.roomCategory || undefined;
+  const price = room.pricing?.basePrice ?? room.price;
+  return { sharingType, roomName: room.type, roomPrice: Number(price) > 0 ? Number(price) : undefined };
+};
+
 const PropertyDetailsPage = () => {
   const keyboardOpen = useKeyboardOpen();
   const { id } = useParams();
@@ -349,6 +358,12 @@ const PropertyDetailsPage = () => {
     setCurrentImageIndex(0);
   }, [selectedRoom]);
 
+  // Picking a sharing / room updates the user's open lead with that choice
+  useEffect(() => {
+    if (id && selectedRoom?._id) propertyService.recordViewLead(id, roomLeadContext(selectedRoom)).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, selectedRoom?._id]);
+
   if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-surface" size={40} /></div>;
   if (!property) return <div className="h-screen flex items-center justify-center">Property not found</div>;
 
@@ -357,8 +372,11 @@ const PropertyDetailsPage = () => {
     inventory, amenities, policies, config,
     pgDetails, rentDetails, buyDetails, plotDetails, nearbyPlaces,
     videoUrl, virtualTourLink, isVerified, isFeatured, isUrgent, isNegotiable,
-    contactNumber
+    contactNumber, totalReviews, isNewListing
   } = property;
+  // Rating only when real reviews exist; otherwise "New" while inside the admin-set window (isNewListing from API)
+  const hasReviews = Number(totalReviews || reviews.length || 0) > 0 && Number(rating) > 0;
+  const ratingLabel = hasReviews ? Number(rating).toFixed(1) : (isNewListing === true ? "New" : null);
 
   const hasInventory = inventory && inventory.length > 0;
   // Treated as Whole Unit if it's a Villa OR (Homestay/Apartment with NO separate inventory units)
@@ -412,6 +430,9 @@ const PropertyDetailsPage = () => {
     }
     return room.price || null;
   };
+
+  const leadContext = (room = selectedRoom) => roomLeadContext(room);
+  const recordCallLead = () => { propertyService.recordViewLead(id, { action: 'call_click', ...leadContext() }).catch(() => {}); };
 
   const getExtraPricingLabels = (room) => {
     if (!room || !room.pricing) return [];
@@ -746,7 +767,7 @@ const PropertyDetailsPage = () => {
     if (!requireLogin(navigate, 'Please login to view owner contact')) return;
     setRevealLoading(true);
     try {
-      const response = await propertyService.revealContact(id);
+      const response = await propertyService.revealContact(id, leadContext());
       if (response.success) {
         setRevealedNumber(response.contactNumber);
         toast.success("Contact number revealed! Partner notified.");
@@ -918,10 +939,10 @@ const PropertyDetailsPage = () => {
                     {isFeatured && <span className="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100 flex items-center gap-1"><Star size={10} className="fill-amber-600 text-amber-600" /> Featured</span>}
                     {isUrgent && <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded border border-red-100">Urgent</span>}
                     {isNegotiable && <span className="bg-green-50 text-green-600 text-[10px] font-bold px-2 py-0.5 rounded border border-green-100">Negotiable</span>}
-                    {rating !== undefined && rating !== null && (
+                    {ratingLabel && (
                       <div className="flex items-center gap-1 bg-honey/10 text-honey-dark px-2 py-0.5 rounded text-[10px] font-bold">
                         <Star size={10} className="fill-honey text-honey" />
-                        {Number(rating) > 0 ? Number(rating).toFixed(1) : 'New'}
+                        {ratingLabel}
                       </div>
                     )}
                   </div>
@@ -1442,7 +1463,7 @@ const PropertyDetailsPage = () => {
                       )}
                     </button>
                     {revealedNumber && (
-                      <a href={`tel:${revealedNumber}`} onClick={() => propertyService.recordViewLead(id).catch(() => {})} className="text-center text-xs text-emerald-600 font-bold underline mt-1">
+                      <a href={`tel:${revealedNumber}`} onClick={recordCallLead} className="text-center text-xs text-emerald-600 font-bold underline mt-1">
                         Click to dial {revealedNumber}
                       </a>
                     )}
@@ -1775,7 +1796,7 @@ const PropertyDetailsPage = () => {
                     <div className="flex items-center text-sm text-gray-500 pt-1">
                       <span>{reviews.length > 0 ? `(${reviews.length})` : ''}</span>
                       <span className="mx-1">•</span>
-                      <span className="font-bold text-black mr-1">{rating ? Number(rating).toFixed(1) : 'New'}</span>
+                      <span className="font-bold text-black mr-1">{hasReviews ? Number(rating).toFixed(1) : 'No ratings yet'}</span>
                       <Star size={14} className="fill-honey text-honey" />
                     </div>
                   </div>
@@ -2003,7 +2024,7 @@ const PropertyDetailsPage = () => {
                         </button>
                       )}
                       {revealedNumber && isLeadType && (
-                        <a href={`tel:${revealedNumber}`} onClick={() => propertyService.recordViewLead(id).catch(() => {})} className="text-center text-xs text-emerald-600 font-medium underline">
+                        <a href={`tel:${revealedNumber}`} onClick={recordCallLead} className="text-center text-xs text-emerald-600 font-medium underline">
                           Dial {revealedNumber}
                         </a>
                       )}
@@ -2060,7 +2081,7 @@ const PropertyDetailsPage = () => {
                 {revealedNumber ? (
                   <a
                     href={`tel:${revealedNumber}`}
-                    onClick={() => propertyService.recordViewLead(id).catch(() => {})}
+                    onClick={recordCallLead}
                     className="flex-1 min-w-0 bg-emerald-50 text-emerald-700 border-2 border-emerald-600/90 hover:bg-emerald-100 px-2 sm:px-3 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs whitespace-nowrap"
                     title={`Call ${revealedNumber}`}
                   >

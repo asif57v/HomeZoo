@@ -750,14 +750,36 @@ export const getPartnerBookings = async (req, res) => {
 
     const rawBookings = await Booking.find(query)
       .populate('userId', 'name email phone avatar')
-      .populate('propertyId', 'propertyName propertyCode address location coverImage')
-      .populate('roomTypeId', 'name')
+      .populate('propertyId', 'propertyName propertyCode address location coverImage pgDetails.occupancy')
+      .populate('roomTypeId', 'name roomCategory')
       .sort({ createdAt: -1 });
+
+    // Sharing options each PG/hostel offers, so a lead card can show them when the user picked none
+    const SHARING_LABEL = { single: 'Single Sharing', double: 'Double Sharing', triple: 'Triple Sharing', private: 'Private Room', shared: 'Shared Dorm', entire: 'Entire Unit' };
+    const pgPropIds = [...new Set(rawBookings
+      .filter((b) => ['pg', 'hostel'].includes(String(b.propertyType || '').toLowerCase()) && b.propertyId?._id)
+      .map((b) => String(b.propertyId._id)))];
+    const sharingByProp = {};
+    if (pgPropIds.length) {
+      const rts = await RoomType.find({ propertyId: { $in: pgPropIds }, isActive: true }).select('propertyId roomCategory').lean();
+      for (const rt of rts) {
+        if (!rt.roomCategory) continue;
+        const label = SHARING_LABEL[String(rt.roomCategory).toLowerCase()] || rt.roomCategory;
+        const key = String(rt.propertyId);
+        (sharingByProp[key] ||= new Set()).add(label);
+      }
+    }
 
     // 3. Subscription gating & contact masking
     const bookings = rawBookings.map(b => {
       const bObj = b.toObject();
       const isLeadInquiry = bObj.isInquiry === true;
+
+      if (bObj.propertyId?._id && pgPropIds.includes(String(bObj.propertyId._id))) {
+        const opts = sharingByProp[String(bObj.propertyId._id)];
+        const occ = bObj.propertyId.pgDetails?.occupancy;
+        bObj.propertySharingOptions = opts?.size ? [...opts] : (occ && occ !== 'Other' ? [`${occ} Sharing`] : []);
+      }
 
       // If it's an inquiry/lead and partner does NOT have a valid subscription, lock & mask contact details
       if (isLeadInquiry && !subCheck.isValid) {
@@ -814,6 +836,12 @@ export const getPartnerBookingDetail = async (req, res) => {
     }
 
     const bObj = booking.toObject();
+
+    // Rooms / sharing options of the property, so the partner sees what was on offer even when the lead has no selection
+    bObj.propertyRoomTypes = await RoomType.find({ propertyId: booking.propertyId._id, isActive: true })
+      .select('name inventoryType roomCategory bathroomType maxAdults bedsPerRoom pricePerNight securityDeposit')
+      .sort({ pricePerNight: 1 })
+      .lean();
 
     // Check subscription if inquiry
     if (bObj.isInquiry) {

@@ -13,7 +13,7 @@ import { propertyService, legalService, reviewService, offerService, availabilit
 import { storage } from '../../../src/lib/storage';
 import toast from '../../../src/store/toastStore';
 import { colors } from '../../../src/theme';
-import { errMsg, roomSharingLabel } from '../../../src/utils/format';
+import { errMsg, roomSharingLabel, realRating } from '../../../src/utils/format';
 import { setCheckoutState } from '../../../src/lib/checkoutState';
 import { useKeyboardOpen } from '../../../src/hooks/useKeyboardOpen';
 import { CENTER, CONTENT_MAX, TABLET_MIN } from '../../../src/lib/responsive';
@@ -188,6 +188,7 @@ export default function PropertyDetails() {
   }
 
   const { name, address, images, description, avgRating: rating, inventory, amenities, policies, config, pgDetails, rentDetails, buyDetails, plotDetails, nearbyPlaces, videoUrl, virtualTourLink, isVerified, isFeatured, isUrgent, isNegotiable } = property;
+  const ratingLabel = realRating(property);
   const hasInventory = inventory && inventory.length > 0;
   const isWholeUnit = propertyType === 'Villa' || (['Homestay', 'Apartment'].includes(propertyType) && !hasInventory);
 
@@ -419,7 +420,7 @@ export default function PropertyDetails() {
             {isFeatured ? <Pill text="Featured" bg={colors.amber50} fg={colors.amber600} border={colors.amber100} /> : null}
             {isUrgent ? <Pill text="Urgent" bg={colors.red50} fg={colors.red600} border={colors.red100} /> : null}
             {isNegotiable ? <Pill text="Negotiable" bg={colors.green50} fg={colors.green600} border={colors.green100} /> : null}
-            {rating !== undefined && rating !== null ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,158,11,0.1)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}><Star size={10} color={colors.honey} fill={colors.honey} /><Text style={{ fontSize: 10, fontWeight: '700', color: colors.amber700 }}>{Number(rating) > 0 ? Number(rating).toFixed(1) : 'New'}</Text></View> : null}
+            {ratingLabel ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,158,11,0.1)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}><Star size={10} color={colors.honey} fill={colors.honey} /><Text style={{ fontSize: 10, fontWeight: '700', color: colors.amber700 }}>{ratingLabel}</Text></View> : null}
           </View>
           <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textDark, marginBottom: 4 }}>{name}</Text>
           {property.propertyCode ? <Text style={{ fontSize: 11, fontWeight: '600', color: colors.gray400, letterSpacing: 0.5, marginBottom: 4 }}>Property ID: {property.propertyCode}</Text> : null}

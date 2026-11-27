@@ -56,6 +56,11 @@ const platformSettingsSchema = new mongoose.Schema(
       min: 1,
       max: 1000
     },
+    /** How long the "New" tag stays on a property card after approval. value 0 = never show */
+    newTagDuration: {
+      value: { type: Number, default: 7, min: 0 },
+      unit: { type: String, enum: ['hours', 'days'], default: 'days' }
+    },
     /** Admin "Platform Feature Controls": global switches read by both apps and enforced in the APIs */
     featureControls: {
       subscriptionEnabled: { type: Boolean, default: true },

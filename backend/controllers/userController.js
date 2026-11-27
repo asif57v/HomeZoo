@@ -1,3 +1,4 @@
+import { withNewFlag } from '../utils/newListing.js';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Partner from '../models/Partner.js';
@@ -128,14 +129,14 @@ export const getSavedHotels = async (req, res) => {
   try {
     let account = await User.findById(req.user._id).populate({
       path: 'savedHotels',
-      select: 'propertyName address coverImage avgRating totalReviews minPrice propertyType status isLive',
+      select: 'propertyName address coverImage avgRating totalReviews minPrice propertyType status isLive approvedAt createdAt',
       match: { status: 'approved' } // Only return approved hotels
     });
 
     if (!account) {
       account = await Partner.findById(req.user._id).populate({
         path: 'savedHotels',
-        select: 'propertyName address coverImage avgRating totalReviews minPrice propertyType status isLive',
+        select: 'propertyName address coverImage avgRating totalReviews minPrice propertyType status isLive approvedAt createdAt',
         match: { status: 'approved' }
       });
     }
@@ -172,8 +173,11 @@ export const getSavedHotels = async (req, res) => {
       avgRating: hotel.avgRating,
       totalReviews: hotel.totalReviews,
       minPrice: prices[hotel._id.toString()] || hotel.minPrice || 0,
-      status: hotel.status
+      status: hotel.status,
+      approvedAt: hotel.approvedAt,
+      createdAt: hotel.createdAt
     }));
+    await withNewFlag(savedHotels);
 
     res.json({
       success: true,

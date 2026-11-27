@@ -62,7 +62,8 @@ export default function HomeBottomSections() {
             {shown.map((p, i) => {
               const th = themeFor(p.plan?.tier, p.plan?.name);
               return (
-                <LinearGradient key={p._id || i} colors={th.bg} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: width * 0.76, borderRadius: 20, padding: 12, borderWidth: 2, borderColor: th.border, gap: 8 }}>
+                <TouchableOpacity key={p._id || i} activeOpacity={0.9} onPress={() => p._id && router.push({ pathname: "/partners/[id]", params: { id: String(p._id) } })}>
+                <LinearGradient colors={th.bg} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: width * 0.76, borderRadius: 20, padding: 12, borderWidth: 2, borderColor: th.border, gap: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <View style={{ width: 48, height: 48, borderRadius: 24, overflow: 'hidden', borderWidth: 2, borderColor: th.accent, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
                       {p.profileImage ? <Image source={{ uri: p.profileImage }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <User size={22} color={colors.slate400} />}
@@ -91,6 +92,7 @@ export default function HomeBottomSections() {
                     </View>
                   </View>
                 </LinearGradient>
+                </TouchableOpacity>
               );
             })}
           </ScrollView>

@@ -287,9 +287,10 @@ export const bookingService = {
       throw error.response?.data || error.message;
     }
   },
-  recordViewLead: async (propertyId) => {
+  // extra: { action: 'call_click', sharingType, roomName, roomPrice } (see backend utils/leadTracker.js)
+  recordViewLead: async (propertyId, extra = {}) => {
     try {
-      const response = await api.post('/bookings/view-lead', { propertyId });
+      const response = await api.post('/bookings/view-lead', { platform: 'web', ...extra, propertyId });
       return response.data;
     } catch (error) {
       console.warn('View lead record skipped/failed:', error?.message);
@@ -392,6 +393,15 @@ export const propertyService = {
       throw error.response?.data || error.message;
     }
   },
+  // Public partner profile (Top Rated Partners); listings via getPublic({ partner: id })
+  getPartnerProfile: async (id) => {
+    try {
+      const response = await api.get(`/properties/partners/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
   getRecommendedSellers: async () => {
     try {
       const response = await api.get('/properties/recommended-sellers');
@@ -416,9 +426,9 @@ export const propertyService = {
       throw error.response?.data || error.message;
     }
   },
-  revealContact: async (id) => {
+  revealContact: async (id, leadContext = {}) => {
     try {
-      const response = await api.get(`/properties/${id}/reveal-contact`);
+      const response = await api.get(`/properties/${id}/reveal-contact`, { params: { platform: 'web', ...leadContext } });
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;

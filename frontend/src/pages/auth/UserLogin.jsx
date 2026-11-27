@@ -74,7 +74,16 @@ const UserLogin = () => {
     };
 
     const handleOTPChange = (index, value) => {
-        if (value.length > 1) return;
+        if (value.length > 1) {
+            // SMS autofill (one-time-code) drops the whole code into one box: spread it over all 6
+            const digits = value.replace(/D/g, "").slice(0, 6);
+            if (digits.length < 2) return;
+            const filled = ["", "", "", "", "", ""];
+            digits.split("").forEach((d, i) => { filled[i] = d; });
+            setOtp(filled);
+            document.getElementById(`otp-${Math.min(digits.length, 5)}`)?.focus();
+            return;
+        }
         if (!/^\d*$/.test(value)) return; // Only allow numbers
 
         const newOtp = [...otp];
@@ -84,6 +93,37 @@ const UserLogin = () => {
         if (value && index < 5) {
             document.getElementById(`otp-${index + 1}`)?.focus();
         }
+    };
+
+    const handleOTPKeyDown = (index, e) => {
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            const newOtp = [...otp];
+            if (otp[index]) {
+                newOtp[index] = '';
+                setOtp(newOtp);
+            } else if (index > 0) {
+                newOtp[index - 1] = '';
+                setOtp(newOtp);
+                document.getElementById(`otp-${index - 1}`)?.focus();
+            }
+        } else if (e.key === 'ArrowLeft' && index > 0) {
+            e.preventDefault();
+            document.getElementById(`otp-${index - 1}`)?.focus();
+        } else if (e.key === 'ArrowRight' && index < 5) {
+            e.preventDefault();
+            document.getElementById(`otp-${index + 1}`)?.focus();
+        }
+    };
+
+    const handleOTPPaste = (e) => {
+        const digits = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        if (!digits) return;
+        e.preventDefault();
+        const newOtp = ['', '', '', '', '', ''];
+        digits.split('').forEach((d, i) => { newOtp[i] = d; });
+        setOtp(newOtp);
+        document.getElementById(`otp-${Math.min(digits.length, 5)}`)?.focus();
     };
 
     const handleResendOTP = async () => {
@@ -116,15 +156,10 @@ const UserLogin = () => {
             setLoading(true);
             await authService.verifyOtp({ phone, otp: otpString });
 
-            // Update FCM Token
-            try {
-                const token = await requestNotificationPermission();
-                if (token) {
-                    await userService.updateFcmToken(token, detectPlatform());
-                }
-            } catch (fcmError) {
-                console.warn('FCM update failed', fcmError);
-            }
+            // Update FCM Token in background — never block navigation on it
+            requestNotificationPermission()
+                .then((token) => token && userService.updateFcmToken(token, detectPlatform()))
+                .catch((fcmError) => console.warn('FCM update failed', fcmError));
 
             const dest = consumeLoginRedirect(location.state?.from);
             navigate(dest, { replace: true });
@@ -258,9 +293,13 @@ const UserLogin = () => {
                                                 type="tel"
                                                 inputMode="numeric"
                                                 pattern="[0-9]*"
-                                                maxLength={1}
+                                                maxLength={index === 0 ? 6 : 1}
+                                                autoComplete={index === 0 ? "one-time-code" : "off"}
+                                                autoFocus={index === 0}
                                                 value={digit}
                                                 onChange={(e) => handleOTPChange(index, e.target.value)}
+                                                onKeyDown={(e) => handleOTPKeyDown(index, e)}
+                                                onPaste={handleOTPPaste}
                                                 className="w-10 h-12 text-center text-lg font-bold bg-white border-2 border-gray-400 rounded-xl focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 outline-none transition-all shadow-sm"
                                             />
                                         ))}

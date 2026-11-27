@@ -4,10 +4,81 @@ import {
   Calendar, User, Phone, Mail, MapPin,
   CreditCard, CheckCircle, XCircle, Clock,
   ChevronLeft, AlertTriangle, LogIn, LogOut,
-  Lock, Crown
+  Lock, Crown, Home, BedDouble, Eye, PhoneCall, Send, Target, Smartphone
 } from 'lucide-react';
 import { bookingService } from '../../../services/apiService';
 import toast from 'react-hot-toast';
+
+// Lead actions (backend utils/leadTracker.js). Older leads have no `source`: infer it from the id prefix.
+const LEAD_SOURCES = {
+  enquiry_form: { label: 'Enquiry form', desc: 'User sent an enquiry from the property page', Icon: Send, cls: 'bg-purple-50 text-purple-700' },
+  contact_reveal: { label: 'Contact revealed', desc: 'User revealed your contact number', Icon: Phone, cls: 'bg-amber-50 text-amber-700' },
+  call_click: { label: 'Call tapped', desc: 'User tapped Call owner', Icon: PhoneCall, cls: 'bg-green-50 text-green-700' },
+  property_view: { label: 'Property view', desc: 'User opened your property page', Icon: Eye, cls: 'bg-blue-50 text-blue-700' },
+};
+const inferSource = (b) => {
+  const s = b.inquiryMetadata?.source;
+  if (s && LEAD_SOURCES[s]) return s;
+  const bid = String(b.bookingId || '');
+  if (bid.startsWith('INQ')) return 'enquiry_form';
+  if (bid.startsWith('CALL')) return 'contact_reveal';
+  if (bid.startsWith('LEAD')) return 'property_view';
+  return null;
+};
+const SHARING = { triple: 'Triple Sharing', double: 'Double Sharing', private: 'Private Room', shared: 'Shared Dorm', entire: 'Entire Unit' };
+const sharingOf = (rt) => (rt?.roomCategory ? SHARING[String(rt.roomCategory).toLowerCase()] || rt.roomCategory : null);
+const inr = (n) => (Number(n) > 0 ? `₹${Number(n).toLocaleString('en-IN')}` : null);
+const dt = (d) => (d ? new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : null);
+const yesNo = (v) => (v === true ? 'Yes' : v === false ? 'No' : null);
+
+const Kv = ({ k, v }) => (v === null || v === undefined || v === '' ? null : (
+  <div className="p-2.5 bg-gray-50 rounded-xl">
+    <p className="text-[9px] text-gray-400 font-bold uppercase mb-0.5">{k}</p>
+    <p className="font-bold text-gray-900 text-sm break-words">{v}</p>
+  </div>
+));
+
+// Key facts of the listing for its type (what the user was looking at)
+const propertyFacts = (p, t) => {
+  if (['pg', 'hostel'].includes(t)) {
+    const pg = p.pgDetails || {};
+    const food = Object.entries(pg.foodIncluded || {}).filter(([, on]) => on).map(([m]) => m[0].toUpperCase() + m.slice(1)).join(', ');
+    return [
+      ['PG For', pg.gender], ['PG Type', p.pgType], ['Food Included', food || null], ['Food Type', p.foodType],
+      ['Security Deposit', inr(pg.securityDeposit)], ['Notice Period', pg.noticePeriod], ['Min Stay', pg.minStay],
+      ['Available From', pg.availableFrom ? new Date(pg.availableFrom).toLocaleDateString('en-IN') : null],
+    ];
+  }
+  if (t === 'rent') {
+    const r = p.rentDetails || {};
+    return [
+      ['Type', r.type], ['Monthly Rent', inr(r.monthlyRent)], ['Security Deposit', inr(r.securityDeposit)],
+      ['Maintenance', inr(r.maintenanceCharges)], ['Furnishing', r.furnishing ? `${r.furnishing}${r.furnishing === 'Unfurnished' ? '' : ' Furnished'}` : null],
+      ['Tenant Preference', r.tenantPreference], ['Society', r.societyName], ['Built Year', r.builtYear],
+      ['Electricity Included', yesNo(r.electricityIncluded)], ['Lift', yesNo(r.lift)],
+    ];
+  }
+  if (t === 'buy') {
+    const b = p.buyDetails || {};
+    const unit = b.area?.unit || 'sqft';
+    return [
+      ['Type', b.type], ['Expected Price', inr(b.expectedPrice)],
+      ['Super Built-up', b.area?.superBuiltUp ? `${b.area.superBuiltUp} ${unit}` : null], ['Carpet Area', b.area?.carpet ? `${b.area.carpet} ${unit}` : null],
+      ['Floor', b.floor?.current !== undefined && b.floor?.current !== null ? `${b.floor.current}${b.floor.total ? ` of ${b.floor.total}` : ''}` : null],
+      ['Facing', b.facing], ['Ownership', b.ownership], ['Property Age', b.propertyAge], ['Builder', b.builderName],
+      ['Loan Eligible', yesNo(b.loanEligible)],
+    ];
+  }
+  if (t === 'plot') {
+    const pl = p.plotDetails || {};
+    return [
+      ['Expected Price', inr(pl.expectedPrice)], ['Plot Area', pl.plotArea ? `${pl.plotArea} ${pl.unit || 'sqyrd'}` : null],
+      ['Dimensions', pl.dimensions?.length && pl.dimensions?.breadth ? `${pl.dimensions.length} x ${pl.dimensions.breadth} ft` : null],
+      ['Land Type', pl.landType], ['Facing', pl.facing], ['Road Width', pl.roadWidth], ['Approval', pl.approvalAuthority],
+    ];
+  }
+  return [['Category', p.hotelCategory || p.resortType], ['Star Rating', p.starRating ? `${p.starRating} Star` : null], ['Check-in Time', p.checkInTime], ['Check-out Time', p.checkOutTime]];
+};
 
 const PartnerBookingDetail = () => {
   const { id } = useParams();
@@ -132,6 +203,26 @@ const PartnerBookingDetail = () => {
   // Let's assume standard booking for PG is often 30 days = 1 Month. 
   // We will use "Duration" and show "X Days/Months".
 
+  const meta = booking.inquiryMetadata || {};
+  const srcKey = isInquiry ? inferSource(booking) : null;
+  const src = srcKey ? LEAD_SOURCES[srcKey] : null;
+  const activity = Array.isArray(meta.activity) ? [...meta.activity].reverse() : [];
+  const roomOptions = Array.isArray(booking.propertyRoomTypes) ? booking.propertyRoomTypes : [];
+  const pickedRoomId = String(room._id || '');
+  const pickedSharing = meta.sharingType || sharingOf(room) || null;
+  const roomLabel = room.name || meta.roomName || null;
+  const roomRent = meta.roomPrice || room.pricePerNight || null;
+  const perLabel = isPG || isRent ? ' / month' : ' / night';
+  const coverImg = property.coverImage || property.propertyImages?.[0] || property.images?.[0];
+  const addr = typeof property.address === 'object' && property.address
+    ? (property.address.fullAddress || [property.address.area, property.address.city, property.address.state, property.address.pincode].filter(Boolean).join(', '))
+    : (property.address || '');
+  const facts = propertyFacts(property, pType).filter(([, v]) => v !== null && v !== undefined && v !== '');
+  const isOptionPicked = (rt) => (pickedRoomId && String(rt._id) === pickedRoomId) || (!pickedRoomId && pickedSharing && sharingOf(rt) === pickedSharing);
+  const unitText = meta.beds > 1
+    ? `${meta.beds} ${booking.bookingUnit === 'room' ? 'Rooms' : 'Beds'}`
+    : booking.bookingUnit === 'entire' ? '1 Unit' : (booking.bookingUnit === 'bed' || isPG) ? '1 Bed' : '1 Room';
+
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
@@ -161,22 +252,128 @@ const PartnerBookingDetail = () => {
         </div>
 
         {/* Property Info */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-            {property.images?.[0] ? <img src={property.images[0]} alt="property" className="w-full h-full object-cover" /> : <MapPin size={24} className="m-5 text-gray-300" />}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-4">
+          <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+            {coverImg ? <img src={coverImg} alt="property" className="w-full h-full object-cover" /> : <MapPin size={24} className="text-gray-300" />}
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Enquiry for property</p>
             <h2 className="font-black text-slate-900 text-base leading-tight uppercase">{property.propertyName || 'Property Name'}</h2>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="px-2 py-0.5 bg-gray-100 text-[9px] font-bold rounded text-gray-500 uppercase">{pType}</span>
-              <p className="text-xs text-gray-400 font-medium truncate max-w-[150px]">
-                {typeof property.address === 'object'
-                  ? `${property.address.city || ''}${property.address.city && property.address.area ? ', ' : ''}${property.address.area || ''}`
-                  : (property.address || 'Location')}
-              </p>
+              {property.propertyCode && <span className="px-2 py-0.5 bg-blue-50 text-[9px] font-bold rounded text-blue-700">{property.propertyCode}</span>}
             </div>
+            {addr && <p className="text-xs text-gray-500 font-medium mt-1.5 leading-snug">{addr}</p>}
           </div>
         </div>
+
+        {/* What the user is interested in */}
+        {isInquiry && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">
+              <BedDouble size={16} className="text-gray-400" /> Interested In
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {isPG && <Kv k="Sharing" v={pickedSharing || 'Not selected'} />}
+              {!isBuyPlot && <Kv k={isPG ? 'Room / Bed' : 'Room Type'} v={roomLabel || (isPG || isRent ? null : 'Not selected')} />}
+              {!isBuyPlot && <Kv k={isPG || isRent ? 'Rent' : 'Room Price'} v={roomRent ? `${inr(roomRent)}${perLabel}` : null} />}
+              {!isBuyPlot && <Kv k="Unit" v={unitText} />}
+              {isRent && <Kv k="Type" v={property.rentDetails?.type} />}
+              {isRent && <Kv k="Monthly Rent" v={inr(property.rentDetails?.monthlyRent)} />}
+              {isBuyPlot && <Kv k="Asking Price" v={inr(property.buyDetails?.expectedPrice || property.plotDetails?.expectedPrice)} />}
+              <Kv k="Budget" v={inr(meta.budget)} />
+            </div>
+            {isPG && !pickedSharing && (
+              <p className="text-[11px] text-gray-500 mt-3">User has not picked a sharing yet. All options of this property are listed below.</p>
+            )}
+          </div>
+        )}
+
+        {/* Lead source + activity */}
+        {isInquiry && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">
+              <Target size={16} className="text-gray-400" /> Lead Source
+            </h3>
+            {src && (
+              <div className={`flex items-center gap-3 rounded-xl p-3 mb-3 ${src.cls}`}>
+                <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center flex-shrink-0"><src.Icon size={18} /></div>
+                <div>
+                  <p className="font-black text-sm">{src.label}</p>
+                  <p className="text-[11px] text-gray-600">{src.desc}</p>
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <Kv k="Lead Created" v={dt(booking.createdAt)} />
+              <Kv k="Platform" v={meta.platform === 'app' ? 'Hoomzo app' : meta.platform === 'web' ? 'Hoomzo website' : null} />
+              <Kv k="Found From" v={meta.sourceScreen} />
+            </div>
+            {activity.length > 0 && (
+              <div className="mt-4">
+                <p className="text-[9px] text-gray-400 font-bold uppercase mb-2">Activity</p>
+                <div className="space-y-3">
+                  {activity.map((a, i) => (
+                    <div key={i} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 mt-1" />
+                        {i < activity.length - 1 && <div className="w-0.5 flex-1 bg-gray-100 mt-1" />}
+                      </div>
+                      <div className="pb-1">
+                        <p className="text-xs font-bold text-gray-900">{a.label || LEAD_SOURCES[a.action]?.label || 'Activity'}</p>
+                        <p className="text-[11px] text-gray-500">{[dt(a.at), a.screen, a.sharingType].filter(Boolean).join(' · ')}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Listing facts for the property type */}
+        {facts.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">
+              <Home size={16} className="text-gray-400" /> Property Details
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {facts.map(([k, v]) => <Kv key={k} k={k} v={v} />)}
+            </div>
+          </div>
+        )}
+
+        {/* Rooms / sharing options of the property */}
+        {roomOptions.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">
+              <BedDouble size={16} className="text-gray-400" /> {isPG ? 'Sharing Options' : 'Room Options'}
+            </h3>
+            <div className="space-y-2">
+              {roomOptions.map((rt) => {
+                const picked = isInquiry && isOptionPicked(rt);
+                return (
+                  <div key={rt._id} className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${picked ? 'border-blue-300 bg-blue-50' : 'border-gray-100 bg-gray-50'}`}>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-900 text-sm">
+                        {rt.name}
+                        {picked && <span className="ml-2 text-[9px] font-black uppercase text-blue-700 bg-white border border-blue-200 rounded px-1.5 py-0.5">User's choice</span>}
+                      </p>
+                      <p className="text-[11px] text-gray-500">
+                        {[sharingOf(rt), rt.bathroomType ? `${rt.bathroomType} bathroom` : null, rt.maxAdults ? `Up to ${rt.maxAdults} ${rt.maxAdults === 1 ? 'person' : 'people'}` : null].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-black text-gray-900 text-sm">{inr(rt.pricePerNight) || '-'}</p>
+                      <p className="text-[10px] text-gray-500">{perLabel.replace(' / ', 'per ')}</p>
+                      {rt.securityDeposit > 0 && <p className="text-[10px] text-gray-400">Deposit {inr(rt.securityDeposit)}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Guest Info - Compact */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
@@ -290,7 +487,7 @@ const PartnerBookingDetail = () => {
           <div className="space-y-2">
             <div className="flex justify-between items-center text-xs">
               <span className="text-gray-600">{isInquiry ? 'Expected Price / Budget' : 'Total Amount (Collect)'}</span>
-              <span className="font-bold text-gray-900 text-base">₹{isInquiry ? booking.inquiryMetadata?.budget : booking.totalAmount}</span>
+              <span className="font-bold text-gray-900 text-base">{isInquiry ? (inr(meta.budget) || 'Not specified') : `₹${booking.totalAmount}`}</span>
             </div>
             {!isInquiry && (
               <div className="flex justify-between items-center text-xs">

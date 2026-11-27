@@ -5,7 +5,7 @@ import {
     CheckCircle, ShieldCheck, Package, Clock,
     Crown, Zap, Star, Layout, MapPin, AlertCircle, Check,
     CalendarDays, Home, Users, TrendingUp, Sparkles, Award, ArrowRight,
-    Flame, PauseCircle, Info, BadgeCheck, Sparkle
+    Flame, PauseCircle, Info, BadgeCheck, Sparkle, ChevronRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import subscriptionService from '../../../services/subscriptionService';
@@ -175,6 +175,16 @@ export const getSubscriptionWeightTheme = (plan) => {
         accentTextColor: 'text-slate-800'
     };
 };
+
+// Dark "luxe" palette for the plan cards (same as the mobile app): glossy dark card, metallic accent, bright pill CTA.
+const LUX = {
+    5: { bg: ['#3b1460', '#1f0a36', '#0d0418'], line: '#E9C9FF', accent: '#E3B8FF', glow: '216,180,254', cta: ['#F0D4FF', '#C98BFF'] },
+    4: { bg: ['#0f3a5c', '#071f36', '#030d19'], line: '#B9E6FF', accent: '#9FDCFF', glow: '125,211,252', cta: ['#C9EEFF', '#7CCBFF'] },
+    3: { bg: ['#6b4c10', '#2e2006', '#120c02'], line: '#E8C566', accent: '#FFD36A', glow: '255,211,106', cta: ['#FFE08A', '#F7C948'] },
+    2: { bg: ['#6a3412', '#2e1607', '#140902'], line: '#F2B27A', accent: '#FFB984', glow: '255,170,110', cta: ['#FFD0A8', '#FB9F5B'] },
+    1: { bg: ['#3a4556', '#1b222d', '#0b0f15'], line: '#D5DEE9', accent: '#E2E8F0', glow: '203,213,225', cta: ['#F1F5F9', '#CBD5E1'] },
+};
+const INK = '#1a1206';
 
 const PartnerSubscriptions = () => {
     const navigate = useNavigate();
@@ -595,206 +605,126 @@ const PartnerSubscriptions = () => {
                                 const Icon = theme.icon;
                                 const isCurrent = currentSub?.planId?._id === plan._id && isActive;
                                 const isSilver = theme.weight === 1 || plan.tier === 'silver';
-                                const isPopular = theme.weight === 3 || plan.tier === 'gold';
                                 const isMaxBoost = theme.weight >= 5 || plan.tier === 'diamond';
+
+                                const lx = LUX[theme.weight] || LUX[1];
+                                const perMonth = plan.durationDays > 30
+                                    ? `≈ ₹${Math.round((plan.price / plan.durationDays) * 30).toLocaleString('en-IN')} / month`
+                                    : isSilver ? 'Affordable entry for local listing' : '30-day listing & inquiries';
+                                const rgba = (a) => `rgba(${lx.glow},${a})`;
+                                const features = [
+                                    { key: 'props', text: <>Up to <b className="font-black text-white">{plan.maxProperties} properties</b> listed</> },
+                                    { key: 'leads', text: <><b className="font-black text-white">{plan.leadCap > 0 ? `${plan.leadCap} Leads` : 'Unlimited leads'}</b> / month</>, tag: plan.leadCap === 0 ? 'Unlimited' : null },
+                                    { key: 'rank', text: <>Ranking boost (<b className="font-black text-white">Level {theme.weight}</b> Priority)</> },
+                                    plan.hasVerifiedTag && { key: 'ver', text: 'Verified badge & trust seal', tag: 'Verified' },
+                                    plan.bannerType && plan.bannerType !== 'none' && { key: 'ban', text: <span className="capitalize">{plan.bannerType} banner presence</span>, tag: 'Banner' },
+                                    plan.pauseDaysAllowed > 0 && { key: 'pause', text: <><b className="font-black text-white">{plan.pauseDaysAllowed} days</b> subscription pause</> },
+                                ].filter(Boolean);
 
                                 return (
                                     <div
                                         key={plan._id}
-                                        className={`group relative rounded-3xl flex flex-col justify-between overflow-hidden transition-all duration-300 hover:-translate-y-1.5 ${theme.cardBg} ${
-                                            isCurrent
-                                                ? theme.activeRing
-                                                : `${theme.borderColor} ${theme.cardShadow}`
-                                        }`}
+                                        className="group relative rounded-[28px] flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1.5"
+                                        style={{
+                                            background: `linear-gradient(160deg, ${lx.bg[0]} 0%, ${lx.bg[1]} 55%, ${lx.bg[2]} 100%)`,
+                                            border: `${isCurrent ? 2.5 : 1.5}px solid ${lx.line}`,
+                                            boxShadow: `0 18px 40px -14px rgba(0,0,0,0.55), 0 0 0 1px ${rgba(0.08)}`,
+                                        }}
                                     >
-                                        {/* Top Sheen Line matching subscription weight */}
-                                        <div className={`h-2 w-full ${theme.topSheen}`} />
+                                        {/* Soft light blobs */}
+                                        <div className="pointer-events-none absolute -top-20 -right-20 w-52 h-52 rounded-full blur-3xl" style={{ background: rgba(0.35) }} />
+                                        <div className="pointer-events-none absolute -bottom-16 -left-16 w-44 h-44 rounded-full blur-3xl" style={{ background: rgba(0.25) }} />
 
-                                        {/* Floating Badge (e.g. Most Popular or Max Boost) */}
-                                        {theme.popularBadge && !isCurrent && (
-                                            <div className="px-5 pt-3 -mb-1">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                                    isPopular
-                                                        ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-stone-950 shadow-sm'
-                                                        : 'bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-sm'
-                                                }`}>
-                                                    {theme.popularBadge}
+                                        <div className="relative p-5 flex-1 flex flex-col gap-4">
+                                            {/* Top row: badge + weight */}
+                                            <div className="flex items-center justify-between min-h-5">
+                                                {theme.popularBadge && !isCurrent ? (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black" style={{ color: lx.accent, border: `1px solid ${rgba(0.5)}`, background: rgba(0.12) }}>
+                                                        {theme.popularBadge}
+                                                    </span>
+                                                ) : <span />}
+                                                <span
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold"
+                                                    style={isCurrent ? { background: lx.accent, color: INK } : { background: 'rgba(255,255,255,0.08)', color: lx.accent }}
+                                                >
+                                                    {isCurrent ? <CheckCircle size={11} /> : <TrendingUp size={11} />}
+                                                    {isCurrent ? 'Current Plan' : `Weight ${theme.weight}x`}
                                                 </span>
                                             </div>
-                                        )}
 
-                                        <div className="p-5 md:p-6 flex-1 flex flex-col">
-                                            {/* Top Row: Icon + Weight Pill / Current Plan Status */}
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className={`w-12 h-12 rounded-2xl ${theme.iconContainer} flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}>
-                                                    <Icon size={24} strokeWidth={2.4} />
+                                            {/* Title block */}
+                                            <div className="flex flex-col items-center text-center gap-1.5">
+                                                <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ border: `1.5px solid ${rgba(0.6)}`, background: rgba(0.12), color: lx.accent }}>
+                                                    <Icon size={20} strokeWidth={2.2} />
                                                 </div>
-
-                                                {isCurrent ? (
-                                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-slate-900 px-3 py-1 rounded-full shadow-sm">
-                                                        <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-                                                        Current Plan
+                                                <h4 className="text-[21px] font-black text-white leading-tight tracking-tight">{plan.name}</h4>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-10 h-[1.5px] opacity-80" style={{ background: lx.accent }} />
+                                                    <span className="text-[10px] font-extrabold tracking-[0.14em]" style={{ color: lx.accent }}>
+                                                        {theme.weight}x PRIORITY{isMaxBoost ? ' • MAX' : ''}
                                                     </span>
-                                                ) : (
-                                                    <span className={`inline-flex items-center gap-1 text-xs font-extrabold px-2.5 py-1 rounded-full ${theme.tierPill}`}>
-                                                        Weight {theme.weight}x
-                                                    </span>
-                                                )}
+                                                    <span className="w-10 h-[1.5px] opacity-80" style={{ background: lx.accent }} />
+                                                </div>
+                                                <p className="text-[11.5px] text-white/60 leading-relaxed line-clamp-2 px-1">{plan.description || theme.tagline}</p>
                                             </div>
 
-                                            {/* Plan Name & Tagline */}
+                                            {/* Features */}
+                                            <ul className="space-y-2 text-[12.5px] flex-1">
+                                                {features.map((f) => (
+                                                    <li key={f.key} className="flex items-center gap-2.5">
+                                                        <Check size={14} strokeWidth={3} className="shrink-0" style={{ color: lx.accent }} />
+                                                        <span className="flex-1 font-semibold text-white/80">{f.text}</span>
+                                                        {f.tag && (
+                                                            <span className="shrink-0 px-2 py-px rounded-full text-[9px] font-extrabold" style={{ color: lx.accent, border: `1px solid ${rgba(0.45)}` }}>{f.tag}</span>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+
+                                            {/* Ranking power meter */}
                                             <div>
-                                                <h4 className="text-xl font-black text-slate-950 leading-tight tracking-tight">
-                                                    {plan.name}
-                                                </h4>
-                                                <p className="text-xs text-slate-500 mt-1 line-clamp-2 font-medium leading-relaxed">
-                                                    {plan.description || theme.tagline}
-                                                </p>
-                                            </div>
-
-                                            {/* Visual Ranking Weight Instrument */}
-                                            <div className="mt-4 mb-4.5 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-                                                <div className="flex items-center justify-between text-xs mb-2">
-                                                    <span className="font-bold text-slate-700 flex items-center gap-1.5 text-[11px]">
-                                                        <TrendingUp size={13} className={theme.accentTextColor} />
-                                                        Ranking Power
-                                                    </span>
-                                                    <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${theme.rankingTag}`}>
-                                                        {theme.weight}x Priority {isMaxBoost ? '(MAX)' : ''}
-                                                    </span>
+                                                <div className="flex justify-between text-[10.5px] mb-1.5">
+                                                    <span className="font-bold text-white/60">Ranking Power</span>
+                                                    <span className="font-extrabold" style={{ color: lx.accent }}>{theme.weight}/5</span>
                                                 </div>
-                                                <div className="grid grid-cols-5 gap-1.5 h-2">
-                                                    {[1, 2, 3, 4, 5].map((step) => (
-                                                        <div
-                                                            key={step}
-                                                            className={`rounded-full transition-all duration-300 ${
-                                                                step <= theme.weight
-                                                                    ? theme.weightBarFilled
-                                                                    : 'bg-slate-200/80'
-                                                            }`}
-                                                        />
+                                                <div className="grid grid-cols-5 gap-1">
+                                                    {[1, 2, 3, 4, 5].map((s) => (
+                                                        <div key={s} className="h-1 rounded-full" style={{ background: s <= theme.weight ? lx.accent : 'rgba(255,255,255,0.14)' }} />
                                                     ))}
                                                 </div>
                                             </div>
 
-                                            {/* Pricing Display */}
-                                            <div className="pb-4 border-b border-slate-200/70">
-                                                <div className="flex items-baseline gap-1.5">
-                                                    <span className="text-3xl md:text-4xl font-black text-slate-950 tracking-tight font-sans">
-                                                        ₹{plan.price.toLocaleString('en-IN')}
-                                                    </span>
-                                                    <span className="text-xs font-bold text-slate-400">
-                                                        / {plan.durationDays} days
-                                                    </span>
+                                            {/* Price option (selected-pill look) */}
+                                            <div className="rounded-[18px] px-4 py-2.5 flex items-center" style={{ border: `1.5px solid ${rgba(0.55)}`, background: rgba(0.1) }}>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] font-bold" style={{ color: lx.accent }}>{plan.durationDays} Days Subscription</p>
+                                                    <div className="flex items-end gap-2">
+                                                        <span className="text-[22px] font-black text-white leading-tight">₹{plan.price.toLocaleString('en-IN')}</span>
+                                                        <span className="text-[10px] text-white/60 mb-1 truncate">{perMonth}</span>
+                                                    </div>
                                                 </div>
-                                                {plan.durationDays > 30 ? (
-                                                    <p className="text-[11px] font-bold text-slate-500 mt-1">
-                                                        ≈ ₹{Math.round((plan.price / plan.durationDays) * 30).toLocaleString('en-IN')} / month
-                                                    </p>
-                                                ) : (
-                                                    <p className="text-[11px] font-semibold text-slate-500 mt-1">
-                                                        {isSilver ? '⚡ Affordable entry for local listing' : '⚡ 30-day listing & inquiries'}
-                                                    </p>
-                                                )}
+                                                <span className="w-[22px] h-[22px] rounded-full flex items-center justify-center shrink-0" style={{ border: `2px solid ${lx.accent}` }}>
+                                                    <span className="w-3 h-3 rounded-full" style={{ background: lx.accent }} />
+                                                </span>
                                             </div>
 
-                                            {/* Feature List */}
-                                            <ul className="space-y-3 my-5 flex-1 text-xs">
-                                                <FeatureRow
-                                                    checkBg={theme.checkBg}
-                                                    text={
-                                                        <span>
-                                                            Up to <strong className="font-black text-slate-900">{plan.maxProperties} properties</strong> listed
-                                                        </span>
-                                                    }
-                                                />
-
-                                                <FeatureRow
-                                                    checkBg={theme.checkBg}
-                                                    text={
-                                                        <span>
-                                                            <strong className="font-black text-slate-900">
-                                                                {plan.leadCap > 0 ? `${plan.leadCap} Leads` : 'Unlimited leads'}
-                                                            </strong> / month
-                                                        </span>
-                                                    }
-                                                    highlightTag={plan.leadCap === 0 ? "Unlimited" : null}
-                                                    theme={theme}
-                                                />
-
-                                                <FeatureRow
-                                                    checkBg={theme.checkBg}
-                                                    text={
-                                                        <span>
-                                                            Ranking boost (<strong className="font-black text-slate-900">Level {theme.weight}</strong> Priority)
-                                                        </span>
-                                                    }
-                                                    highlightTag={theme.weight >= 3 ? `${theme.weight}x Priority` : null}
-                                                    theme={theme}
-                                                />
-
-                                                {plan.hasVerifiedTag && (
-                                                    <FeatureRow
-                                                        checkBg={theme.checkBg}
-                                                        text={
-                                                            <span className="font-bold text-slate-900">
-                                                                Verified partner badge & trust seal
-                                                            </span>
-                                                        }
-                                                        highlightTag="Verified"
-                                                        theme={theme}
-                                                    />
-                                                )}
-
-                                                {plan.bannerType && plan.bannerType !== 'none' && (
-                                                    <FeatureRow
-                                                        checkBg={theme.checkBg}
-                                                        text={
-                                                            <span className="capitalize font-bold text-slate-900">
-                                                                {plan.bannerType} banner presence
-                                                            </span>
-                                                        }
-                                                        highlightTag="Banner"
-                                                        theme={theme}
-                                                    />
-                                                )}
-
-                                                {plan.pauseDaysAllowed > 0 && (
-                                                    <FeatureRow
-                                                        checkBg={theme.checkBg}
-                                                        text={
-                                                            <span>
-                                                                <strong className="font-black text-slate-900">{plan.pauseDaysAllowed} days</strong> subscription pause
-                                                            </span>
-                                                        }
-                                                    />
-                                                )}
-                                            </ul>
-
-                                            {/* Action Button */}
-                                            <div className="pt-2 mt-auto">
+                                            {/* CTA */}
+                                            {isCurrent ? (
+                                                <div className="w-full py-3 rounded-full flex items-center justify-center gap-2 font-black text-sm" style={{ border: `1.5px solid ${lx.accent}`, color: lx.accent }}>
+                                                    <CheckCircle size={17} /> Current Active Plan
+                                                </div>
+                                            ) : (
                                                 <button
                                                     onClick={() => handlePurchase(plan)}
-                                                    disabled={processing || isCurrent}
-                                                    className={`w-full py-3.5 px-4 rounded-2xl font-black text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2 ${
-                                                        isCurrent
-                                                            ? theme.activeButton
-                                                            : `${theme.chooseButton} cursor-pointer`
-                                                    }`}
+                                                    disabled={processing}
+                                                    className="w-full py-3 rounded-full flex items-center justify-center gap-1.5 font-black text-[15px] cursor-pointer transition-transform active:scale-[0.98] disabled:opacity-60"
+                                                    style={{ background: `linear-gradient(135deg, ${lx.cta[0]}, ${lx.cta[1]})`, color: INK }}
                                                 >
-                                                    {isCurrent ? (
-                                                        <>
-                                                            <CheckCircle size={18} className="text-[#10b981]" />
-                                                            <span>Current Active Plan</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <span>Choose {theme.tierName}</span>
-                                                            <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                                                        </>
-                                                    )}
+                                                    Subscribe {theme.tierName}
+                                                    <ChevronRight size={17} strokeWidth={3} className="transition-transform group-hover:translate-x-1" />
                                                 </button>
-                                            </div>
+                                            )}
+                                            <p className="-mt-1 text-center text-[9.5px] text-white/45">Secure payment  •  Non-refundable  •  Upgrade anytime</p>
                                         </div>
                                     </div>
                                 );

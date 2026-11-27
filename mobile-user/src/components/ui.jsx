@@ -8,13 +8,17 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, X, Inbox, AlertCircle, RefreshCw } from 'lucide-react-native';
 import { colors, fontFor, radius, shadow } from '../theme';
 
+// The phone's system "Font size" setting must not enlarge the UI: on phones with a bigger
+// setting, cards grew taller and looked different from other phones. Cap the scale at 1x.
+export const FONT_SCALE_MAX = 1;
+
 // Text that maps fontWeight -> bundled Poppins family
-export const Text = ({ style, children, ...rest }) => {
+export const Text = ({ style, children, maxFontSizeMultiplier = FONT_SCALE_MAX, ...rest }) => {
   const flat = StyleSheet.flatten(style) || {};
   const { fontWeight, ...other } = flat;
   const family = flat.fontFamily || fontFor(fontWeight);
   return (
-    <RNText {...rest} style={[{ color: colors.textDark, fontSize: 14 }, other, { fontFamily: family }]}>
+    <RNText {...rest} maxFontSizeMultiplier={maxFontSizeMultiplier} style={[{ color: colors.textDark, fontSize: 14 }, other, { fontFamily: family }]}>
       {children}
     </RNText>
   );
@@ -24,6 +28,7 @@ export const Input = React.forwardRef(({ style, ...props }, ref) => (
   <RNTextInput
     ref={ref}
     placeholderTextColor={colors.gray300}
+    maxFontSizeMultiplier={FONT_SCALE_MAX}
     {...props}
     style={[{ fontFamily: fontFor('500'), color: colors.gray800, fontSize: 14, padding: 0 }, style]}
   />

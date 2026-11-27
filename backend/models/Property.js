@@ -219,6 +219,8 @@ const propertySchema = new mongoose.Schema({
   },
 
   isLive: { type: Boolean, default: false },
+  // First time admin approved the listing; drives the "New" tag window
+  approvedAt: { type: Date },
 
   // RATINGS
   avgRating: { type: Number, default: 3 },

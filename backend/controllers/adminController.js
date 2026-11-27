@@ -442,6 +442,10 @@ export const updateHotelStatus = async (req, res) => {
 
     const hotel = await Property.findByIdAndUpdate(id, update, { new: true });
     if (!hotel) return res.status(404).json({ success: false, message: 'Property not found' });
+    if (status === 'approved' && !hotel.approvedAt) {
+      hotel.approvedAt = new Date();
+      await Property.updateOne({ _id: hotel._id }, { $set: { approvedAt: hotel.approvedAt } });
+    }
 
     // NOTIFICATION: Notify the property owner (Partner + linked User account) of the status change
     if (hotel.partnerId) {
@@ -492,6 +496,7 @@ export const verifyPropertyDocuments = async (req, res) => {
       docs.verifiedAt = new Date();
       property.status = 'approved';
       property.isLive = true;
+      if (!property.approvedAt) property.approvedAt = new Date();
 
       // NOTIFICATION: Property Live
       notificationService.sendToPropertyOwner(property.partnerId, {
@@ -1083,6 +1088,7 @@ export const updatePlatformSettings = async (req, res) => {
       partnerFreeTrial,
       nearbySearchRadiusKm,
       topRatedPartnersSection,
+      newTagDuration,
     } = req.body;
 
     const settings = await PlatformSettings.getSettings();
@@ -1114,6 +1120,16 @@ export const updatePlatformSettings = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Nearby search radius must be between 1 and 1000 km' });
       }
       settings.nearbySearchRadiusKm = radiusKm;
+    }
+
+    if (newTagDuration && typeof newTagDuration === 'object') {
+      const value = Number(newTagDuration.value);
+      const unit = newTagDuration.unit === 'hours' ? 'hours' : 'days';
+      const max = unit === 'hours' ? 8760 : 365;
+      if (!Number.isFinite(value) || value < 0 || value > max) {
+        return res.status(400).json({ success: false, message: `"New" tag duration must be between 0 and ${max} ${unit}` });
+      }
+      settings.newTagDuration = { value, unit };
     }
 
     if (typeof platformOpen === 'boolean') settings.platformOpen = platformOpen;

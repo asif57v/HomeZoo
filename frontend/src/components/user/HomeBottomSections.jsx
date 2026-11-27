@@ -24,11 +24,13 @@ import {
     Check
 } from 'lucide-react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { propertyService } from '../../services/apiService';
 import { API_BASE_URL } from '../../config/apiConfig';
 
 // beforeApp: optional node rendered just above the "Download our app" banner
 const HomeBottomSections = ({ beforeApp = null }) => {
+    const navigate = useNavigate();
     // 1. Partners State (using existing recommended sellers service to maintain backend integration)
     const [partners, setPartners] = useState([]);
     const [loadingPartners, setLoadingPartners] = useState(true);
@@ -284,7 +286,7 @@ const HomeBottomSections = ({ beforeApp = null }) => {
                                     key={partner._id || idx}
                                     whileHover={{ y: -5 }}
                                     transition={{ duration: 0.2, ease: "easeOut" }}
-                                    onClick={() => window.location.href = `#/partners/${partner._id}`}
+                                    onClick={() => navigate(`/partners/${partner._id}`)}
                                     className="group relative w-[76vw] max-w-[265px] sm:max-w-[285px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start rounded-[14px] md:rounded-[20px] p-3 md:p-5 border border-[#FFE173] bg-gradient-to-br from-[#E8AE2E] via-[#FCE38A] to-[#D59821] shadow-[0_10px_28px_-8px_rgba(213,152,33,0.5)] md:shadow-[0_15px_40px_-10px_rgba(213,152,33,0.55)] hover:shadow-[0_20px_50px_-10px_rgba(213,152,33,0.7)] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md"
                                 >
                                     <div className="absolute top-0 right-0 w-24 md:w-32 h-24 md:h-32 bg-white/10 blur-xl rounded-full rounded-tr-none"></div>
@@ -352,7 +354,7 @@ const HomeBottomSections = ({ beforeApp = null }) => {
                                         <button 
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                window.location.href = `#/partners/${partner._id}`;
+                                                navigate(`/partners/${partner._id}`);
                                             }}
                                             className="w-full py-2 md:py-3 rounded-lg md:rounded-[10px] bg-gradient-to-b from-[#D4981C] via-[#A66F00] to-[#784E00] text-white font-extrabold text-xs md:text-sm shadow-[0_4px_12px_rgba(80,50,0,0.35)] md:shadow-[0_5px_15px_rgba(80,50,0,0.4)] flex items-center justify-center gap-2 hover:from-[#B58217] hover:to-[#5C3B00] transition-colors border border-[#FEEAA7]/30 border-t-[#FFF0B3]/50 active:scale-[0.98]"
                                         >
@@ -369,7 +371,7 @@ const HomeBottomSections = ({ beforeApp = null }) => {
                                 key={partner._id || idx}
                                 whileHover={{ y: -4 }}
                                 transition={{ duration: 0.2, ease: "easeOut" }}
-                                onClick={() => window.location.href = `#/partners/${partner._id}`}
+                                onClick={() => navigate(`/partners/${partner._id}`)}
                                 className={`group relative w-[76vw] max-w-[265px] sm:max-w-[285px] md:w-auto md:max-w-none shrink-0 md:shrink snap-start 
                                     ${theme.cardRadius || 'rounded-[16px]'} p-3 border ${theme.borderColor} ${theme.cardBg} ${theme.glowShadow} 
                                     transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden backdrop-blur-md`}
@@ -457,7 +459,7 @@ const HomeBottomSections = ({ beforeApp = null }) => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            window.location.href = `#/partners/${partner._id}`;
+                                            navigate(`/partners/${partner._id}`);
                                         }}
                                         className={`inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r ${theme.buttonGradient} text-white font-extrabold text-[10px] shadow-sm transition-all duration-300 active:scale-95 group/btn shrink-0`}
                                     >
